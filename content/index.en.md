@@ -10,29 +10,35 @@ This workshop covers various security features on Amazon EKS. This will be used 
 It will contain a dedicated module for each of the Amazon EKS Security features under different Sections such as :
 
 * Authentication and Authorization
-  -- IAM Authentication & RBAC Authorization
-  -- OIDC Authentication
-  -- AWS SSO Authentication
+
+  IAM Authentication & RBAC Authorization
+  OIDC Authentication
+  AWS SSO Authentication
+  
 * Image Static Security
-  -- Basic and Advanced Image Scanning
+
+  Basic and Advanced Image Scanning
+
 * Pod Runtime Security
-  -- PSS
+
+  Pod Security Standards
+
 * Network Security
-  -- Cluster End point Security
-  -- Network Policies
+* 
+  Cluster End point Security
+  Network Policies
+
 * Application Security
-  -- Application Authentication with Cognito
-  -- IRSA
-  -- Secrets Management with Secret CSI Driver
+
+  Application Authentication with Cognito
+  IRSA
+  Secrets Management with Secret CSI Driver
+
 * Security and Compliance
-  -- CIS EKS Benchmark
-  -- CIS AL2 Benchmark
-  -- STIG Compliance EKS AMI
-  -- CIS Bottlerocket Benchmark
+  CIS EKS Benchmark
+  CIS AL2 Benchmark
+  STIG Compliance EKS AMI
+  CIS Bottlerocket Benchmark
+
 * Logging and Auditing
-  -- Guardduty Integration
-* CIS Benchmark Image Hardening
-* Bottlerocket OS
-* IRSA
-* Secrets Management
-* etc
+  Guardduty Integration
