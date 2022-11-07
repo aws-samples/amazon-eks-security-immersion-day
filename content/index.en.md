@@ -1,8 +1,22 @@
 ---
-title: "AWS Workshop Template"
+title: "Amazon EKS Security Immersion Day"
 weight: 0
 ---
 
-# AWS WORKSHOP TEMPLATE
+# Amazon EKS Security Immersion Day
 
-This template is the default for creating workshop content for AWS Solutions Architecture. It is driven by Markdown, and provides an interactive experience for workshop attendees. The pages in this template provide examples for how to write your own content using the components available.
+This workshop covers various security features on Amazon EKS. This will be used as part of a dedicated Immersion day focossed only on EKS Security. 
+
+It will contain a dedicated module for each of the Amazon EKS Security features under different Sections such as :
+
+* Authentication and Authorization
+* Cluster End point Security
+* Basic and Advanced Image Scanning
+* Runtime Pod Security
+* Network policies
+* Guardduty Integration
+* CIS Benchmark Image Hardening
+* Bottlerocket OS
+* IRSA
+* Secrets Management
+* etc
