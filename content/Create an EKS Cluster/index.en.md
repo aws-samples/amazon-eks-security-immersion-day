@@ -1,6 +1,6 @@
 ---
-title : "Create the Envionment"
-weight : 11
+title : "Create an EKS Cluster"
+weight : 20
 ---
 
 # INTRODUCTION
