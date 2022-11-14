@@ -1,0 +1,11 @@
+---
+title : "CIS AL2 Benchmark"
+weight : 82
+---
+
+# What's included
+
+This project the following folders:
+
+* static: Store any static assets to be hosted alongside the workshop (ie. images, scripts, documents, etc).
+* content: This is the core workshop folder.
