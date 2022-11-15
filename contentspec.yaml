@@ -14,7 +14,8 @@ infrastructure:
     - templateLocation: static/bootstrap.template.yaml
       label: ddb template
 # END Infrastructure
-​# START Accounts
+
+# START Accounts
 awsAccountConfig:
   accountSources:
     - WorkshopStudio
