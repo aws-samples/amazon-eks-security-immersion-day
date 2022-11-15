@@ -1,10 +1,53 @@
 version: 2.0
-
+​
+# BEGIN Locale
 defaultLocaleCode: en-US
 localeCodes:
   - en-US
-
+# END Locale
+​
 params:
   hello: world
   foo:
     - bar
+​
+# START Infrastructure
+infrastructure:
+  cloudformationTemplates:
+    - templateLocation: static/bootstrap.template.yaml
+      label: ddb template
+# END Infrastructure
+​
+​# START Accounts
+awsAccountConfig:
+  accountSources:
+    - WorkshopStudio
+  #serviceLinkedRoles: 
+    #- appsync.amazonaws.com
+  participantRole: 
+    #iamPolicies: 
+      #- static/iam-policy.json
+    managedPolicies: 
+      - "arn:aws:iam::aws:policy/AdministratorAccess"
+    trustedPrincipals:
+      service: 
+        - ec2.amazonaws.com
+        - lambda.amazonaws.com
+  regionConfiguration:
+    minAccessibleRegions: 1
+    maxAccessibleRegions: 3
+    accessibleRegions:
+      required:
+        - us-east-1
+      recommended:
+        - us-east-1
+      optional:
+        - us-east-1
+    deployableRegions:
+      required:
+        - us-east-1
+      recommended:
+        - us-east-1
+      optional:
+        - us-east-1
+# END Accounts
