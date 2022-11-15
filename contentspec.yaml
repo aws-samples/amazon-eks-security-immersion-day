@@ -13,6 +13,10 @@ infrastructure:
   cloudformationTemplates:
     - templateLocation: static/bootstrap.template.yaml
       label: ddb template
+      parameters:
+        - templateParameter: EETeamRoleArn
+          defaultValue: "{{.ParticipantRoleArn}}"
+ 
 # END Infrastructure
 
 # START Accounts
