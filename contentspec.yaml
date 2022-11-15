@@ -1,23 +1,19 @@
 version: 2.0
-
 # BEGIN Locale
 defaultLocaleCode: en-US
 localeCodes:
   - en-US
 # END Locale
-​
 params:
   hello: world
   foo:
     - bar
-​
 # START Infrastructure
 infrastructure:
   cloudformationTemplates:
     - templateLocation: static/bootstrap.template.yaml
       label: ddb template
 # END Infrastructure
-​
 ​# START Accounts
 awsAccountConfig:
   accountSources:
