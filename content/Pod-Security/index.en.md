@@ -11,7 +11,7 @@ The Kubernetes pod specification includes a variety of different attributes that
 
 # Pod Security Concepts
 
-When considering Pod Security, there are several levers that can be used to control what containers with Pods can do.
+When considering Pod Security, there are several levers that can be used to control what containers, within pods, can do.
 - Linux Capabilities
 - Security Context
 - Seccomp profiles
