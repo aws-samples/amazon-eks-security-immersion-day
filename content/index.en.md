@@ -5,6 +5,9 @@ weight: 0
 
 This workshop covers various security features on Amazon EKS. This will be used as part of a dedicated Immersion day focossed only on EKS Security. 
 
+
+![Amazon EKS](/static/product-page.png)
+
 It will contain a dedicated module for each of the Amazon EKS Security features under different Sections such as :
 
 
