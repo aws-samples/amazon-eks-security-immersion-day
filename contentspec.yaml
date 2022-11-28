@@ -26,10 +26,12 @@ awsAccountConfig:
   #serviceLinkedRoles: 
     #- appsync.amazonaws.com
   participantRole: 
-    #iamPolicies: 
-      #- static/iam-policy.json
-    managedPolicies: 
-      - "arn:aws:iam::aws:policy/AdministratorAccess"
+    iamPolicies: 
+      - static/iam-policy-0.json
+      - static/ws-default-policy.json
+      - static/AllowTeamRoleAccessToCloud9.json
+    #managedPolicies: 
+    #  - "arn:aws:iam::aws:policy/AdministratorAccess"
     trustedPrincipals:
       service: 
         - ec2.amazonaws.com

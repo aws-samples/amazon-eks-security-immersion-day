@@ -1,0 +1,32 @@
+lamba.notifyworkshopsetupcomplete.role
+
+icy name
+Type
+Description
+
+CloudWatchLogsFullAccess	AWS managed	
+Provides full access to CloudWatch Logs
+
+AmazonSSMFullAccess	AWS managed	
+Provides full access to Amazon SSM.
+
+AWSLambdaExecute	AWS managed	
+Provides Put, Get access to S3 and full access to CloudWatch Logs.
+
+AWSLambdaRole
+
+
+
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "Service": "lambda.amazonaws.com"
+            },
+            "Action": "sts:AssumeRole"
+        }
+    ]
+}
+

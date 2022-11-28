@@ -3,21 +3,7 @@ AWSTemplateFormatVersion: "2010-09-09"
 Parameters:
   EETeamRoleArn:
     Type: String
-
-Mappings:
-  # These were obtained by running
-  # aws --region $REGION ec2 describe-images --filters Name=architecture,Values=arm64 Name=name,Values='amzn2-ami-kernel-5.10-hvm*' Name=creation-date,Values='2022-10-*'
-  GravitonBuilderAMI:
-    ap-southeast-1:
-      arm64: ami-05b2dbde43603d503
-    us-west-2:
-      arm64: ami-0efabcf945ffd8831
-    us-east-1:
-      arm64: ami-081dc0707789c2daf
-    us-east-2:
-      arm64: ami-04897acca32efd05c
-    eu-west-1:
-      arm64: ami-07e1daca3ee9095b3
+    Default: "IgnoreThisInIsenguardAccountForNow"
 
 Resources:
   VPC:
@@ -28,25 +14,29 @@ Resources:
       EnableDnsSupport: true
       Tags:
         - Key: Name
-          Value: GravitonWorkshop
+          Value: EKSSecurityImmersionDay
+  
   InternetGateway:
     Type: AWS::EC2::InternetGateway
     Properties:
       Tags:
         - Key: Name
-          Value: GravitonWorkshop
+          Value: EKSSecurityImmersionDay
+  
+  
   InternetGatewayAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
       InternetGatewayId: !Ref InternetGateway
       VpcId: !Ref VPC
+
   NatGatewayEIP:
     Type: AWS::EC2::EIP
     Properties:
       Domain: vpc
       Tags:
         - Key: Name
-          Value: GravitonWorkshop-NATGW
+          Value: EKSSecurityImmersionDay-NATGW
 
   # Public subnets
   PublicRouteTable:
@@ -55,13 +45,16 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: GravitonWorkshopPublic
+          Value: EKSSecurityImmersionDayPublic
+
+
   PublicDefaultRoute:
     Type: AWS::EC2::Route
     Properties:
       GatewayId: !Ref InternetGateway
       DestinationCidrBlock: "0.0.0.0/0"
       RouteTableId: !Ref PublicRouteTable
+  
   PublicSubnetA:
     Type: AWS::EC2::Subnet
     Properties:
@@ -70,7 +63,7 @@ Resources:
       CidrBlock: "10.254.0.0/24"
       Tags:
         - Key: Name
-          Value: GravitonWorkshopPublicA
+          Value: EKSSecurityImmersionDayPublicA
         - Key: kubernetes.io/role/elb
           Value: 1
   PublicSubnetARouteTableAssociation:
@@ -86,7 +79,7 @@ Resources:
       CidrBlock: "10.254.1.0/24"
       Tags:
         - Key: Name
-          Value: GravitonWorkshopPublicB
+          Value: EKSSecurityImmersionDayPublicB
         - Key: kubernetes.io/role/elb
           Value: 1
   PublicSubnetBRouteTableAssociation:
@@ -102,7 +95,7 @@ Resources:
       CidrBlock: "10.254.2.0/24"
       Tags:
         - Key: Name
-          Value: GravitonWorkshopPublicC
+          Value: EKSSecurityImmersionDayPublicC
         - Key: kubernetes.io/role/elb
           Value: 1
   PublicSubnetCRouteTableAssociation:
@@ -124,7 +117,7 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: GravitonWorkshopPrivate
+          Value: EKSSecurityImmersionDayPrivate
   PrivateDefaultRoute:
     Type: AWS::EC2::Route
     Properties:
@@ -139,7 +132,7 @@ Resources:
       CidrBlock: "10.254.128.0/19"
       Tags:
         - Key: Name
-          Value: GravitonWorkshopPrivateA
+          Value: EKSSecurityImmersionDayPrivateA
         - Key: kubernetes.io/role/internal-elb
           Value: 1
   PrivateSubnetARouteTableAssociation:
@@ -155,7 +148,7 @@ Resources:
       CidrBlock: "10.254.160.0/19"
       Tags:
         - Key: Name
-          Value: GravitonWorkshopPrivateB
+          Value: EKSSecurityImmersionDayPrivateB
         - Key: kubernetes.io/role/internal-elb
           Value: 1
   PrivateSubnetBRouteTableAssociation:
@@ -171,7 +164,7 @@ Resources:
       CidrBlock: "10.254.192.0/19"
       Tags:
         - Key: Name
-          Value: GravitonWorkshopPrivateC
+          Value: EKSSecurityImmersionDayPrivateC
         - Key: kubernetes.io/role/internal-elb
           Value: 1
   PrivateSubnetCRouteTableAssociation:
@@ -183,26 +176,13 @@ Resources:
   Cloud9Environment:
     Type: AWS::Cloud9::EnvironmentEC2
     Properties:
-      Description: Graviton Workshop
+      Description: Amazon EKS Security Immersion Day
       InstanceType: c5.large
       AutomaticStopTimeMinutes: 60
       SubnetId: !Ref PublicSubnetA
       ImageId: resolve:ssm:/aws/service/cloud9/amis/amazonlinux-2-x86_64
-      OwnerArn: !Join
-        - ":"
-        - - arn
-          - !Ref AWS::Partition
-          - sts
-          - ""
-          - !Select [4, !Split [":", !Ref EETeamRoleArn]]
-          - !Join
-            - "/"
-            - - assumed-role
-              - !Select [
-                  1,
-                  !Split ["/", !Select [5, !Split [":", !Ref EETeamRoleArn]]],
-                ]
-              - Participant
+      OwnerArn: arn:aws:iam::000474600478:user/jp
+
   Cloud9InstanceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -256,8 +236,8 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       Role: !GetAtt Cloud9RoleAttacherRole.Arn
-      Architectures:
-        - arm64
+      #Architectures:
+      #  - arm64
       Runtime: python3.9
       Handler: index.handler
       Timeout: 10
@@ -382,205 +362,6 @@ Resources:
     Properties:
       ServiceToken: !GetAtt SSHKeyPairCreatorFunction.Arn
 
-  JavaWebAppRepo:
-    Type: AWS::ECR::Repository
-    Properties:
-      RepositoryName: javawebapp
-    DeletionPolicy: Delete
-    UpdateReplacePolicy: Delete
-
-  ECSCluster:
-    Type: AWS::ECS::Cluster
-    Properties:
-      ClusterName: lab
-
-  ECSInstanceRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          Effect: Allow
-          Principal:
-            Service: !Sub ec2.${AWS::URLSuffix}
-          Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
-        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
-
-  ECSInstanceProfile:
-    Type: AWS::IAM::InstanceProfile
-    Properties:
-      Roles:
-        - !Ref ECSInstanceRole
-
-  ECSInstanceSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: ECS Instance
-      VpcId: !Ref VPC
-      SecurityGroupEgress:
-        - IpProtocol: "-1"
-          FromPort: 0
-          ToPort: 65535
-          CidrIp: "0.0.0.0/0"
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 22
-          ToPort: 22
-          CidrIp: !GetAtt VPC.CidrBlock
-
-  JavaDemoAppSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupName: java-demoapp
-      GroupDescription: Java demo app
-      VpcId: !Ref VPC
-      SecurityGroupEgress:
-        - IpProtocol: "-1"
-          FromPort: 0
-          ToPort: 65535
-          CidrIp: "0.0.0.0/0"
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 8080
-          ToPort: 8080
-          CidrIp: !GetAtt VPC.CidrBlock
-
-  PublicHTTPSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupName: http-public
-      GroupDescription: Public HTTP access
-      VpcId: !Ref VPC
-      SecurityGroupEgress:
-        - IpProtocol: "-1"
-          FromPort: 0
-          ToPort: 65535
-          CidrIp: "0.0.0.0/0"
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-          CidrIp: "0.0.0.0/0"
-
-  PublicLoadBalancer:
-    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
-    Properties:
-      Name: java-demoapp
-      Type: application
-      Subnets:
-        - !Ref PublicSubnetA
-        - !Ref PublicSubnetB
-        - !Ref PublicSubnetC
-      Scheme: internet-facing
-      SecurityGroups:
-        - !Ref PublicHTTPSecurityGroup
-
-  JavaDemoAppTargetGroup:
-    Type: AWS::ElasticLoadBalancingV2::TargetGroup
-    Properties:
-      Name: java-demoapp
-      Port: 8080
-      Protocol: HTTP
-      ProtocolVersion: HTTP1
-      TargetType: ip
-      VpcId: !Ref VPC
-
-  PublicLoadBalancerListener:
-    Type: AWS::ElasticLoadBalancingV2::Listener
-    Properties:
-      DefaultActions:
-        - Type: forward
-          TargetGroupArn: !Ref JavaDemoAppTargetGroup
-      LoadBalancerArn: !Ref PublicLoadBalancer
-      Port: 80
-      Protocol: HTTP
-
-  ECSTaskExecutionRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: ecsTaskExecutionRole
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: !Sub ecs-tasks.${AWS::URLSuffix}
-            Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
-
-  ECSX86LaunchTemplate:
-    Type: AWS::EC2::LaunchTemplate
-    Properties:
-      LaunchTemplateData:
-        IamInstanceProfile:
-          Name: !Ref ECSInstanceProfile
-        ImageId: "{{resolve:ssm:/aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id}}"
-        InstanceType: t3a.large
-        KeyName: !GetAtt SSHKeyPairCustomResource.KeyName
-        SecurityGroupIds:
-          - !Ref ECSInstanceSecurityGroup
-        UserData:
-          Fn::Base64: !Sub |
-            #!/bin/bash -xe
-            yum update -y
-            echo "ECS_CLUSTER=${ECSCluster}" >> /etc/ecs/ecs.config
-
-  ECSGravitonLaunchTemplate:
-    Type: AWS::EC2::LaunchTemplate
-    Properties:
-      LaunchTemplateData:
-        IamInstanceProfile:
-          Name: !Ref ECSInstanceProfile
-        ImageId: "{{resolve:ssm:/aws/service/ecs/optimized-ami/amazon-linux-2/arm64/recommended/image_id}}"
-        InstanceType: t4g.large
-        KeyName: !GetAtt SSHKeyPairCustomResource.KeyName
-        SecurityGroupIds:
-          - !Ref ECSInstanceSecurityGroup
-        UserData:
-          Fn::Base64: !Sub |
-            #!/bin/bash -xe
-            yum update -y
-            echo "ECS_CLUSTER=${ECSCluster}" >> /etc/ecs/ecs.config
-
-  ECSX86Instances:
-    Type: AWS::AutoScaling::AutoScalingGroup
-    Properties:
-      LaunchTemplate:
-        Version: !GetAtt ECSX86LaunchTemplate.LatestVersionNumber
-        LaunchTemplateId: !Ref ECSX86LaunchTemplate
-      NewInstancesProtectedFromScaleIn: false # change to true
-      Tags:
-        - Key: Name
-          Value: ECSClusterX86Instance
-          PropagateAtLaunch: true
-      MinSize: 2
-      MaxSize: 10
-      VPCZoneIdentifier:
-        - !Ref PrivateSubnetA
-        - !Ref PrivateSubnetB
-        - !Ref PrivateSubnetC
-
-  ECSGravitonInstances:
-    Type: AWS::AutoScaling::AutoScalingGroup
-    Properties:
-      LaunchTemplate:
-        Version: !GetAtt ECSGravitonLaunchTemplate.LatestVersionNumber
-        LaunchTemplateId: !Ref ECSGravitonLaunchTemplate
-      NewInstancesProtectedFromScaleIn: false # change to true
-      Tags:
-        - Key: Name
-          Value: ECSClusterGravitonInstance
-          PropagateAtLaunch: true
-      MinSize: 2
-      MaxSize: 10
-      VPCZoneIdentifier:
-        - !Ref PrivateSubnetA
-        - !Ref PrivateSubnetB
-        - !Ref PrivateSubnetC
-
   SecretsEncryptionKey:
     Type: AWS::KMS::Key
     Properties:
@@ -639,8 +420,8 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       Role: !GetAtt EKSClusterCreatorRole.Arn
-      Architectures:
-        - arm64
+      #Architectures:
+      #  - arm64
       Runtime: python3.9
       Handler: index.handler
       Timeout: 900
@@ -675,14 +456,15 @@ Resources:
                                     aws_session_token=response['Credentials']['SessionToken']
                                     )
 
-                  cluster_name = event['LogicalResourceId'] + '-' + \
-                      ''.join(random.choice(string.ascii_letters + string.digits)
-                              for i in range(12))
+                  #cluster_name = event['LogicalResourceId'] + '-' + \
+                  #    ''.join(random.choice(string.ascii_letters + string.digits)
+                  #            for i in range(12))
+                  cluster_name='eksworkshop-eksctl'
 
                   print('Creating cluster ' + cluster_name)
                   response = eks.create_cluster(
                       name=cluster_name,
-                      version='1.23',
+                      version='1.24',
                       roleArn=event['ResourceProperties']['ClusterRoleArn'],
                       resourcesVpcConfig={
                           'subnetIds': event['ResourceProperties']['SubnetIds'],
@@ -763,7 +545,7 @@ Resources:
       AmiType: AL2_x86_64
       CapacityType: ON_DEMAND
       InstanceTypes:
-        - t3a.small
+        - m5.large
       RemoteAccess:
         Ec2SshKey: !GetAtt SSHKeyPairCustomResource.KeyName
         SourceSecurityGroups:
@@ -773,7 +555,7 @@ Resources:
         MinSize: 2
         MaxSize: 10
 
-  EKSNodegroupArm64:
+  EKSNodegroupBottlerocket:
     Type: AWS::EKS::Nodegroup
     Properties:
       ClusterName: !Ref EKSCluster
@@ -782,10 +564,10 @@ Resources:
         - !Ref PrivateSubnetA
         - !Ref PrivateSubnetB
         - !Ref PrivateSubnetC
-      AmiType: AL2_ARM_64
+      AmiType: BOTTLEROCKET_x86_64
       CapacityType: ON_DEMAND
       InstanceTypes:
-        - t4g.small
+        - m5.large
       RemoteAccess:
         Ec2SshKey: !GetAtt SSHKeyPairCustomResource.KeyName
         SourceSecurityGroups:
@@ -1186,74 +968,6 @@ Resources:
                 Resource: !Sub "${RunCommandLogGroup.Arn}:*"
           PolicyName: Cloud9Initialize
 
-  GravitonBuildInstanceSecurityGroup:
-    Properties:
-      GroupDescription: Graviton Build Instance
-      VpcId: !Ref VPC
-      SecurityGroupEgress:
-        - IpProtocol: "-1"
-          FromPort: 0
-          ToPort: 65535
-          CidrIp: "0.0.0.0/0"
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 22
-          ToPort: 22
-          CidrIp: !GetAtt VPC.CidrBlock
-    Type: AWS::EC2::SecurityGroup
-
-  GravitonBuildInstanceRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          Effect: Allow
-          Principal:
-            Service: !Sub ec2.${AWS::URLSuffix}
-          Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
-        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser
-
-  GravitonBuildInstanceProfile:
-    Properties:
-      Roles:
-        - !Ref GravitonBuildInstanceRole
-    Type: AWS::IAM::InstanceProfile
-
-  GravitonBuildInstance:
-    Type: AWS::EC2::Instance
-    Properties:
-      ImageId: !FindInMap [GravitonBuilderAMI, !Ref AWS::Region, arm64]
-      InstanceType: c6g.large
-      KeyName: !GetAtt SSHKeyPairCustomResource.KeyName
-      NetworkInterfaces:
-        - DeviceIndex: 0
-          GroupSet:
-            - !Ref GravitonBuildInstanceSecurityGroup
-          SubnetId: !Ref PrivateSubnetA
-      IamInstanceProfile: !Ref GravitonBuildInstanceProfile
-      Tags:
-        - Key: Name
-          Value: GravitonBuildInstance
-      UserData:
-        Fn::Base64: !Sub |
-          #!/bin/bash -xe
-
-          PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
-
-          yum -y update
-          yum -y groupinstall 'Development Tools'
-          amazon-linux-extras install -y docker
-          usermod -G docker ec2-user
-          systemctl enable --now docker
-          curl -sSL "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o "/tmp/awscliv2.zip"
-          (cd /tmp && unzip awscliv2.zip && ./aws/install)
-          rm -rf /tmp/aws /tmp/awscliv2.zip
-          su -l -c 'echo "export JAVA_WEBAPP_REPO=${JavaWebAppRepo.RepositoryUri}" >> ~/.bash_profile' ec2-user
-          su -l -c 'aws ecr get-login-password --region ${AWS::Region} | docker login --username AWS --password-stdin ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com' ec2-user
-
   EC2InitializerRole:
     Type: AWS::IAM::Role
     Properties:
@@ -1285,8 +999,8 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       Role: !GetAtt EC2InitializerRole.Arn
-      Architectures:
-        - arm64
+      #Architectures:
+      #  - arm64
       Runtime: python3.9
       Handler: index.handler
       Timeout: 10
@@ -1316,18 +1030,22 @@ Resources:
                   instance_id = instance['InstanceId']
                   commands = '''
               su -l -c 'aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com' ec2-user
-              curl -sSL -o /tmp/kubectl https://s3.us-west-2.amazonaws.com/amazon-eks/1.23.7/2022-06-29/bin/linux/amd64/kubectl
+              curl -sSL -o /tmp/kubectl https://s3.us-west-2.amazonaws.com/amazon-eks/1.24.7/2022-10-31/bin/linux/amd64/kubectl
               chmod +x /tmp/kubectl
               mv /tmp/kubectl /usr/local/bin/kubectl
+
+              curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+              unzip awscliv2.zip
+              sudo ./aws/install
+
               su -l -c 'aws eks update-kubeconfig --name {eks_cluster_name} --region {region} --role-arn {instance_role_arn}' ec2-user
               su -l -c 'mkdir -p ~/.ssh && chmod 700 ~/.ssh' ec2-user
               su -l -c 'echo "export AWS_ACCOUNT_ID={account_id}" >> ~/.bash_profile' ec2-user
               su -l -c 'echo "export AWS_DEFAULT_REGION={region}" >> ~/.bash_profile' ec2-user
               su -l -c 'echo "export AWS_REGION={region}" >> ~/.bash_profile' ec2-user
-              su -l -c 'echo "export ECS_CLUSTER={ecs_cluster_name}" >> ~/.bash_profile' ec2-user
               su -l -c 'echo "export EKS_CLUSTER={eks_cluster_name}" >> ~/.bash_profile' ec2-user
-              su -l -c 'echo "export GRAVITON_BUILD_INSTANCE_IP={graviton_build_instance_ip}" >> ~/.bash_profile' ec2-user
-              su -l -c 'echo "export JAVA_WEBAPP_REPO={java_webapp_repo}" >> ~/.bash_profile' ec2-user
+              su -l -c 'aws cloud9 update-environment  --environment-id $C9_PID --managed-credentials-action DISABLE > /dev/null 2>&1' ec2-user
+              su -l -c 'rm -vf ~/.aws/credentials' ec2-user
               su -l -c 'echo "{key_material}" > ~/.ssh/id_rsa' ec2-user
               su -l -c 'chmod 600 ~/.ssh/id_rsa' ec2-user
               curl -sSL "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
@@ -1368,15 +1086,12 @@ Resources:
               shutdown -r 1
               '''.format(
                       eks_cluster_name=event['ResourceProperties']['EKSClusterName'],
-                      ecs_cluster_name=event['ResourceProperties']['ECSClusterName'],
                       region=event['ResourceProperties']['Region'],
                       instance_role_arn=event['ResourceProperties']['InstanceRoleArn'],
                       load_balancer_controller_role_arn=event['ResourceProperties']['LoadBalancerControllerRoleArn'],
                       key_material=event['ResourceProperties']['KeyMaterial'],
                       instance_id=instance_id,
                       vpc_cni_role_arn=event['ResourceProperties']['VpcCniRoleArn'],
-                      graviton_build_instance_ip=event['ResourceProperties']['GravitonBuildInstanceAddr'],
-                      java_webapp_repo=event['ResourceProperties']['JavaWebAppRepo'],
                       account_id=event['ResourceProperties']['AccountId'],
                   ).split("\n")
                   client = boto3.client('ssm')
@@ -1407,12 +1122,9 @@ Resources:
       SsmRoleArn: !GetAtt SSMRole.Arn
       LogGroupName: !Ref RunCommandLogGroup
       EKSClusterName: !Ref EKSCluster
-      ECSClusterName: !Ref ECSCluster
-      GravitonBuildInstanceAddr: !GetAtt GravitonBuildInstance.PrivateIp
       AccountId: !Sub "${AWS::AccountId}"
       Region: !Sub "${AWS::Region}"
       InstanceRoleArn: !GetAtt Cloud9InstanceRole.Arn
       LoadBalancerControllerRoleArn: !GetAtt LoadBalancerControllerRole.Arn
       KeyMaterial: !GetAtt SSHKeyPairCustomResource.KeyMaterial
       VpcCniRoleArn: !GetAtt VPCCNIRole.Arn
-      JavaWebAppRepo: !GetAtt JavaWebAppRepo.RepositoryUri

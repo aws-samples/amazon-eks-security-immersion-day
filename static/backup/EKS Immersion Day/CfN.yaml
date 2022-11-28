@@ -1,0 +1,886 @@
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: "EKS BlueGreen Deployment Workshop Setup"  
+Parameters:
+  # Optional parameters passed by the Event Engine to the stack.
+  EEAssetsBucket:
+    Description: "Region-specific assets S3 bucket name (e.g. ee-assets-prod-us-east-1)"
+    Type: String
+  EEAssetsKeyPrefix:
+    Description: "S3 key prefix where this modules assets are stored. (e.g. modules/my_module/v1/)"
+    Type: String
+  EETeamRoleArn:
+    Description: "ARN of the Team Role"
+    Type: String
+  EETeamRoleName:
+    Description: "Name of the Team Role"
+    Type: String
+  EETeamRoleNameKey:
+    Description: "Name of the Team Role"
+    Type: String
+    Default: "MasterKey"
+Resources:
+  Cloud9EC2AdminRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: workshop.admin.role
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AmazonEC2FullAccess'
+        - 'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess'
+        - 'arn:aws:iam::aws:policy/IAMFullAccess'
+        - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
+        - 'arn:aws:iam::aws:policy/CloudWatchLogsFullAccess'
+        - 'arn:aws:iam::aws:policy/AmazonS3FullAccess'
+        - 'arn:aws:iam::aws:policy/AmazonEKSClusterPolicy'
+        - 'arn:aws:iam::aws:policy/AdministratorAccess'
+  LambdaEventHandlerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: lamba.eehandler.role
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AmazonEC2FullAccess'
+        - 'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess'
+        - 'arn:aws:iam::aws:policy/IAMFullAccess'
+        - 'arn:aws:iam::aws:policy/AmazonSSMFullAccess'
+  Cloud9ConfigDoc:
+    Type: AWS::SSM::Document
+    Properties:
+      Content: "{\"schemaVersion\": \"2.0\",\"version\": \"1.0.0\",\"packages\": {\"amazon\": {\"_any\": {\"x86_64\": {\"file\": \"install.zip\"}}}},\"files\": {\"install.zip\": {\"checksums\": {\"sha256\": \"012a529155d8e1fac9d131c5a2a90d1a0172c58c3ac05028390dd15d72a4d9e2\"}}}}"
+      Name: "workshop-tools"
+      DocumentFormat: "JSON"
+      DocumentType: "Package"
+      Attachments:
+        - Key: SourceUrl
+          Values:
+            - !Join ["", ["s3://",!Ref EEAssetsBucket, "/",!Ref EEAssetsKeyPrefix, "scripts"]]
+  Cloud9SetupAgent:
+    Type: AWS::Lambda::Function
+    DependsOn: Cloud9ConfigDoc
+    Properties:
+      Runtime: nodejs12.x
+      Role: !GetAtt LambdaEventHandlerRole.Arn
+      Handler: index.handler
+      FunctionName: SetupCloud9Config
+      Timeout: 900
+      Environment:
+        Variables:
+          Timeout1: 15000
+          Timeout2: 30000
+      Code:
+        ZipFile: |
+          var AWS = require('aws-sdk');
+          var ssm = new AWS.SSM();
+          var ec2 = new AWS.EC2();
+          exports.handler =  function(event, context, callback) {
+            if (event.RequestType == "Delete") {
+              sendResponse(event, context, "SUCCESS");
+              return;
+             }
+            var params = {
+              Filters: [
+                {
+                  Name: 'tag:platform:type',
+                  Values: [
+                    "Cloud9"
+                  ]
+                },
+                {
+                  Name: 'instance-state-name',
+                  Values: ['running']
+                }
+              ]
+            };
+            ec2.describeInstances(params,function(err, data) {
+              if (err) {
+                console.log(err, err.stack);
+              }
+              else {
+                runCommand(event, context,data);
+              }
+            });
+          };
+          function runCommand(event, context,data) {
+            try {
+                  var instanceId = data.Reservations[0].Instances[0].InstanceId;
+                  var assocInstanceProfile = data.Reservations[0].Instances[0].IamInstanceProfile;
+                  console.log("Instances Identified " + instanceId);
+                  associateIamInstanceProfile(event, context,assocInstanceProfile,instanceId);
+                }catch (Error) {
+                   console.log("Error while executing workshop setuo " + Error);
+                   setTimeout(function() {sendResponse(event, context, "FAILED");},process.env.Timeout2);
+                }
+          }
+          function waitTillIAMProfileAssociate(event, context,iamInstanceProfileId,instanceId,timeout,maxretries) {
+            if(maxretries > 0) {
+                var params = {
+                   AssociationIds: [iamInstanceProfileId]
+                };
+                ec2.describeIamInstanceProfileAssociations(params, function(err, data) {
+                  if (err) {
+                      setTimeout(function() { waitTillIAMProfileAssociate(event, context,iamInstanceProfileId,instanceId,timeout,--maxretries); },timeout);
+                  } else {
+                      console.log("Instance Profile State " + data.IamInstanceProfileAssociations[0].State);
+                      if(data.IamInstanceProfileAssociations[0].State !== "associated") {
+                        setTimeout(function() { waitTillIAMProfileAssociate(event, context,iamInstanceProfileId,instanceId,timeout,--maxretries); },timeout);
+                      } else {
+                        console.log("Instance Profile successfully associated");
+                        rebootInstances(event, context,instanceId);
+                        //return resolve("Instance Profile successfully associated");
+                      }
+                  }
+                });
+              } else {
+                console.log("Maximum retries exceeded for assocInstanceProfile API call");
+                throw new Error("Maximum retries exceeded for assocInstanceProfile API call");
+              } 
+          }
+          function associateIamInstanceProfile(event, context,assocInstanceProfile,instanceId) {
+              console.log("Info : Calling associateIamInstanceProfile with " + assocInstanceProfile, + ", " + instanceId);
+              if(!assocInstanceProfile) {
+                  var params = {
+                    IamInstanceProfile: {
+                      Name: 'AllowAllAccessToCloud9EC2'
+                    },
+                    InstanceId: instanceId
+                  };
+                  ec2.associateIamInstanceProfile(params, function(err, data) {
+                    if (err) {
+                      console.log(err, err.stack);
+                      //reject(new Error("Unable to associated instance profile to the instance"));
+                      throw new Error("Unable to associated instance profile to the instance");
+                    }
+                    else {
+                      console.log("Started associating iam instance profile");
+                      waitTillIAMProfileAssociate(event, context,data.AssociationId,instanceId,process.env.Timeout1,12);
+                    }
+                  });
+                } else {
+                  waitTillSSMDocActive(event, context,process.env.Timeout2,10,instanceId);
+                }
+            }
+            function rebootInstances(event, context,instanceId) {
+              console.log("Info : Calling rebootInstances with " + instanceId);
+                var params = { InstanceIds: [ instanceId ] };
+                ec2.rebootInstances(params, function(err, data) {
+                  if (err) {
+                    console.log(err, err.stack);
+                    throw new Error("Rebooting instance failed");
+                  }
+                  else {
+                    console.log("Issued reboot instance api call...");
+                    ec2.waitFor('instanceStatusOk', params, function(err, data) {
+                      if (err) {
+                        console.log(err,err.stack); 
+                        throw new Error("Instance reboot failure, instance status not ok");
+                      } else {
+                        console.log(data);
+                        //resolve("Successfully rebooted the intances")
+                        waitTillSSMDocActive(event, context,process.env.Timeout2,10,instanceId);
+                      }
+                    });
+                  }
+                });
+            }
+            function waitTillSSMDocActive(event, context,timeout,maxretries,instanceId) {
+              console.log("Info : Calling waitTillSSMDocActive with " + instanceId + ", maxretries");
+                if(maxretries > 0) {
+                  var params = {
+                    Name: 'workshop-tools',
+                    DocumentFormat: 'JSON'
+                  };
+                  ssm.getDocument(params, function(err, data) {
+                    if(err) {
+                      console.log(err,err.stack);
+                      setTimeout(function() { waitTillSSMDocActive(event, context,timeout,--maxretries,instanceId); },timeout);
+                    } else {
+                      console.log("Info getDocument " + JSON.stringify(data));
+                      if(data.Status !== 'Active') {
+                        setTimeout(function() { waitTillSSMDocActive(event, context,timeout,--maxretries,instanceId); },timeout);
+                      } else {
+                        console.log("SSM Document status active, ready to run commands");
+                        execInstallScripts(event, context,instanceId,5);
+                      }
+                    }
+                  });
+                } else {
+                  console.log("Maximum retries exceeded for getDocument API call");
+                  throw(new Error("Maximum retries exceeded for getDocument API call"));
+                }
+            }
+            function execInstallScripts(event, context,instanceId, maxretries) {
+              console.log("Info : Calling execInstallScripts with " + instanceId + "," + maxretries);
+              if(maxretries > 0) {
+                var params = {
+                  DocumentName: 'AWS-ConfigureAWSPackage',
+                  DocumentVersion: '1',
+                  CloudWatchOutputConfig: {
+                      CloudWatchOutputEnabled: true
+                  },
+                  Parameters: {
+                    action: ['Install'],
+                    installationType:["Uninstall and reinstall"],
+                    name: ["workshop-tools"],
+                    version:[""]
+                  },
+                  InstanceIds: [instanceId],
+                  TimeoutSeconds: 60
+                };
+                
+                ssm.sendCommand(params,function(err, data) {
+                  if (err) {
+                    console.log(err, err.stack);
+                    setTimeout(function() { execInstallScripts(event, context,instanceId,--maxretries);}, process.env.Timeout2);
+                  } else {
+                    console.log("Successfully executed the install scripts " + JSON.stringify(data));
+                    setTimeout(function() {
+                      var responseData = {
+                        'CommandId': data.Command.CommandId,
+                        'InstanceId': instanceId
+                      };
+                      sendResponse(event, context, "SUCCESS",responseData);
+                    },10);
+                  }
+                });
+              } else {
+                console.log("Maximum retries exceeded for sendCommand API call");
+                throw new Error("Maximum retries exceeded for sendCommand API call");
+              }
+            }
+            // Send response to the pre-signed S3 URL 
+            function sendResponse(event, context, responseStatus) {
+              var responseData = {};
+              sendResponse(event, context, responseStatus,responseData);
+            }
+            // Send response to the pre-signed S3 URL 
+            function sendResponse(event, context, responseStatus,responseData) {
+                var responseBody = JSON.stringify({
+                    Status: responseStatus,
+                    Reason: "See the details in CloudWatch Log Stream: " + context.logStreamName,
+                    PhysicalResourceId: context.logStreamName,
+                    StackId: event.StackId,
+                    RequestId: event.RequestId,
+                    LogicalResourceId: event.LogicalResourceId,
+                    Data: responseData
+                });
+             
+                console.log("RESPONSE BODY:\n", responseBody);
+             
+                var https = require("https");
+                var url = require("url");
+             
+                var parsedUrl = url.parse(event.ResponseURL);
+                var options = {
+                    hostname: parsedUrl.hostname,
+                    port: 443,
+                    path: parsedUrl.path,
+                    method: "PUT",
+                    headers: {
+                        "content-type": "",
+                        "content-length": responseBody.length
+                    }
+                };
+             
+                console.log("SENDING RESPONSE...\n");
+             
+                var request = https.request(options, function(response) {
+                    console.log("STATUS: " + response.statusCode);
+                    console.log("HEADERS: " + JSON.stringify(response.headers));
+                    // Tell AWS Lambda that the function execution is done  
+                    context.done();
+                });
+             
+                request.on("error", function(error) {
+                    console.log("sendResponse Error:" + error);
+                    // Tell AWS Lambda that the function execution is done  
+                    context.done();
+                });
+              
+                // write data to request body
+                request.write(responseBody);
+                request.end();
+            }
+      Description: Enable Cloud9 start with relevant permissions
+  AllowAllAccessToCloud9EC2:
+    Type: AWS::IAM::InstanceProfile
+    DependsOn: Cloud9EC2AdminRole
+    Properties:
+      InstanceProfileName: "AllowAllAccessToCloud9EC2"
+      Path: "/"
+      Roles:
+        - workshop.admin.role
+  Cloud9AccessPolicy:
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      PolicyName: AllowTeamRoleAccessToCloud9
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'cloud9:*'
+              - 'iam:ListUsers'
+              - 'iam:GetUser'
+              - 'ec2:DescribeVpcs'
+              - 'ec2:DescribeSubnets'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'iam:CreateServiceLinkedRole'
+            Resource: '*'
+            Condition:
+              StringLike:
+                'iam:AWSServiceName': cloud9.amazonaws.com
+      Roles:
+        - !Ref EETeamRoleName
+  Cloud9VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: 192.168.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: eksctl-eksworkshop-VPC
+        - Key: owner:name
+          Value: AWS
+        - Key: owner:billing:cost-center
+          Value: AWS
+        - Key: platform:name
+          Value: Immersion-Day
+  Cloud9VPCIGW:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties:
+      Tags:
+        - Key: Name
+          Value: eksctl-eksworkshop-VPC
+        - Key: owner:name
+          Value: AWS
+        - Key: owner:billing:cost-center
+          Value: AWS
+        - Key: platform:name
+          Value: Immersion-Day
+  AttachGateway:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpcId: !Ref Cloud9VPC
+      InternetGatewayId: !Ref Cloud9VPCIGW
+  Cloud9CommonRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref Cloud9VPC
+      Tags:
+        - Key: Name
+          Value: eksctl-eksworkshop-VPC
+        - Key: owner:name
+          Value: AWS
+        - Key: owner:billing:cost-center
+          Value: AWS
+        - Key: platform:name
+          Value: Immersion-Day
+  Cloud9IGWRoute:
+    Type: 'AWS::EC2::Route'
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref Cloud9CommonRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref Cloud9VPCIGW
+  Cloud9PublicSubnetOne:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref Cloud9VPC
+      AvailabilityZone: !Select
+        - 0
+        - Fn::GetAZs: !Ref 'AWS::Region'
+      MapPublicIpOnLaunch: true
+      CidrBlock: 192.168.0.0/19
+      Tags:
+        - Key: Name
+          Value: eksctl-eksworkshop-VPC
+        - Key: owner:name
+          Value: AWS
+        - Key: owner:billing:cost-center
+          Value: AWS
+        - Key: platform:name
+          Value: Immersion-Day
+        - Key: platform:visibility
+          Value: public
+  Cloud9PublicSubnetOneRouteTableAssoc:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref Cloud9PublicSubnetOne
+      RouteTableId: !Ref Cloud9CommonRouteTable
+  Cloud9EC2:
+    Type: AWS::Cloud9::EnvironmentEC2
+    Properties:
+      AutomaticStopTimeMinutes: 20160
+      OwnerArn: !Join ["", ["arn:aws:sts::",!Ref 'AWS::AccountId',":","assumed-role/", !Ref EETeamRoleName ,"/",!Ref EETeamRoleNameKey]]
+      InstanceType: t3.small
+      ImageId: amazonlinux-2-x86_64
+      Name: WorkshopWorkspace
+      SubnetId: !Ref Cloud9PublicSubnetOne
+      Tags:
+        - Key: owner:name
+          Value: AWS
+        - Key: owner:billing:cost-center
+          Value: AWS
+        - Key: event:name
+          Value: Immersion-Day
+        - Key: platform:type
+          Value: Cloud9
+  Cloud9PublicSubnetTwo:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref Cloud9VPC
+      AvailabilityZone: !Select
+        - 1
+        - Fn::GetAZs: !Ref 'AWS::Region'
+      MapPublicIpOnLaunch: true
+      CidrBlock: 192.168.32.0/19
+      Tags:
+        - Key: Name
+          Value: eksctl-eksworkshop-VPC
+        - Key: owner:name
+          Value: AWS
+        - Key: owner:billing:cost-center
+          Value: AWS
+        - Key: platform:name
+          Value: Immersion-Day
+        - Key: platform:visibility
+          Value: public
+  Cloud9PublicSubnetTwoRouteTableAssoc:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref Cloud9PublicSubnetTwo
+      RouteTableId: !Ref Cloud9CommonRouteTable
+  Cloud9PublicSubnetThree:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref Cloud9VPC
+      AvailabilityZone: !Select
+        - 2
+        - Fn::GetAZs: !Ref 'AWS::Region'
+      MapPublicIpOnLaunch: true
+      CidrBlock: 192.168.64.0/19
+      Tags:
+        - Key: Name
+          Value: eksctl-eksworkshop-VPC
+        - Key: owner:name
+          Value: AWS
+        - Key: owner:billing:cost-center
+          Value: AWS
+        - Key: platform:name
+          Value: Immersion-Day
+        - Key: platform:visibility
+          Value: public
+  Cloud9PublicSubnetThreeRouteTableAssoc:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref Cloud9PublicSubnetThree
+      RouteTableId: !Ref Cloud9CommonRouteTable
+  Cloud9AZOneNATEIP:
+     DependsOn: AttachGateway
+     Type: AWS::EC2::EIP
+     Properties:
+        Domain: vpc
+        Tags:
+        - Key: Name
+          Value: eksctl-eksworkshop-VPC
+        - Key: owner:name
+          Value: AWS
+        - Key: owner:billing:cost-center
+          Value: AWS
+        - Key: platform:name
+          Value: Immersion-Day
+        - Key: platform:visibility
+          Value: public
+  Cloud9AZTwoNATEIP:
+     DependsOn: AttachGateway
+     Type: AWS::EC2::EIP
+     Properties:
+        Domain: vpc
+        Tags:
+        - Key: Name
+          Value: eksctl-eksworkshop-VPC
+        - Key: owner:name
+          Value: AWS
+        - Key: owner:billing:cost-center
+          Value: AWS
+        - Key: platform:name
+          Value: Immersion-Day
+  Cloud9AZThreeNATEIP:
+     DependsOn: AttachGateway
+     Type: AWS::EC2::EIP
+     Properties:
+        Domain: vpc
+        Tags:
+        - Key: Name
+          Value: eksctl-eksworkshop-VPC
+        - Key: owner:name
+          Value: AWS
+        - Key: owner:billing:cost-center
+          Value: AWS
+        - Key: platform:name
+          Value: Immersion-Day
+  Cloud9AZOneNAT:
+    Type: 'AWS::EC2::NatGateway'
+    Properties:
+      AllocationId: !GetAtt Cloud9AZOneNATEIP.AllocationId
+      SubnetId: !Ref Cloud9PublicSubnetOne
+      Tags:
+        - Key: Name
+          Value: eksctl-eksworkshop-VPC
+        - Key: owner:name
+          Value: AWS
+        - Key: owner:billing:cost-center
+          Value: AWS
+        - Key: platform:name
+          Value: Immersion-Day
+  Cloud9PrivateClusterSubnetOne:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref Cloud9VPC
+      AvailabilityZone: !Select
+        - 0
+        - Fn::GetAZs: !Ref 'AWS::Region'
+      MapPublicIpOnLaunch: true
+      CidrBlock: 192.168.96.0/19
+      Tags:
+        - Key: Name
+          Value: eksctl-eksworkshop-VPC
+        - Key: owner:name
+          Value: AWS
+        - Key: owner:billing:cost-center
+          Value: AWS
+        - Key: platform:name
+          Value: Immersion-Day
+        - Key: platform:visibility
+          Value: private
+  Cloud9PrivateClusterSubnetOneRouteTbl:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref Cloud9VPC
+      Tags:
+        - Key: Name
+          Value: eksctl-eksworkshop-VPC
+        - Key: owner:name
+          Value: AWS
+        - Key: owner:billing:cost-center
+          Value: AWS
+        - Key: platform:name
+          Value: Immersion-Day
+  Cloud9PrivateClusterSubnetOneNatRoute:
+    Type: 'AWS::EC2::Route'
+    DependsOn: Cloud9PrivateClusterSubnetOneRouteTbl
+    Properties:
+      RouteTableId: !Ref Cloud9PrivateClusterSubnetOneRouteTbl
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref Cloud9AZOneNAT
+  Cloud9PrivateClusterSubnetOneRouteTblAssoc:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    DependsOn: Cloud9PrivateClusterSubnetOneRouteTbl
+    Properties:
+      SubnetId: !Ref Cloud9PrivateClusterSubnetOne
+      RouteTableId: !Ref Cloud9PrivateClusterSubnetOneRouteTbl
+  Cloud9AZTwoNAT:
+    Type: 'AWS::EC2::NatGateway'
+    Properties:
+      AllocationId: !GetAtt Cloud9AZTwoNATEIP.AllocationId
+      SubnetId: !Ref Cloud9PublicSubnetTwo
+      Tags:
+        - Key: Name
+          Value: eksctl-eksworkshop-VPC
+        - Key: owner:name
+          Value: AWS
+        - Key: owner:billing:cost-center
+          Value: AWS
+        - Key: platform:name
+          Value: Immersion-Day
+  Cloud9PrivateClusterSubnetTwo:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref Cloud9VPC
+      AvailabilityZone: !Select
+        - 1
+        - Fn::GetAZs: !Ref 'AWS::Region'
+      MapPublicIpOnLaunch: true
+      CidrBlock: 192.168.128.0/19
+      Tags:
+        - Key: Name
+          Value: eksctl-eksworkshop-VPC
+        - Key: owner:name
+          Value: AWS
+        - Key: owner:billing:cost-center
+          Value: AWS
+        - Key: platform:name
+          Value: Immersion-Day
+        - Key: platform:visibility
+          Value: private
+  Cloud9PrivateClusterSubnetTwoRouteTbl:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref Cloud9VPC
+      Tags:
+        - Key: Name
+          Value: eksctl-eksworkshop-VPC
+        - Key: owner:name
+          Value: AWS
+        - Key: owner:billing:cost-center
+          Value: AWS
+        - Key: platform:name
+          Value: Immersion-Day
+  Cloud9PrivateClusterSubnetTwoNatRoute:
+    Type: 'AWS::EC2::Route'
+    DependsOn: Cloud9PrivateClusterSubnetTwoRouteTbl
+    Properties:
+      RouteTableId: !Ref Cloud9PrivateClusterSubnetTwoRouteTbl
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref Cloud9AZTwoNAT
+  Cloud9PrivateClusterSubnetTwoRouteTblAssoc:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    DependsOn: Cloud9PrivateClusterSubnetTwoRouteTbl
+    Properties:
+      SubnetId: !Ref Cloud9PrivateClusterSubnetTwo
+      RouteTableId: !Ref Cloud9PrivateClusterSubnetTwoRouteTbl
+  Cloud9AZThreeNAT:
+    Type: 'AWS::EC2::NatGateway'
+    Properties:
+      AllocationId: !GetAtt Cloud9AZThreeNATEIP.AllocationId
+      SubnetId: !Ref Cloud9PublicSubnetThree
+      Tags:
+        - Key: Name
+          Value: eksctl-eksworkshop-VPC
+        - Key: owner:name
+          Value: AWS
+        - Key: owner:billing:cost-center
+          Value: AWS
+        - Key: platform:name
+          Value: Immersion-Day
+  Cloud9PrivateClusterSubnetThree:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref Cloud9VPC
+      AvailabilityZone: !Select
+        - 2
+        - Fn::GetAZs: !Ref 'AWS::Region'
+      MapPublicIpOnLaunch: true
+      CidrBlock: 192.168.160.0/19
+      Tags:
+        - Key: Name
+          Value: eksctl-eksworkshop-VPC
+        - Key: owner:name
+          Value: AWS
+        - Key: owner:billing:cost-center
+          Value: AWS
+        - Key: platform:name
+          Value: Immersion-Day
+        - Key: platform:visibility
+          Value: private
+  Cloud9PrivateClusterSubnetThreeRouteTbl:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref Cloud9VPC
+      Tags:
+        - Key: Name
+          Value: eksctl-eksworkshop-VPC
+        - Key: owner:name
+          Value: AWS
+        - Key: owner:billing:cost-center
+          Value: AWS
+        - Key: platform:name
+          Value: Immersion-Day
+  Cloud9PrivateClusterSubnetThreeNatRoute:
+    Type: 'AWS::EC2::Route'
+    DependsOn: Cloud9PrivateClusterSubnetThreeRouteTbl
+    Properties:
+      RouteTableId: !Ref Cloud9PrivateClusterSubnetThreeRouteTbl
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref Cloud9AZThreeNAT
+  Cloud9PrivateClusterSubnetThreeRouteTblAssoc:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    DependsOn: Cloud9PrivateClusterSubnetThreeRouteTbl
+    Properties:
+      SubnetId: !Ref Cloud9PrivateClusterSubnetThree
+      RouteTableId: !Ref Cloud9PrivateClusterSubnetThreeRouteTbl
+  SetupWorkshopCustomResource:
+    Type: 'Custom::SetupWorkshopCustomResource'
+    DependsOn: 
+      - Cloud9AZOneNAT
+      - Cloud9AZTwoNAT
+      - Cloud9AZThreeNAT
+      - Cloud9EC2
+    Properties:
+      ServiceToken: !GetAtt Cloud9SetupAgent.Arn
+  WaitForStackCreationHandle:
+    Type: AWS::CloudFormation::WaitConditionHandle
+    DependsOn: SetupWorkshopCustomResource
+  WaitCondition:
+    Type: AWS::CloudFormation::WaitCondition
+    # dont start till we create a lambda function
+    DependsOn: SetupWorkshopCustomResource
+    Properties:
+      Handle: !Ref 'WaitForStackCreationHandle'
+      Timeout: "7200"
+      Count: 1
+  NotifyWokshopSetupCompleLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: lamba.notifyworkshopsetupcomplete.role
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
+        - arn:aws:iam::aws:policy/AWSLambdaExecute
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaRole
+        - arn:aws:iam::aws:policy/AmazonSSMFullAccess
+  NotifyWokshopSetupCompleLamba:
+    Type: AWS::Lambda::Function
+    DependsOn:  
+        - SetupWorkshopCustomResource
+        - WaitForStackCreationHandle
+    Properties:
+      Description: Trigger completion of the workshop
+      Handler: index.handler
+      FunctionName: NotifyWokshopSetupComplete
+      Role: !GetAtt NotifyWokshopSetupCompleLambdaRole.Arn
+      Runtime: python3.8
+      Timeout: 900
+      Environment:
+        Variables:
+          CFNURL: !Ref WaitForStackCreationHandle
+          CommandId: !GetAtt SetupWorkshopCustomResource.CommandId
+          InstanceId: !GetAtt SetupWorkshopCustomResource.InstanceId
+      Code:
+        ZipFile: |
+          import logging
+          import sys
+          import json
+          import urllib3
+          import os
+          import boto3
+          import time
+          
+          logger = logging.getLogger()
+          logger.setLevel(logging.INFO)
+          http = urllib3.PoolManager()
+          ssmClient = boto3.client('ssm')
+          lambdaclient = boto3.client('lambda')
+          
+          def handler(event, context):
+            logger.info('lamba event obj: ' + json.dumps(event))
+            cfn_response_url = os.environ['CFNURL']
+            command_id = os.environ['CommandId']
+            instance_id = os.environ['InstanceId']
+            #wait for maxiterations minutes before ending loop
+            maxiterations = 5
+            for iter in range(maxiterations):
+              ssmresponse = ssmClient.list_command_invocations(CommandId=command_id,
+                              InstanceId=instance_id,
+                              MaxResults=2
+                            )
+              logger.info('Command Exec obj: {0}'.format(ssmresponse))    
+              status = ssmresponse['CommandInvocations'][0]['Status']
+              response = {}
+              response['Reason'] = 'Notification  complete'
+              response['UniqueId'] = 'NotificationComplete1234'    
+              response['Data'] = 'Notification completed'
+              logger.info('Configure CFNURL: {0}'.format(cfn_response_url))
+              if status=="Success":
+                response['Status'] = 'SUCCESS'
+                logger.info('Command Exec return: {0}'.format(json.dumps(response,default=str)))
+                http.request('PUT', cfn_response_url, body=json.dumps(response,default=str).encode('utf-8'), headers={'Content-Type': 'application/json'})
+                logger.info('Send Sucess CFNURL')
+                break
+              elif status=="Failed" or  status=="TimedOut" or status=="Cancelled":
+                response['Status'] = 'FAILURE'
+                logger.info('Command Exec return: {0}'.format(json.dumps(response,default=str)))
+                http.request('PUT', cfn_response_url, body=json.dumps(response,default=str).encode('utf-8'), headers={'Content-Type': 'application/json'})
+                logger.info('Send Failed CFNURL')
+                break
+              else:
+                logger.info('Sleep for minute before checking')
+                time.sleep(60)
+            logger.info('Iter count when exiting loop' + str(iter))
+            if iter >= (maxiterations - 1):
+              logger.info('Before Lambda function invocation')
+              lambdaclient.invoke(
+                FunctionName='NotifyWokshopSetupComplete',
+                InvocationType='Event',
+                Payload=bytes(json.dumps({}).encode('utf-8'))
+              )
+              logger.info('Inovked Lambda function')
+            return 'Done'
+  TriggerNotifyWokshopSetupCompleLamba:
+    Type: AWS::Lambda::Function
+    DependsOn:  
+        - SetupWorkshopCustomResource
+    Properties:
+      Description: Trigger checkup script for completion of workshop
+      Handler: index.handler
+      FunctionName: TriggerNotifyWokshopSetupCompleLamba
+      Role: !GetAtt NotifyWokshopSetupCompleLambdaRole.Arn
+      Runtime: python3.8
+      Code:
+        ZipFile: |
+          import logging
+          import sys
+          import json
+          import urllib3
+          import os
+          import boto3
+          import time
+          
+          logger = logging.getLogger()
+          logger.setLevel(logging.INFO)
+          http = urllib3.PoolManager()
+          lambdaclient = boto3.client('lambda')
+          
+          def handler(event, context):
+            logger.info('lamba event obj: ' + json.dumps(event))
+            if event['RequestType'] != 'Delete':
+              lambdaclient.invoke(
+                FunctionName='NotifyWokshopSetupComplete',
+                InvocationType='Event',
+                Payload=bytes(json.dumps({}).encode('utf-8'))
+              )
+              logger.info('Inovked Lambda')
+            responseBody = json.dumps({
+              'Status': 'SUCCESS',
+              'Reason': 'See the details in CloudWatch Log Stream: ' + context.log_stream_name,
+              'PhysicalResourceId': context.log_stream_name,
+              'StackId': event['StackId'],
+              'RequestId': event['RequestId'],
+              'LogicalResourceId': event['LogicalResourceId'],
+              'Data': {}
+              },default=str)
+            logger.info('Completing customer resource creation: ' + responseBody)
+            http.request('PUT',event['ResponseURL'],body=responseBody.encode('utf-8'),headers={'Content-Type': 'application/json', 'Content-Length': len(responseBody)})
+            return "Done"
+  TriggerNotifyWokshopSetupCompleteCustomResource:
+    Type: 'Custom::TriggerNotifyWokshopSetupCompleteCustomResource'
+    DependsOn: 
+      - TriggerNotifyWokshopSetupCompleLamba
+      - SetupWorkshopCustomResource
+    Properties:
+      ServiceToken: !GetAtt TriggerNotifyWokshopSetupCompleLamba.Arn
