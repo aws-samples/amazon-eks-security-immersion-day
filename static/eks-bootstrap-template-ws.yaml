@@ -1048,9 +1048,9 @@ Resources:
               chmod +x /tmp/kubectl
               mv /tmp/kubectl /usr/local/bin/kubectl
 
-              curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-              unzip awscliv2.zip
-              sudo ./aws/install
+              #curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+              #unzip awscliv2.zip
+              #sudo ./aws/install
 
               su -l -c 'aws eks update-kubeconfig --name {eks_cluster_name} --region {region} --role-arn {instance_role_arn}' ec2-user
               su -l -c 'mkdir -p ~/.ssh && chmod 700 ~/.ssh' ec2-user
@@ -1058,8 +1058,8 @@ Resources:
               su -l -c 'echo "export AWS_DEFAULT_REGION={region}" >> ~/.bash_profile' ec2-user
               su -l -c 'echo "export AWS_REGION={region}" >> ~/.bash_profile' ec2-user
               su -l -c 'echo "export EKS_CLUSTER={eks_cluster_name}" >> ~/.bash_profile' ec2-user
-              su -l -c 'aws cloud9 update-environment  --environment-id $C9_PID --managed-credentials-action DISABLE > /dev/null 2>&1' ec2-user
-              su -l -c 'rm -vf ~/.aws/credentials' ec2-user
+              #su -l -c 'aws cloud9 update-environment  --environment-id $C9_PID --managed-credentials-action DISABLE > /dev/null 2>&1' ec2-user
+              #su -l -c 'rm -vf ~/.aws/credentials' ec2-user
               su -l -c 'echo "{key_material}" > ~/.ssh/id_rsa' ec2-user
               su -l -c 'chmod 600 ~/.ssh/id_rsa' ec2-user
               curl -sSL "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
@@ -1113,7 +1113,7 @@ Resources:
                       DocumentName='AWS-RunShellScript',
                       DocumentVersion='$LATEST',
                       InstanceIds=[instance_id],
-                      TimeoutSeconds=30,
+                      TimeoutSeconds=90,
                       ServiceRoleArn=event['ResourceProperties']['SsmRoleArn'],
                       CloudWatchOutputConfig={
                           'CloudWatchLogGroupName': event['ResourceProperties']['LogGroupName'],
