@@ -26,12 +26,12 @@ awsAccountConfig:
   #serviceLinkedRoles: 
     #- appsync.amazonaws.com
   participantRole: 
-    iamPolicies: 
-      - static/iam-policy-0.json
-      - static/ws-default-policy.json
-      - static/AllowTeamRoleAccessToCloud9.json
-    #managedPolicies: 
-    #  - "arn:aws:iam::aws:policy/AdministratorAccess"
+    #iamPolicies: 
+    #  - static/iam-policy-0.json
+    #  - static/ws-default-policy.json
+    #  - static/AllowTeamRoleAccessToCloud9.json
+    managedPolicies: 
+      - "arn:aws:iam::aws:policy/AdministratorAccess"
     trustedPrincipals:
       service: 
         - ec2.amazonaws.com
@@ -41,16 +41,16 @@ awsAccountConfig:
     maxAccessibleRegions: 3
     accessibleRegions:
       required:
-        - us-east-1
+        - us-west-2
       recommended:
-        - us-east-1
+        - us-west-2
       optional:
-        - us-east-1
+        - us-west-2
     deployableRegions:
       required:
-        - us-east-1
+        - us-west-2
       recommended:
-        - us-east-1
+        - us-west-2
       optional:
-        - us-east-1
+        - us-west-2
 # END Accounts
