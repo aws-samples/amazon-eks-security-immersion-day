@@ -11,8 +11,8 @@ params:
 # START Infrastructure
 infrastructure:
   cloudformationTemplates:
-    - templateLocation: static/bootstrap.template.yaml
-      label: ddb template
+    - templateLocation: static/eks-bootstrap-template-ws.yaml
+      label: Amazon EKS Security Immersion Day
       parameters:
         - templateParameter: EETeamRoleArn
           defaultValue: "{{.ParticipantRoleArn}}"
