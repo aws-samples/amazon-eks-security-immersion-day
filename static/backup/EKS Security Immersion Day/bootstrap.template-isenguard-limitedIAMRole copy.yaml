@@ -181,22 +181,7 @@ Resources:
       AutomaticStopTimeMinutes: 60
       SubnetId: !Ref PublicSubnetA
       ImageId: resolve:ssm:/aws/service/cloud9/amis/amazonlinux-2-x86_64
-      OwnerArn: !Join
-        - ":"
-        - - arn
-          - !Ref AWS::Partition
-          - sts
-          - ""
-          - !Select [4, !Split [":", !Ref EETeamRoleArn]]
-          - !Join
-            - "/"
-            - - assumed-role
-              - !Select [
-                  1,
-                  !Split ["/", !Select [5, !Split [":", !Ref EETeamRoleArn]]],
-                ]
-              - Participant        
-
+      OwnerArn: arn:aws:iam::000474600478:user/jp
 
   Cloud9InstanceRole:
     Type: AWS::IAM::Role
@@ -212,8 +197,6 @@ Resources:
             Principal:
               AWS: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:root"
             Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AdministratorAccess
 
   Cloud9InstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -403,7 +386,7 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
 
-  EKSClusterCreatorRole:
+  LambdaRoleForEKSClusterCreation:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -421,21 +404,14 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - eks:DescribeCluster
-                  - eks:CreateCluster
-                  - eks:DeleteCluster
-                Resource: "*"
-              - Effect: Allow
-                Action:
                   - sts:AssumeRole
                 Resource: !GetAtt Cloud9InstanceRole.Arn
-          PolicyName: CreateEKSCluster
-
+          PolicyName: AssumeCloud9InstanceRole
 
   EKSClusterCreatorFunction:
     Type: AWS::Lambda::Function
     Properties:
-      Role: !GetAtt EKSClusterCreatorRole.Arn
+      Role: !GetAtt LambdaRoleForEKSClusterCreation.Arn
       #Architectures:
       #  - arm64
       Runtime: python3.9
@@ -480,7 +456,7 @@ Resources:
                   print('Creating cluster ' + cluster_name)
                   response = eks.create_cluster(
                       name=cluster_name,
-                      version='1.23',
+                      version='1.24',
                       roleArn=event['ResourceProperties']['ClusterRoleArn'],
                       resourcesVpcConfig={
                           'subnetIds': event['ResourceProperties']['SubnetIds'],
@@ -594,6 +570,138 @@ Resources:
         DesiredSize: 2
         MinSize: 2
         MaxSize: 10
+
+  Cloud9InstanceRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      Roles:
+        - !Ref Cloud9InstanceRole
+      PolicyName: Cloud9InstanceRolePolicy
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - ec2:*
+            Resource: "*"
+          - Effect: Allow
+            Action:
+              - elasticloadbalancing:*
+            Resource: "*"
+          - Effect: Allow
+            Action:
+              - cloudwatch:*
+            Resource: "*"
+          - Effect: Allow
+            Action:
+              - autoscaling:*
+            Resource: "*"  
+          - Effect: Allow
+            Action:
+              iam:CreateServiceLinkedRole
+            Resource: "*"
+            Condition:
+              StringEquals:
+                iam:AWSServiceName: [ autoscaling.amazonaws.com ec2scheduled.amazonaws.com elasticloadbalancing.amazonaws.com spot.amazonaws.com spotfleet.amazonaws.com transitgateway.amazonaws.com]
+          - Effect: Allow
+            Action:
+              - cloudformation:*
+            Resource: "*"  
+          - Effect: Allow
+            Action:
+              - eks:*
+            Resource: "*"  
+          - Effect: Allow
+            Action:
+              - ssm:GetParameter
+              - ssm:GetParameters
+            Resource:
+              - arn:aws:ssm:*:${ACCOUNT_ID}:parameter/aws/*
+              - arn:aws:ssm:*::parameter/aws/*
+          - Effect: Allow
+            Action:
+              - kms:CreateGrant
+              - kms:DescribeKey
+            Resource: "*" 
+          - Effect: Allow
+            Action:
+              - logs:PutRetentionPolicy
+            Resource: "*"  
+          - Effect: Allow
+            Sid: Stmt1658116958078
+            Action:
+              - iam:AddRoleToInstanceProfile
+              - iam:AttachRolePolicy
+              - iam:AttachUserPolicy
+              - iam:CreateInstanceProfile
+              - iam:CreateOpenIDConnectProvider
+              - iam:CreatePolicy
+              - iam:CreatePolicyVersion
+              - iam:CreateRole
+              - iam:CreateServiceLinkedRole
+              - iam:CreateUser
+              - iam:DeleteInstanceProfile
+              - iam:DeleteOpenIDConnectProvider
+              - iam:DeletePolicy
+              - iam:DeletePolicyVersion
+              - iam:DeleteRole
+              - iam:DeleteRolePermissionsBoundary
+              - iam:DeleteRolePolicy
+              - iam:DetachRolePolicy
+              - iam:GetInstanceProfile
+              - iam:GetOpenIDConnectProvider
+              - iam:GetPolicy
+              - iam:GetPolicyVersion
+              - iam:GetRole
+              - iam:GetRolePolicy
+              - iam:GetUserPolicy
+              - iam:ListAttachedRolePolicies
+              - iam:ListInstanceProfiles
+              - iam:ListInstanceProfilesForRole
+              - iam:ListPolicies
+              - iam:ListPolicyTags
+              - iam:ListPolicyVersions
+              - iam:ListRolePolicies
+              - iam:ListRoleTags
+              - iam:PassRole
+              - iam:PutRolePermissionsBoundary
+              - iam:PutRolePolicy
+              - iam:RemoveRoleFromInstanceProfile
+              - iam:TagOpenIDConnectProvider
+              - iam:TagPolicy
+              - iam:TagRole
+              - iam:UpdateAssumeRolePolicy
+              - iam:UploadSSHPublicKey
+              - iam:UntagPolicy
+              - iam:UntagRole
+              - iam:UpdateRole
+              - iam:UpdateRoleDescription          
+            Resource: "*" 
+          - Effect: Allow
+            Action:
+              - secretsmanager:CreateSecret
+            Resource: "*"  
+          - Effect: Allow
+            Action:
+              - secretsmanager:DeleteSecret
+            Resource:
+              - arn:aws:secretsmanager:${AWS_REGION}:${ACCOUNT_ID}:secret:sealed-secrets*
+          - Effect: Allow
+            Action:
+              - sts:GetCallerIdentity
+            Resource: "*"                          
+          - Effect: Allow
+            Action:
+              - codecommit:CreateRepository
+            Resource: "*"
+          - Effect: Allow
+            Action:
+              - dynamodb:ListTables
+            Resource: "*"
+          - Effect: Allow
+            Action:
+              - dynamodb:DeleteTable
+            Resource: "*"
 
   # OIDC provider (for EKS IAM Roles for Service Accounts)
   ThumbprintExtractorRole:
@@ -768,15 +876,22 @@ Resources:
                   instance_id = instance['InstanceId']
                   commands = '''
               su -l -c 'aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com' ec2-user
-              curl -sSL -o /tmp/kubectl https://s3.us-west-2.amazonaws.com/amazon-eks/1.23.7/2022-06-29/bin/linux/amd64/kubectl
+              curl -sSL -o /tmp/kubectl https://s3.us-west-2.amazonaws.com/amazon-eks/1.24.7/2022-10-31/bin/linux/amd64/kubectl
               chmod +x /tmp/kubectl
               mv /tmp/kubectl /usr/local/bin/kubectl
+
+              curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+              unzip awscliv2.zip
+              sudo ./aws/install
+
               su -l -c 'aws eks update-kubeconfig --name {eks_cluster_name} --region {region} --role-arn {instance_role_arn}' ec2-user
               su -l -c 'mkdir -p ~/.ssh && chmod 700 ~/.ssh' ec2-user
               su -l -c 'echo "export AWS_ACCOUNT_ID={account_id}" >> ~/.bash_profile' ec2-user
               su -l -c 'echo "export AWS_DEFAULT_REGION={region}" >> ~/.bash_profile' ec2-user
               su -l -c 'echo "export AWS_REGION={region}" >> ~/.bash_profile' ec2-user
               su -l -c 'echo "export EKS_CLUSTER={eks_cluster_name}" >> ~/.bash_profile' ec2-user
+              su -l -c 'aws cloud9 update-environment  --environment-id $C9_PID --managed-credentials-action DISABLE > /dev/null 2>&1' ec2-user
+              #su -l -c 'rm -vf ~/.aws/credentials' ec2-user
               su -l -c 'echo "{key_material}" > ~/.ssh/id_rsa' ec2-user
               su -l -c 'chmod 600 ~/.ssh/id_rsa' ec2-user
               curl -sSL "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
@@ -810,7 +925,7 @@ Resources:
                       DocumentName='AWS-RunShellScript',
                       DocumentVersion='$LATEST',
                       InstanceIds=[instance_id],
-                      TimeoutSeconds=60,
+                      TimeoutSeconds=30,
                       ServiceRoleArn=event['ResourceProperties']['SsmRoleArn'],
                       CloudWatchOutputConfig={
                           'CloudWatchLogGroupName': event['ResourceProperties']['LogGroupName'],

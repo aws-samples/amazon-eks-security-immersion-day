@@ -197,7 +197,6 @@ Resources:
                 ]
               - Participant        
 
-
   Cloud9InstanceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -431,7 +430,6 @@ Resources:
                 Resource: !GetAtt Cloud9InstanceRole.Arn
           PolicyName: CreateEKSCluster
 
-
   EKSClusterCreatorFunction:
     Type: AWS::Lambda::Function
     Properties:
@@ -548,8 +546,9 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
         - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
-        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+
 
   EKSNodegroup:
     Type: AWS::EKS::Nodegroup
@@ -563,7 +562,7 @@ Resources:
       AmiType: AL2_x86_64
       CapacityType: ON_DEMAND
       InstanceTypes:
-        - t3a.small
+        - m5.large
       RemoteAccess:
         Ec2SshKey: !GetAtt SSHKeyPairCustomResource.KeyName
         SourceSecurityGroups:
@@ -585,7 +584,7 @@ Resources:
       AmiType: BOTTLEROCKET_x86_64
       CapacityType: ON_DEMAND
       InstanceTypes:
-        - t3a.small
+        - m5.large
       RemoteAccess:
         Ec2SshKey: !GetAtt SSHKeyPairCustomResource.KeyName
         SourceSecurityGroups:
@@ -594,6 +593,286 @@ Resources:
         DesiredSize: 2
         MinSize: 2
         MaxSize: 10
+
+  #
+  # VPC CNI Fixup to use IRSA
+  #
+  RoleCreatorRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          Effect: Allow
+          Principal:
+            Service: !Sub lambda.${AWS::URLSuffix}
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              Effect: Allow
+              Action:
+                - iam:CreateRole
+                - iam:DeleteRole
+                - iam:AttachRolePolicy
+                - iam:DetachRolePolicy
+              Resource: "*"
+          PolicyName: CreateRole
+
+  IRSACreatorFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Role: !GetAtt RoleCreatorRole.Arn
+      Architectures:
+        - arm64
+      Runtime: python3.9
+      Handler: index.handler
+      Timeout: 10
+      Code:
+        ZipFile: |
+          import cfnresponse
+          import boto3
+          import json
+          import random
+          import string
+          import traceback
+
+
+          def handler(event, context):
+              print("REQUEST RECEIVED: \n" + json.dumps(event))
+              client = boto3.client('iam')
+              try:
+                  if event['RequestType'] == 'Delete':
+                      client.detach_role_policy(
+                          PolicyArn='arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy',
+                          RoleName=event['PhysicalResourceId']
+                      )
+                      client.delete_role(RoleName=event['PhysicalResourceId'])
+                      cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
+                      return
+
+                  role_name = event['LogicalResourceId'] + '-' + \
+                      ''.join(random.choice(string.ascii_letters + string.digits)
+                              for i in range(12))
+                  oidc_provider_arn = event['ResourceProperties']['OidcProviderArn']
+                  oidc_provider_suffix = event['ResourceProperties']['OidcProviderArn'].split(
+                      '/', 1)[-1]
+                  assume_role_policy = json.dumps({
+                      "Version": "2012-10-17",
+                      "Statement": [
+                          {
+                              "Effect": "Allow",
+                              "Principal": {
+                                  "Federated": oidc_provider_arn
+                              },
+                              "Action": "sts:AssumeRoleWithWebIdentity",
+                              "Condition": {
+                                  "StringEquals": {
+                                      oidc_provider_suffix + ":aud": "sts.amazonaws.com",
+                                      oidc_provider_suffix + ":sub": "system:serviceaccount:" + event['ResourceProperties']['Namespace'] + ":" + event['ResourceProperties']['ServiceAccount']
+                                  }
+                              }
+                          }
+                      ]
+                  })
+                  create_role_response = client.create_role(
+                      RoleName=role_name,
+                      AssumeRolePolicyDocument=assume_role_policy
+                  )
+                  role_policy_arn = event['ResourceProperties'].get('RolePolicyArn')
+                  if role_policy_arn:
+                      client.attach_role_policy(
+                          PolicyArn=role_policy_arn,
+                          RoleName=role_name
+                      )
+                  cfnresponse.send(event, context, cfnresponse.SUCCESS, {
+                      'Arn': create_role_response['Role']['Arn']
+                  }, role_name)
+              except Exception as err:
+                  traceback.print_exc()
+                  cfnresponse.send(event, context, cfnresponse.FAILED, {})
+
+  VPCCNIRole:
+    Type: AWS::CloudFormation::CustomResource
+    Properties:
+      ServiceToken: !GetAtt IRSACreatorFunction.Arn
+      OidcProviderArn: !GetAtt OIDCProvider.Arn
+      Namespace: kube-system
+      ServiceAccount: aws-node
+      RolePolicyArn: "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+
+  LoadBalancerControllerRole:
+    Type: AWS::CloudFormation::CustomResource
+    Properties:
+      ServiceToken: !GetAtt IRSACreatorFunction.Arn
+      OidcProviderArn: !GetAtt OIDCProvider.Arn
+      Namespace: kube-system
+      ServiceAccount: aws-load-balancer-controller
+
+  LoadBalancerControllerPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      Roles:
+        - !Ref LoadBalancerControllerRole
+      PolicyName: LoadBalancerControllerPolicy
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - iam:CreateServiceLinkedRole
+            Resource: "*"
+            Condition:
+              StringEquals:
+                iam:AWSServiceName: elasticloadbalancing.amazonaws.com
+          - Effect: Allow
+            Action:
+              - ec2:DescribeAccountAttributes
+              - ec2:DescribeAddresses
+              - ec2:DescribeAvailabilityZones
+              - ec2:DescribeInternetGateways
+              - ec2:DescribeVpcs
+              - ec2:DescribeVpcPeeringConnections
+              - ec2:DescribeSubnets
+              - ec2:DescribeSecurityGroups
+              - ec2:DescribeInstances
+              - ec2:DescribeNetworkInterfaces
+              - ec2:DescribeTags
+              - ec2:GetCoipPoolUsage
+              - ec2:DescribeCoipPools
+              - elasticloadbalancing:DescribeLoadBalancers
+              - elasticloadbalancing:DescribeLoadBalancerAttributes
+              - elasticloadbalancing:DescribeListeners
+              - elasticloadbalancing:DescribeListenerCertificates
+              - elasticloadbalancing:DescribeSSLPolicies
+              - elasticloadbalancing:DescribeRules
+              - elasticloadbalancing:DescribeTargetGroups
+              - elasticloadbalancing:DescribeTargetGroupAttributes
+              - elasticloadbalancing:DescribeTargetHealth
+              - elasticloadbalancing:DescribeTags
+            Resource: "*"
+          - Effect: Allow
+            Action:
+              - cognito-idp:DescribeUserPoolClient
+              - acm:ListCertificates
+              - acm:DescribeCertificate
+              - iam:ListServerCertificates
+              - iam:GetServerCertificate
+              - waf-regional:GetWebACL
+              - waf-regional:GetWebACLForResource
+              - waf-regional:AssociateWebACL
+              - waf-regional:DisassociateWebACL
+              - wafv2:GetWebACL
+              - wafv2:GetWebACLForResource
+              - wafv2:AssociateWebACL
+              - wafv2:DisassociateWebACL
+              - shield:GetSubscriptionState
+              - shield:DescribeProtection
+              - shield:CreateProtection
+              - shield:DeleteProtection
+            Resource: "*"
+          - Effect: Allow
+            Action:
+              - ec2:AuthorizeSecurityGroupIngress
+              - ec2:RevokeSecurityGroupIngress
+            Resource: "*"
+          - Effect: Allow
+            Action:
+              - ec2:CreateSecurityGroup
+            Resource: "*"
+          - Effect: Allow
+            Action:
+              - ec2:CreateTags
+            Resource: arn:aws:ec2:*:*:security-group/*
+            Condition:
+              StringEquals:
+                ec2:CreateAction: CreateSecurityGroup
+              "Null":
+                aws:RequestTag/elbv2.k8s.aws/cluster: "false"
+          - Effect: Allow
+            Action:
+              - ec2:CreateTags
+              - ec2:DeleteTags
+            Resource: arn:aws:ec2:*:*:security-group/*
+            Condition:
+              "Null":
+                aws:RequestTag/elbv2.k8s.aws/cluster: "true"
+                aws:ResourceTag/elbv2.k8s.aws/cluster: "false"
+          - Effect: Allow
+            Action:
+              - ec2:AuthorizeSecurityGroupIngress
+              - ec2:RevokeSecurityGroupIngress
+              - ec2:DeleteSecurityGroup
+            Resource: "*"
+            Condition:
+              "Null":
+                aws:ResourceTag/elbv2.k8s.aws/cluster: "false"
+          - Effect: Allow
+            Action:
+              - elasticloadbalancing:CreateLoadBalancer
+              - elasticloadbalancing:CreateTargetGroup
+            Resource: "*"
+            Condition:
+              "Null":
+                aws:RequestTag/elbv2.k8s.aws/cluster: "false"
+          - Effect: Allow
+            Action:
+              - elasticloadbalancing:CreateListener
+              - elasticloadbalancing:DeleteListener
+              - elasticloadbalancing:CreateRule
+              - elasticloadbalancing:DeleteRule
+            Resource: "*"
+          - Effect: Allow
+            Action:
+              - elasticloadbalancing:AddTags
+              - elasticloadbalancing:RemoveTags
+            Resource:
+              - arn:aws:elasticloadbalancing:*:*:targetgroup/*/*
+              - arn:aws:elasticloadbalancing:*:*:loadbalancer/net/*/*
+              - arn:aws:elasticloadbalancing:*:*:loadbalancer/app/*/*
+            Condition:
+              "Null":
+                aws:RequestTag/elbv2.k8s.aws/cluster: "true"
+                aws:ResourceTag/elbv2.k8s.aws/cluster: "false"
+          - Effect: Allow
+            Action:
+              - elasticloadbalancing:AddTags
+              - elasticloadbalancing:RemoveTags
+            Resource:
+              - arn:aws:elasticloadbalancing:*:*:listener/net/*/*/*
+              - arn:aws:elasticloadbalancing:*:*:listener/app/*/*/*
+              - arn:aws:elasticloadbalancing:*:*:listener-rule/net/*/*/*
+              - arn:aws:elasticloadbalancing:*:*:listener-rule/app/*/*/*
+          - Effect: Allow
+            Action:
+              - elasticloadbalancing:ModifyLoadBalancerAttributes
+              - elasticloadbalancing:SetIpAddressType
+              - elasticloadbalancing:SetSecurityGroups
+              - elasticloadbalancing:SetSubnets
+              - elasticloadbalancing:DeleteLoadBalancer
+              - elasticloadbalancing:ModifyTargetGroup
+              - elasticloadbalancing:ModifyTargetGroupAttributes
+              - elasticloadbalancing:DeleteTargetGroup
+            Resource: "*"
+            Condition:
+              "Null":
+                aws:ResourceTag/elbv2.k8s.aws/cluster: "false"
+          - Effect: Allow
+            Action:
+              - elasticloadbalancing:RegisterTargets
+              - elasticloadbalancing:DeregisterTargets
+            Resource: arn:aws:elasticloadbalancing:*:*:targetgroup/*/*
+          - Effect: Allow
+            Action:
+              - elasticloadbalancing:SetWebAcl
+              - elasticloadbalancing:ModifyListener
+              - elasticloadbalancing:AddListenerCertificates
+              - elasticloadbalancing:RemoveListenerCertificates
+              - elasticloadbalancing:ModifyRule
+            Resource: "*"
 
   # OIDC provider (for EKS IAM Roles for Service Accounts)
   ThumbprintExtractorRole:
@@ -771,12 +1050,19 @@ Resources:
               curl -sSL -o /tmp/kubectl https://s3.us-west-2.amazonaws.com/amazon-eks/1.23.7/2022-06-29/bin/linux/amd64/kubectl
               chmod +x /tmp/kubectl
               mv /tmp/kubectl /usr/local/bin/kubectl
+
+              #curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+              #unzip awscliv2.zip
+              #sudo ./aws/install
+
               su -l -c 'aws eks update-kubeconfig --name {eks_cluster_name} --region {region} --role-arn {instance_role_arn}' ec2-user
               su -l -c 'mkdir -p ~/.ssh && chmod 700 ~/.ssh' ec2-user
               su -l -c 'echo "export AWS_ACCOUNT_ID={account_id}" >> ~/.bash_profile' ec2-user
               su -l -c 'echo "export AWS_DEFAULT_REGION={region}" >> ~/.bash_profile' ec2-user
               su -l -c 'echo "export AWS_REGION={region}" >> ~/.bash_profile' ec2-user
               su -l -c 'echo "export EKS_CLUSTER={eks_cluster_name}" >> ~/.bash_profile' ec2-user
+              #su -l -c 'aws cloud9 update-environment  --environment-id $C9_PID --managed-credentials-action DISABLE > /dev/null 2>&1' ec2-user
+              #su -l -c 'rm -vf ~/.aws/credentials' ec2-user
               su -l -c 'echo "{key_material}" > ~/.ssh/id_rsa' ec2-user
               su -l -c 'chmod 600 ~/.ssh/id_rsa' ec2-user
               curl -sSL "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
@@ -787,12 +1073,30 @@ Resources:
               /usr/local/bin/eksctl completion bash > /etc/bash_completion.d/eksctl
               su -l -c 'echo "alias k=kubectl" >> ~/.bash_profile' ec2-user
               su -l -c 'echo "complete -F __start_kubectl k" >> ~/.bash_profile' ec2-user
+              su -l -c 'kubectl annotate --overwrite serviceaccount -n kube-system aws-node eks.amazonaws.com/role-arn={vpc_cni_role_arn}' ec2-user
+              su -l -c 'kubectl delete pods -n kube-system -l k8s-app=aws-node' ec2-user
               curl -fsSL -o /tmp/helm.tgz https://get.helm.sh/helm-v3.7.1-linux-amd64.tar.gz
               tar -C /tmp -xzf /tmp/helm.tgz
               mv /tmp/linux-amd64/helm /usr/local/bin/helm
               rm -rf /tmp/helm.tgz /tmp/linux-amd64
+              cat <<-"EOF" > /tmp/aws-load-balancer-controller-serviceaccount.yaml
+          apiVersion: v1
+          kind: ServiceAccount
+          metadata:
+            labels:
+              app.kubernetes.io/component: controller
+              app.kubernetes.io/name: aws-load-balancer-controller
+            name: aws-load-balancer-controller
+            namespace: kube-system
+            annotations:
+              eks.amazonaws.com/role-arn: {load_balancer_controller_role_arn}
+          EOF
+              chmod 644 /tmp/aws-load-balancer-controller-serviceaccount.yaml
+              su -l -c 'kubectl apply -f /tmp/aws-load-balancer-controller-serviceaccount.yaml' ec2-user
               su -l -c 'helm repo add eks https://aws.github.io/eks-charts' ec2-user
               su -l -c 'helm repo update' ec2-user
+              su -l -c 'helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller -n kube-system --set clusterName={eks_cluster_name} --set serviceAccount.create=false --set serviceAccount.name=aws-load-balancer-controller' ec2-user
+              su -l -c 'kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml' ec2-user
               volume_id=$(aws --region {region} ec2 describe-volumes --filters Name=attachment.instance-id,Values={instance_id} --query 'Volumes[0].VolumeId' --output text)
               aws --region {region} ec2 modify-volume --volume-id $volume_id --size 30
               # This must be the last line - do not add any lines after this!
@@ -801,8 +1105,10 @@ Resources:
                       eks_cluster_name=event['ResourceProperties']['EKSClusterName'],
                       region=event['ResourceProperties']['Region'],
                       instance_role_arn=event['ResourceProperties']['InstanceRoleArn'],
+                      load_balancer_controller_role_arn=event['ResourceProperties']['LoadBalancerControllerRoleArn'],
                       key_material=event['ResourceProperties']['KeyMaterial'],
                       instance_id=instance_id,
+                      vpc_cni_role_arn=event['ResourceProperties']['VpcCniRoleArn'],
                       account_id=event['ResourceProperties']['AccountId'],
                   ).split("\n")
                   client = boto3.client('ssm')
@@ -810,7 +1116,7 @@ Resources:
                       DocumentName='AWS-RunShellScript',
                       DocumentVersion='$LATEST',
                       InstanceIds=[instance_id],
-                      TimeoutSeconds=60,
+                      TimeoutSeconds=90,
                       ServiceRoleArn=event['ResourceProperties']['SsmRoleArn'],
                       CloudWatchOutputConfig={
                           'CloudWatchLogGroupName': event['ResourceProperties']['LogGroupName'],
@@ -836,4 +1142,6 @@ Resources:
       AccountId: !Sub "${AWS::AccountId}"
       Region: !Sub "${AWS::Region}"
       InstanceRoleArn: !GetAtt Cloud9InstanceRole.Arn
+      LoadBalancerControllerRoleArn: !GetAtt LoadBalancerControllerRole.Arn
       KeyMaterial: !GetAtt SSHKeyPairCustomResource.KeyMaterial
+      VpcCniRoleArn: !GetAtt VPCCNIRole.Arn
