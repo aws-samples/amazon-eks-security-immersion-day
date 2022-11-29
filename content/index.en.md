@@ -1,15 +1,17 @@
 ---
-title: "Amazon EKS Security Immersion Day"
+title: "Amazon EKS Security Immersion Workshop"
 weight: 0
 ---
 
-This workshop covers various security features on Amazon EKS. This will be used as part of a dedicated Immersion day focossed only on EKS Security. 
+![Amazon EKS](/static/images/product-page.png)
 
+Welcome to the Amazon EKS Security Immersion Workshop!
 
-![Amazon EKS](/static/product-page.png)
+The intent of this workshop is to demonstrate various security features of Amazon EKS. It showcases different functionalities from platform team and application teams perspective.
 
-It will contain a dedicated module for each of the Amazon EKS Security features under different Sections such as :
+This workshop is catered towards usecases, requirement and ask that most of our customers have demanded as part of EKS Immersions done in the past.
 
+As part of this workshop we will cover the following topics:
 
 - [Create Workspace Environment](/Create-Workspace-Environment)
   - [Create IAM Roles](/Create-Workspace-Environment/Create-IAM-Roles)

@@ -1,8 +1,10 @@
 ---
-title : "Create an EKS Cluster"
+title : "Getting Started"
 weight : 20
 ---
 
-# INTRODUCTION
 
-Discover what this template is all about and the core concepts behind it.
+To start the workshop, follow one of the following depending on whether you are...
+
+- [...at an AWS event](/Create-Workspace-Environment/AWSEvent)
+- [...on your own](/Create-Workspace-Environment/OnOwn)
