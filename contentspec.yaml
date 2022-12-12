@@ -42,14 +42,10 @@ awsAccountConfig:
     accessibleRegions:
       required:
         - us-west-2
-      recommended:
-        - us-west-2
       optional:
         - us-west-2
     deployableRegions:
       required:
-        - us-west-2
-      recommended:
         - us-west-2
       optional:
 # END Accounts

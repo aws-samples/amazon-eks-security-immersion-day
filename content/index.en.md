@@ -17,7 +17,7 @@ As part of this workshop we will cover the following topics:
   - [Create IAM Roles](/Create-Workspace-Environment/Create-IAM-Roles)
   - [Create EKS Cluster](/Create-Workspace-Environment/Create-EKS-Cluster)
 - [Authentication and Authorization](/Authentication-and-Authorization)
-  - [IAM Authentication & RBAC Authorization](/Authentication-and-Authorization/IAM-Authentication-RBAC-Authorization)
+  - [IAM Authentication & RBAC Authorization](/Authentication-and-Authorization/IAM-Groups-to-Manage-EKS-Access)
   - [OIDC Authentication](/Authentication-and-Authorization/OIDC-Authentication)
   - [AWS SSO Authentication](/Authentication-and-Authorization/AWS-SSO-Authentication)
 - [Container Image Security](/Container-Image-Security)
