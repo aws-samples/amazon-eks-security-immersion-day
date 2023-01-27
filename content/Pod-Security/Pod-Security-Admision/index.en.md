@@ -5,7 +5,7 @@ weight : 52
 
 # Introduction
 
-Like PSS, Pod Security Admission (PSA) went Beta in Kubernetes version 1.23, and consequently became available in Amazon EKS 1.23.
+Pod Security Admission (PSA) went Beta in Kubernetes version 1.23, and consequently became available in Amazon EKS 1.23.
 
 PSA is a Kubernetes in-tree admission controller to enforce: 
 
@@ -105,7 +105,7 @@ When used independently, the PSA modes have different responses that result in d
 
 ![PSA UX Issues](../../../assets/psa-ux-issues.png)
 
-In some scenarios, this is a difficult user experience, as there is no immediate indication that the successfully applied Deployment object belies failed Pod creation. The offending Pod specs won’t create Pods. Inspecting the Deployment resource with `kubectl get deploy <DEPLOYMENT_NAME> -oyaml` will expose the message from the failed Pod(s) in the Deployment `.status.conditions` element.
+In some scenarios, this is a difficult user experience, as there is no immediate indication that the successfully applied Deployment object belies failed Pod creation. The offending Pod specs won’t create Pods. Inspecting the Deployment resource with `kubectl get deployments.apps <DEPLOYMENT_NAME> -o=jsonpath='{.status}'` will expose the message from the failed Pod(s) in the Deployment `.status.conditions` element.
 
 In both the audit and warn PSA modes, the Pod restrictions don’t prevent violating Pods from being created and started. However, in these modes audit annotations on API server audit log events and warnings to API server clients (e.g., kubectl) are triggered, respectively. This occurs when Pods, as well as objects that create Pods, contain Pod specs with PSS violations. A kubectl Warning message is seen in the following output.
 

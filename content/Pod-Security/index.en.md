@@ -11,7 +11,7 @@ The Kubernetes pod specification includes a variety of different attributes that
 
 # Pod Security Concepts
 
-When considering Pod Security, there are several levers that can be used to control what containers, within pods, can do.
+When considering Pod Security, there are several settings that can be used to control what containers, within pods, can do.
 - Linux Capabilities
 - Security Context
 - Seccomp profiles
@@ -22,7 +22,7 @@ When considering Pod Security, there are several levers that can be used to cont
 
 Security Context Elements are applied to Kubernetes pods and containers to apply specific security settings. They can can be applied at pod and container levels. Container-level Security Context elements are more granular than there pod counterparts, and override pod-level settings.
 
-A example Pod *Security Context* can be seen below. The settings therein apply to every container within the pod, unless overridden by the container.
+A example Pod *Security Context* can be seen below. The settings therein apply to every container within the pod, unless overridden by a container-level *Security Context*.
 
 ```
 securityContext:
@@ -52,7 +52,8 @@ securityContext:
 
 
 ## Pod Security Policies are Deprecated
-To control pod security, Kubernetes included Pod Security Policy (PSP) resources and admission controllers just prior to Kubernetes version 1.3. PSPs specify a set of security settings that pods must meet before they can be created or updated in a cluster. However, as of Kubernetes version 1.21, PSPs have been deprecated, and they have been removed in Kubernetes version 1.25.
+
+To control pod security, Kubernetes included Pod Security Policy (PSP) resources and admission controllers just prior to Kubernetes version 1.3. PSPs specify a set of security settings that pods must meet before they can be created or updated in a cluster. However, PSPs were deprecated in Kubernetes version 1.21, and they were removed in Kubernetes version 1.25.
 
 The Kubernetes project [documented](https://kubernetes.io/blog/2021/04/06/podsecuritypolicy-deprecation-past-present-and-future/) why PSPs were deprecated. Simply put, PSPs were confusing to the majority of users. This confusion resulted in many misconfigurations; clusters were impaired or left unprotected by overly-restrictive or overly-permissive settings. 
 

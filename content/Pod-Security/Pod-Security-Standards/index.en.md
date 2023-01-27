@@ -5,9 +5,7 @@ weight : 51
 
 # Introduction
 
-This project the following folders:
-
-In Kubernetes, PSPs are replaced with [Pod Security Admission (PSA)](https://kubernetes.io/docs/concepts/security/pod-security-admission/), a built-in admission controller that implements the security controls outlined in the [Pod Security Standards (PSS)](https://kubernetes.io/docs/concepts/security/pod-security-standards/). PSA and PSS both reached beta states in Kubernetes version 1.23, and were enabled in Amazon EKS version 1.23 by default.
+In Kubernetes, PSPs are replaced with [Pod Security Admission (PSA)](https://kubernetes.io/docs/concepts/security/pod-security-admission/), a built-in admission controller that implements the security controls outlined in the [Pod Security Standards (PSS)](https://kubernetes.io/docs/concepts/security/pod-security-standards/). PSS was introduced into Kubernetes in 2020, prior to Kubernetes version 1.21. PSA reached a beta state in Kubernetes version 1.23, and was enabled in Amazon EKS version 1.23 by default.
 
 > Kubernetes users can move to PSA and PSS prior to Kubernetes version 1.25, and before they replace PSP; both solutions can coexist in the same cluster. It’s considered a best practice to ease adoption and migration by using PSA/PSS  PSPs, until PSPs are removed from clusters. For additional guidance on migrating from PSPs to PSA, you should review the [Kubernetes documentation](https://kubernetes.io/docs/tasks/configure-pod-container/migrate-from-psp/) on this topic.
 

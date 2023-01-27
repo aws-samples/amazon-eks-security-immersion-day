@@ -5,7 +5,7 @@ weight : 53
 
 # Introduction
 
-The following hands-on lab is based on the Amazon EKS testing done with PSA and PSS. This testing can be reviewed in the [OSS project on GitHub](https://github.com/aws-samples/k8s-psa-pss-testing).
+The following hands-on lab is based on the Amazon EKS testing done with PSA and PSS. This testing can be reviewed in the [AWS Samples OSS project on GitHub](https://github.com/aws-samples/k8s-psa-pss-testing).
 
 ## Lab assumptions
 
@@ -33,7 +33,7 @@ Amazon EKS 1.23 (or later version) is provisioned and `kubectl` CLI is installed
 
 # Summary
 
-PSA and PSS are the native Kubernetes replacement for PSP; moreover, PSA and PSS can coexist with PSP in the same cluster, to facilitate PSP replacement. Testing of PSA and PSS with Amazon EKS 1.23 is documented in this [OSS project](https://github.com/aws-samples/k8s-psa-pss-testing).
+PSA and PSS are the native Kubernetes replacement for PSP; moreover, PSA and PSS can coexist with PSP in the same cluster, to facilitate PSP replacement. Testing of PSA and PSS with Amazon EKS 1.23 is documented in this [AWS Samples OSS project](https://github.com/aws-samples/k8s-psa-pss-testing).
 
 The default configurations of PSA and PSS are part of Amazon EKS 1.23+, and Kubernetes Namespaces can be configured with labels to opt into Pod security defined by PSS and implemented by PSA. With appropriate policies you can successfully replace PSP.
 
