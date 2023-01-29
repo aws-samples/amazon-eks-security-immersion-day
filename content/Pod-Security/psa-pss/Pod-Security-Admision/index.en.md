@@ -1,6 +1,6 @@
 ---
 title : "Pod Security Admission"
-weight : 52
+weight : 22
 ---
 
 # Introduction

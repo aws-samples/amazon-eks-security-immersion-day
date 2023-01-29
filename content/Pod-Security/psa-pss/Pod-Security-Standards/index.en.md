@@ -1,6 +1,6 @@
 ---
 title : "Pod Security Standards"
-weight : 51
+weight : 21
 ---
 
 # Introduction

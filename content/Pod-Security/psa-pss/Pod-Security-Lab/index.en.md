@@ -1,6 +1,6 @@
 ---
 title : "Lab: Amazon EKS  Pod Security"
-weight : 53
+weight : 23
 ---
 
 # Introduction

@@ -1,5 +1,5 @@
 ---
-title : "Authentication and Authorization"
+title : "Identity and Access Management"
 weight : 30
 ---
 

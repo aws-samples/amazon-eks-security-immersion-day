@@ -1,8 +1,9 @@
 ---
-title : "Introduction"
-weight : 10
+title: "Amazon EKS Security Immersion Workshop"
+weight: 0
 ---
 
+![Amazon EKS](/static/images/product-page.png)
 
 Welcome to the Amazon EKS Security Immersion Workshop!
 
@@ -13,16 +14,19 @@ This workshop is catered towards usecases, requirement and ask that most of our 
 As part of this workshop we will cover the following topics:
 
 - [Create Workspace Environment](/Create-Workspace-Environment)
-  - [At an AWS Event](/create-workspace-environment/awsevent)
-  - [On Your Own](/create-workspace-environment/onown)
-- [Identity and Access Management](/identity-and-access-management)
-  - [IAM Authentication & RBAC Authorization](/identity-and-access-management/iam-groups-roles-to-manage-eks-access)
-- [Pod Security](/pod-security)
-  - [Pod Security Standards](/pod-security/psa-pss)
+  - [Create IAM Roles](/Create-Workspace-Environment/Create-IAM-Roles)
+  - [Create EKS Cluster](/Create-Workspace-Environment/Create-EKS-Cluster)
+- [Authentication and Authorization](/Authentication-and-Authorization)
+  - [IAM Authentication & RBAC Authorization](/Authentication-and-Authorization/IAM-Groups-to-Manage-EKS-Access)
+  - [OIDC Authentication](/Authentication-and-Authorization/OIDC-Authentication)
+  - [AWS SSO Authentication](/Authentication-and-Authorization/AWS-SSO-Authentication)
 - [Container Image Security](/Container-Image-Security)
   - [Basic Image Scanning with Amazon ECR](/Container-Image-Security/Basic-Image-Scanning-with-Amazon-ECR)
   - [Advanced Image Scanning with Amazon Inspector](/Container-Image-Security/Advanced-Image-Scanning-with-Amazon3-Inspector)
-
+- [Pod Security](/Pod-Security)
+  - [Pod Security Standards](/Pod-Security/Pod-Security-Standards)
+  - [Pod Security Admission](/Pod-Security/Pod-Security-Admission)
+  - [Pod Security Lab](/Pod-Security/Pod-Security-Lab)
 - [Network Security](/Network-Security)
   - [Cluster Endpoint Control](/Network-Security/Cluster-Endpoint-Control)
   - [Network Policies](/Network-Security/Network-Policies)
