@@ -10,7 +10,6 @@ In this section, we will go over the following topics to ensure that we have a f
 
 Click on any of the topics to get more details and see relevant best practices as per 
 [Amazon EKS Best Practices Guide for Security](https://aws.github.io/aws-eks-best-practices/security/docs/) :
-
 * [Identity and Access Management](https://aws.github.io/aws-eks-best-practices/security/docs/iam/)
 * [Pod Security](https://aws.github.io/aws-eks-best-practices/security/docs/pods/)
 * [Tenant Isolation](https://aws.github.io/aws-eks-best-practices/security/docs/multitenancy/)
