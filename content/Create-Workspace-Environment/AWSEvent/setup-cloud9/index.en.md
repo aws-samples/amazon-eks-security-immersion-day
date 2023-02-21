@@ -1,5 +1,5 @@
 ---
-title : "Open Cloud 9 Environment"
+title : "Open Cloud9 Environment"
 weight : 23
 ---
 
