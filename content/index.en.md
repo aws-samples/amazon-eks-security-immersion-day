@@ -30,7 +30,7 @@ Click on any of the topics to get more details and see relevant best practices a
 * [Network security](https://aws.github.io/aws-eks-best-practices/security/docs/network/)
 * [Data encryption and secrets management](https://aws.github.io/aws-eks-best-practices/security/docs/data/)
 * [Runtime security](https://aws.github.io/aws-eks-best-practices/security/docs/runtime/)
-* [Protecting the infrastructure (hosts)](https://aws.github.io/aws-eks-best-practices/security/docs/hosts/)
+* [Infrastructure Security](https://aws.github.io/aws-eks-best-practices/security/docs/hosts/)
 * [Regulatory Compliance](https://aws.github.io/aws-eks-best-practices/security/docs/compliance/)
 * [Incident response and forensics](https://aws.github.io/aws-eks-best-practices/security/docs/incidents/)
 * [Image security](https://aws.github.io/aws-eks-best-practices/security/docs/image/)
