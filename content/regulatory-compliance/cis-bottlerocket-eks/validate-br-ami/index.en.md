@@ -189,3 +189,6 @@ This tool validates the Amazon EKS optimized AMI against CIS Bottlerocket Benchm
 [PASS] 4.1.2 Ensure permissions on journal files are configured (Automated)
 26/26 checks passed
 ```
+
+
+

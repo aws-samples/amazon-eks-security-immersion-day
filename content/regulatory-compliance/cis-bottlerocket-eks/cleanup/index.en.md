@@ -12,3 +12,5 @@ eksctl delete cluster -f cluster.yaml --wait
 aws ecr delete-repository --repository-name ${BOOTSTRAP_ECR_REPO} --force
 aws ecr delete-repository --repository-name ${VALIDATION_ECR_REPO} --force
 ```
+
+
