@@ -3,10 +3,9 @@ title : "Create IAM Roles"
 weight : 22
 ---
 
-Let us create least priveleged IAM Roles
+Let us create 3 least privileged IAM Roles
 
-
-![Least-Privileged-IAM-Role-for-k8sRoles](../../../static/images/Least-Privileged-IAM-Role-for-k8sRoles.png)
+![Least-Privileged-IAM-Role-for-k8sRoles](/static/images/iam/iam-role-rbac/Least-Privileged-IAM-Role-for-k8sRoles.png)
 
 
 We are going to create 3 roles:
@@ -14,8 +13,6 @@ We are going to create 3 roles:
 -   a **k8sAdmin** role which will have **admin** rights in our EKS cluster
 -   a **k8sDev** role which will give access to the **developers** namespace in our EKS cluster
 -   a **k8sInteg** role which will give access to the **integration** namespace in our EKS cluster
-
-
 
 Create the roles:
 
@@ -51,3 +48,14 @@ aws iam create-role \
 
 
 Because the above roles are only used to authenticate within our EKS cluster, they don't need to have AWS permissions. We will only use them to allow some IAM groups to assume this role in order to have access to our EKS cluster.
+
+Let's go to the AWS IAM Console and check one of the above IAM Role and see that there are no IAM permissions attached to the Role.
+
+![k8sAdmink8sAdmin-role](/static/images/iam/iam-role-rbac/k8sAdmin-role.png)
+
+
+And also let's see trust policy of the IAM Role that allows the root account to assume the role, which means 
+any IAM principal (user or role) can now assume the role.
+
+![k8sAdmin-trust-policy](/static/images/iam/iam-role-rbac/k8sAdmin-trust-policy.png)
+

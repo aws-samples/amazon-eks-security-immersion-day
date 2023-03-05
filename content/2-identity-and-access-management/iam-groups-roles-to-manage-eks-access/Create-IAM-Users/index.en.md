@@ -42,3 +42,13 @@ Recap:
 -   **PaulAdmin** is in the **k8sAdmin** group and will be able to assume the **k8sAdmin** role.
 -   **JeanDev** is in **k8sDev** Group and will be able to assume IAM role **k8sDev**
 -   **PierreInteg** is in **k8sInteg** group and will be able to assume IAM role **k8sInteg**
+
+
+Let's go to the AWS IAM Console and check one of the above IAM Groups and see that there are IAM users part of the group.
+
+![IAM-group-users](/static/images/iam/iam-role-rbac/IAM-group-users.png)
+
+
+And also let's see trust policy of the IAM Group that allows users from this group to assume an IAM Role:
+
+![IAM-group-trust-policy](/static/images/iam/iam-role-rbac/IAM-group-trust-policy.png)

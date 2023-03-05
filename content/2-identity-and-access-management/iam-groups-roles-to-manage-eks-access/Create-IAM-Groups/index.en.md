@@ -3,11 +3,9 @@ title : "Create IAM Groups"
 weight : 23
 ---
 
-In this section lets create IAM groups and attach IAM permission policy on these groups to be assume the IAM roles created for K8s role.
+In this section let's create 3 IAM groups and attach IAM permission policy on these IAM groups to be assume the IAM roles created earlier for Kubernetes role.
 
-
-![Attach-Policy-to-IAMgroup](../../../static/images/Attach-Policy-to-IAMgroup.PNG)
-
+![Attach-Policy-to-IAMgroup](/static/images/iam/iam-role-rbac/Attach-Policy-to-IAMgroup.PNG)
 
 We want to have different IAM users which will be added to specific IAM groups in order to have different rights in the kubernetes cluster.
 
@@ -56,7 +54,6 @@ The **k8sDev** Group will be allowed to assume the **k8sDev** IAM Role.
 ```bash
 aws iam create-group --group-name k8sDev
 ```
-
 
 Let's add a Policy on our group which will allow users from this group to assume our k8sDev Role:
 

@@ -1,5 +1,5 @@
 ---
-title : "Configure Kubernetes Role Access"
+title : "Configure aws-auth configmap for mapping between IAM Role(i.e. K8s User) to K8s RBAC Role"
 weight : 26
 ---
 
@@ -7,7 +7,7 @@ weight : 26
 
 In order to give access to the IAM Roles we defined previously to our EKS cluster, we need to add specific **mapRoles** to the `aws-auth` ConfigMap
 
-The Advantage of using Role to access the cluster instead of specifying directly IAM users is that it will be easier to manage: we won't have to update the ConfigMap each time we want to add or remove users, we will just need to add or remove users from the IAM Group and we just configure the ConfigMap to allow the IAM Role associated to the IAM Group.
+The Advantage of using Role to access the cluster instead of specifying directly IAM users is that it will be easier to manage so we won't have to update the ConfigMap each time we want to add or remove users, we will just need to add or remove users from the IAM Group and we just configure the ConfigMap to allow the IAM Role associated to the IAM Group.
 
 
 ### Update the aws-auth ConfigMap to allow our IAM roles
@@ -35,10 +35,6 @@ eksctl create iamidentitymapping \
   --username admin \
   --group system:masters
 ```
-
-It can also be used to delete entries
-
-`eksctl delete iamidentitymapping --cluster eksworkshop-eksctlv --arn arn:aws:iam::xxxxxxxxxx:role/k8sDev --username dev-user`
 
 you should have the config map looking something like:
 
@@ -81,9 +77,10 @@ arn:aws:iam::xxxxxxxxxx:role/k8sDev             dev-user
 arn:aws:iam::xxxxxxxxxx:role/k8sInteg           integ-user
 ```
 
-Here we have created:
+Here is what we have created so far:
 
--   a RBAC role for K8sAdmin, that we map to admin user and give access to *system:masters* kubernetes Groups (so that it has Full Admin rights)
+-   a RBAC role for K8sAdmin, that we map to admin user and give access to **system\:masters** kubernetes Groups so that it has Full Admin rights on the cluster.
+::alert[This is only for example purpose. It is highly recommended not to add any Kubernetes user to **system\:masters** group unless it is necessary]{header="Note"}
 -   a RBAC role for k8sDev that we map on dev-user in development namespace
 -   a RBAC role for k8sInteg that we map on integ-user in integration namespace
 
