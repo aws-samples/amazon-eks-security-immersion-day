@@ -20,7 +20,7 @@ Background in EKS, Kubernetes, Docker, and container workflows are highly recomm
 
 
 Click on any of the topics to get more details and see relevant best practices as per 
-[Amazon EKS Best Practices Guide for Security](https://aws.github.io/aws-eks-best-practices/security/docs/) :
+[Amazon EKS Best Practices Guide for Security](https://aws.github.io/caws-eks-best-practices/security/docs/) :
 
 
 * [Identity and Access Management](https://aws.github.io/aws-eks-best-practices/security/docs/iam/)

@@ -97,13 +97,16 @@ metadata:
     # pod-security.kubernetes.io/warn: restricted
 ```
 
-![Namespaces opt into PSA and PSS settings](../../../../assets/k8s-psa-pss.png)
+![Namespaces opt into PSA and PSS settings](/static/images/pod-security/pss-psa/k8s-psa-pss.png)
+
 
 ## PSA enforce mode user experience (UX) issues
 
 When used independently, the PSA modes have different responses that result in different user experiences. The enforce mode prevents Pods from being created if the respective Pod specs violate the configured PSS profile. However, in this mode, non-Pod Kubernetes objects that create Pods, such as Deployments, won’t be prevented from being applied to the cluster, even if the Pod spec therein violates the applied PSS profile. In this case, the Deployment is applied while the Pods are prevented from being applied.
 
-![PSA UX Issues](../../../../assets/psa-ux-issues.png)
+
+![PSA UX Issues](/static/images/pod-security/pss-psa/psa-ux-issues.png)
+
 
 In some scenarios, this is a difficult user experience, as there is no immediate indication that the successfully applied Deployment object belies failed Pod creation. The offending Pod specs won’t create Pods. Inspecting the Deployment resource with `kubectl get deployments.apps <DEPLOYMENT_NAME> -o=jsonpath='{.status}'` will expose the message from the failed Pod(s) in the Deployment `.status.conditions` element.
 

@@ -69,7 +69,7 @@ We’ll use a script from the repository to create an Amazon Elastic Container R
 Run the below commands.
 
 ```bash
-cd bottlerocket-cis-bootstrap-image
+cd ~/environment/containers-blog-maelstrom/cis-bottlerocket-benchmark-eks/bottlerocket-cis-bootstrap-image
 chmod +x create-ecr-repo.sh
 ./create-ecr-repo.sh
 ```

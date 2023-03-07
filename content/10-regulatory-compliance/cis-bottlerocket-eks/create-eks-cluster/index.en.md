@@ -8,7 +8,7 @@ With the bootstrap container created and ready for use in Amazon ECR, we can cre
 Run the following cat command to insert the environment variables defined earlier into the cluster.yaml file located in the root of the GitHub repository.
 
 ```bash
-cd ..
+cd ~/environment/containers-blog-maelstrom/cis-bottlerocket-benchmark-eks/
 cat > cluster.yaml <<EOF
 ---
 apiVersion: eksctl.io/v1alpha5

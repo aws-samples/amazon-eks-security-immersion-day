@@ -8,7 +8,7 @@ After deploying a managed node group that adheres to the CIS Benchmark, we can u
 First, we’ll need to again create an Amazon ECR repository to house the validation image:
 
 ```bash
-cd bottlerocket-cis-validating-image
+cd ~/environment/containers-blog-maelstrom/cis-bottlerocket-benchmark-eks/bottlerocket-cis-validating-image
 chmod +x create-ecr-repo.sh
 ./create-ecr-repo.sh
 ```
