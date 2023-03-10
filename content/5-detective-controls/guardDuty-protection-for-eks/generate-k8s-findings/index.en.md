@@ -212,3 +212,5 @@ service/kubernetes-dashboard patched
 
 ![k8s-dashboard](/static/images/detective-controls/k8s-dashboard.png)
 
+Within a few minutes we'll see the finding `Policy:Kubernetes/ExposedDashboard` in the GuardDuty portal.
+

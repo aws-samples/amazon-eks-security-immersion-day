@@ -3,7 +3,7 @@ title : "Deploy a sample nginx pod on the Bottlerocket nodes"
 weight : 23
 ---
 
-With a working cluster and managed node group, we can deploy a sample application to make sure everything is running properly. For this example, we’ll use a simple nginx deployment defined in the [GitHub repository](https://github.com/aws-samples/containers-blog-maelstrom/tree/main/cis-bottlerocket-benchmark-eks) to deploy pods to the cluster. We can then verify the pods are running, and the nginx webserver started correctly:
+With a working cluster and managed node group, we can deploy a sample application to make sure everything is running properly. For this example, we’ll use a simple nginx deployment defined in the [GitHub repository](https://github.com/aws-samples/containers-blog-maelstrom/tree/main/cis-bottlerocket-benchmark-eks) to deploy pods to the cluster into the bottlerocket nodegroup using Kubernetes pod scheduling property [nodeSelector](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#nodeselector). We can then verify the pods are running, and the nginx webserver started correctly:
 
 ```bash
 cat > deploy-nginx.yaml <<EOF
@@ -22,6 +22,8 @@ spec:
       labels:
         app: nginx
     spec:
+      nodeSelector:
+        eks.amazonaws.com/nodegroup: bottlerocket-mng
       containers:
       - name: nginx
         image: nginx
@@ -43,6 +45,11 @@ Run the below command to exec into the pod and run a curl command:
 ```bash
 POD_NAME=$(kubectl get pods -l=app=nginx -o=jsonpath={.items..metadata.name})
 kubectl exec -it  $POD_NAME -- /bin/bash
+```
+
+Run a simple curl command to ensure that our nginx sample application is running inside the pod.
+
+```bash
 root@nginx-74d589986c-xqkqb:/# curl 127.0.0.1:80
 <!DOCTYPE html>
 <html>

@@ -3,7 +3,38 @@ title : "IAM Roles for Service Accounts(IRSA)"
 weight : 34
 ---
 
-### Why do we need IRSA in the first place?
+
+### Prerequisites
+
+This workshop is most suitable for participants who are currently building solutions in AWS using compute and/or container services.
+
+#### Target Audience
+
+This workshop is designed for an audience looking to build vulnerability management solutions using AWS services and native controls. Technical owners and individual contributors in Platform teams, Security teams, and Cloud Architecture teams can use this workshop to build advanced vulnerability management configurations.
+
+
+#### Costs
+
+In this workshop, you will create various AWS services. **This workshop will not incur any costs when run using AWS Event Dashboard at an AWS Event**. If you plan to run the workshop on your own, please make sure to check the [AWS Free Tier](https://aws.amazon.com/free/) page along with the building a cost estimation using the [AWS Pricing Calculator](https://calculator.aws/#/) to understand the spend involved.
+
+#### Navigating the workshop
+
+Navigate the workshop using the left navigation bar. You can see the range of tasks on the left.
+
+
+#### Cleanup
+
+Use the cleanup page for instructions on how to cleanup after the workshop is completed.
+
+#### Feedback
+
+We appreciate your opinion on how to improve this resource! If you have any feedback or suggestions for improvement, please email [amazon-eks-security-immersion-day@amazon.com](mailto:amazon-eks-security-immersion-day@amazon.com)
+.
+
+
+### IAM Roles for Service Accounts(IRSA)
+
+#### Why do we need IRSA in the first place?
 
 Before getting into the details of what is IRSA and how does it work, let us first understand what is the problem statement.
 
@@ -48,7 +79,7 @@ As the IAM role within the EC2 Instance Profile does not have necessary permissi
 This leads us on to the next question: how could we inject AWS credentials into a container so the container does not default to the EC2 instance profile? Injecting AWS credentials via Kubernetes Secrets or environment variables would not be secure, and the user would have to manage the lifecycle of these credentials. We would not recommend either of those approaches.
 
 
-### Fine-Grained IAM Roles for Service Accounts
+#### Fine-Grained IAM Roles for Service Accounts
 
 Applications in a Pod’s containers can use an AWS SDK or the AWS CLI to make API requests to AWS services using AWS Identity and Access Management (IAM) permissions. For example, applications may need to upload files to an S3 bucket or query a DynamoDB table. To do so applications must sign their AWS API requests with AWS credentials. [IAM Roles for Service Accounts (IRSA)](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) provide the ability to manage credentials for your applications, similar to the way that IAM Instance Profiles provide credentials to Amazon EC2 instances. Instead of creating and distributing your AWS credentials to the containers or relying on the Amazon EC2 Instance Profile for authorization, you associate an IAM Role with a Kubernetes Service Account and configure your Pods to use that Service Account.
 
