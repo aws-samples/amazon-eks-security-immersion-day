@@ -3,8 +3,6 @@ title : "Pod Security Standards"
 weight : 41
 ---
 
-
-
 ### Prerequisites
 
 This workshop is most suitable for participants who are currently building solutions in AWS using compute and/or container services.

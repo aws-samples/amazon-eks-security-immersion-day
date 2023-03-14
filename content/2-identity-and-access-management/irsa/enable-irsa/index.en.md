@@ -120,7 +120,7 @@ Select the Trust relationships tab and select Edit trust relationship to view th
 
 ![iam-role-trust-policy](/static/images/iam/irsa/iam-role-trust-policy.png)
 
-The principal for this policy is `arn:aws:iam::000474600478:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/80D562ED8026E91294D52E09BEA261D41` i.e. the OIDC provider for the EKS Cluster can only assume this role and allowed action is `sts:AssumeRoleWithWebIdentity`.
+The principal for this policy is `arn:aws:iam::XXXXXXXXXX:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/80D562ED8026E91294D52E09BEA261D41` i.e. the OIDC provider for the EKS Cluster can only assume this role and allowed action is `sts:AssumeRoleWithWebIdentity`.
 
 You can also see that there are 2 conditions in this Policy. The first condition contains `sub` field and ensures that only Kubernetes pod with identity `system:serviceaccount:default:iam-test` can assume this the IAM Role. The second condition has `aud` field which says that the audience must be `sts.amazonaws.com`.
 
@@ -234,7 +234,7 @@ spec:
     - name: AWS_REGION
       value: us-east-1
     - name: AWS_ROLE_ARN
-      value: arn:aws:iam::000474600478:role/eksctl-eksworkshop-eksctl-addon-iamserviceac-Role1-1CF1FE6ZXXRZF
+      value: arn:aws:iam::XXXXXXXXX:role/eksctl-eksworkshop-eksctl-addon-iamserviceac-Role1-1CF1FE6ZXXRZF
     - name: AWS_WEB_IDENTITY_TOKEN_FILE
       value: /var/run/secrets/eks.amazonaws.com/serviceaccount/token
     image: amazon/aws-cli:latest

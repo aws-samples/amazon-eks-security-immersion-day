@@ -3,8 +3,6 @@ title : "Amazon GuardDuty protection for EKS"
 weight : 34
 ---
 
-
-
 ### Prerequisites
 
 This workshop is most suitable for participants who are currently building solutions in AWS using compute and/or container services.

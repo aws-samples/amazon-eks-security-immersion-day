@@ -16,9 +16,6 @@ This workshop is the outcome of experience we had from past Immersion workshops 
 This workshop is catered towards use cases, requirement and ask that most of our customers have demanded as part of EKS Immersions done in the past.
 
 
-Background in EKS, Kubernetes, Docker, and container workflows are highly recommended as a perquisites.
-
-
 Click on any of the topics to get more details and see relevant best practices as per 
 [Amazon EKS Best Practices Guide for Security](https://aws.github.io/caws-eks-best-practices/security/docs/) :
 

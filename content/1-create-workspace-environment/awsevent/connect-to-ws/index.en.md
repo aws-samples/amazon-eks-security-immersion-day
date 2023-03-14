@@ -12,7 +12,7 @@ The facilitator will provide you with an AWS account to deploy the components co
 
 ![sign-in](/static/images/sign-in.png)
 
-* Enter your email address and select Send passcode
+* Enter your email address and select Send passcode.
 
 ![sign-in](/static/images/on-time1.png)
 
