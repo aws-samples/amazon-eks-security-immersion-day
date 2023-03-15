@@ -12,17 +12,28 @@ Kubernetes Pods are given an identity through a Kubernetes concept called a Kube
 
 ```bash
 kubectl get sa
+```
+
+The output looks like below
+
+```bash
+NAME      SECRETS   AGE
+default   1         3h9m
+```
+
+Let us get the secret associated the default service account.
+
+```bash
 DEFAULT_SA_SECRET_NAME=$(kubectl get sa default -ojson | jq -r '.secrets[0].name')
 echo "Default Service Account Secret Name: $DEFAULT_SA_SECRET_NAME"
 ```
 
-::::expand{header="Check Output"}
+The output looks like below.
+
 ```bash
-NAME            SECRETS   AGE
-default         1         80d
 Default Service Account Secret Name: default-token-j9sbj
 ```
-::::
+
 
 Unfortunately, this default token has a few problems that make it unusable for IAM authentication. 
 1. It is only the Kubernetes API server that can validate this token
@@ -44,7 +55,8 @@ eyJhbGciOiJSUzI1NiIsImtpZCI6Ill1MWdtZkV2ZlBoUFVTcmJVaVpJTC12MDRuTldxM0tUdWZUQzR2
 
  Copy the token from the above output and decode it using this online tool [https://jwt.io/](https://jwt.io/)
 
-::::expand{header="Check Output for the Payload part of the token"}
+The Output for the Payload part of the token looks like below.
+
 ```json
 {
   "iss": "kubernetes/serviceaccount",
@@ -54,8 +66,7 @@ eyJhbGciOiJSUzI1NiIsImtpZCI6Ill1MWdtZkV2ZlBoUFVTcmJVaVpJTC12MDRuTldxM0tUdWZUQzR2
   "kubernetes.io/serviceaccount/service-account.uid": "75f1899b-9146-4d81-835c-91ce9e9f88a5",
   "sub": "system:serviceaccount:default:default"
 }
-``
-::::
+```
 
 
 ### Projected Service Account Token
@@ -89,10 +100,29 @@ spec:
 EOF
 
 kubectl apply -f eks-iam-test2.yaml
+```
+
+::::expand{header="Check Output"}
+```bash
+pod/eks-iam-test2 created
+```
+::::
+
+Run the below command to see the pod status
+
+```bash
 kubectl get pod
 ```
 
-Let us look at the Volumes and VolumeMounts in the pod specification.
+The output looks like below
+
+```bash
+NAME            READY   STATUS    RESTARTS   AGE
+eks-iam-test1   0/1     Error     0          96m
+eks-iam-test2   1/1     Running   0          81s
+```
+
+Let us look at the Volumes and VolumeMounts in the pod `eks-iam-test2` specification.
 
 ```bash
 kubectl get pod eks-iam-test2 -oyaml
@@ -146,11 +176,11 @@ The token can be retrieved and expanded to show a fully compliant OIDC token.
 kubectl exec -it eks-iam-test2 -- cat /var/run/secrets/kubernetes.io/serviceaccount/token
 ```
 
-::::expand{header="Check Output"}
+The Output looks like below.
+
 ```bash
 eyJhbGciOiJSUzI1NiIsImtpZCI6ImY2NDU3OGViMmFiMjRlOTIxNWM0NjA4Yjg1NTU5YmNiODgxOTQ1NDQifQ.eyJhdWQiOlsiaHR0cHM6Ly9rdWJlcm5ldGVzLmRlZmF1bHQuc3ZjIl0sImV4cCI6MTcwOTQ1ODA4MywiaWF0IjoxNjc3OTIyMDgzLCJpc3MiOiJodHRwczovL29pZGMuZWtzLnVzLWVhc3QtMS5hbWF6b25hd3MuY29tL2lkLzgwRDU2MkVEODAyNkU5MTI5NEQ1MkUwOUJFQTI2MUQ0Iiwia3ViZXJuZXRlcy5pbyI6eyJuYW1lc3BhY2UiOiJkZWZhdWx0IiwicG9kIjp7Im5hbWUiOiJla3MtaWFtLXRlc3QyIiwidWlkIjoiZTU5MTdhM2MtMTA4Yi00YzdiLWIwNDUtOTYwYjZhNTlmZWZiIn0sInNlcnZpY2VhY2NvdW50Ijp7Im5hbWUiOiJkZWZhdWx0IiwidWlkIjoiNzVmMTg5OWItOTE0Ni00ZDgxLTgzNWMtOTFjZTllOWY4OGE1In0sIndhcm5hZnRlciI6MTY3NzkyNTY5MH0sIm5iZiI6MTY3NzkyMjA4Mywic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50OmRlZmF1bHQ6ZGVmYXVsdCJ9.N-z0JJjHI8yZtDAyPTBfJRz-s7dzhdR1F5QpK5hnuMbeIsPxvuADppanqD82oO8SWy11Nw4WOO85s22ZpRjh3MlSKMuvEIAFkk69iyPooMUrRkqLu7blF3_EsbZKgACR1plUGEjG2Ge1mGGE5nvem63BKBUfhk7F0Eefg58ZaEvu7Zubk3IEChU6Q2FWmLVQGFJOAjZXreDN571DshOXp53y8ZlO0dbuk5WRXtUwY11DgP8cznGiz8bpoPxf20g-pGj4eGR3r0oFRm78rfa-uC6fI5ccOSzYYrBOMujonRS1vbVXLDF71KFbQkbQxUrnqLoYwmPP4pspt6t3OZsfmw
 ```
-::::
 
 Decoding this token at [https://jwt.io/](https://jwt.io/) shows below Payload Data.
 
@@ -180,7 +210,6 @@ Decoding this token at [https://jwt.io/](https://jwt.io/) shows below Payload Da
 ```
 
 Let us understand few important fields in the above output.
-A
 
 **iss** : It represents the issuer of the token which is an OIDC Provider `https://oidc.eks.us-east-1.amazonaws.com/id/80D562ED8026E91294D52E09BEA261D4`. This OIDC provider URL will be used during the verification process of the token.
 

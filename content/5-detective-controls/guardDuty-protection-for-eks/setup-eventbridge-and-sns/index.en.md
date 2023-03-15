@@ -23,7 +23,7 @@ echo $SNS_TOPIC_ARN
 The output will look like below
 
 ```bash
-arn:aws:sns:us-east-1:XXXXXXXX:K8sAudit
+arn:aws:sns:us-west-2:XXXXXXXX:K8sAudit
 ```
 
 #### Create a Subscription for the SNS Topic
@@ -69,14 +69,14 @@ aws events put-rule \
 The output looks like below
 ```bash
 {
-    "RuleArn": "arn:aws:events:us-east-1:XXXXXXXX:rule/EKSAuditRoute"
+    "RuleArn": "arn:aws:events:us-west-2:XXXXXXXX:rule/EKSAuditRoute"
 }
 ```
 
 Then run below command to update the above Rule to attach a target for the above SNS topic.
 
 ```bash
-aws events put-targets --rule EKSAuditRoute1 --targets "Id"="1","Arn"="$SNS_TOPIC_ARN"
+aws events put-targets --rule EKSAuditRoute --targets "Id"="1","Arn"="$SNS_TOPIC_ARN"
 ```
 
 The output looks like below

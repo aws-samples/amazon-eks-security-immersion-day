@@ -16,11 +16,12 @@ Run the below command to retrieve the OpenID Connect issuer URL associated with 
 
 ```bash
 oidc_id=$(aws eks describe-cluster --name eksworkshop-eksctl --query "cluster.identity.oidc.issuer" --output text | cut -d '/' -f 5)
+echo $oidc_id
 ```
 The output will looks like below
 
 ```bash
-https://oidc.eks.us-east-1.amazonaws.com/id/80D562ED8026E91294D52E09BEA261D4
+80D562ED8026E91294D52E09BEA261D4
 ```
 2. Determine whether an IAM OIDC provider with your cluster's ID is already in your account.
 
@@ -38,7 +39,7 @@ eksctl utils associate-iam-oidc-provider --cluster eksworkshop-eksctl  --approve
 
 If you go to the [Identity Providers in IAM Console](https://console.aws.amazon.com/iam/home#/providers), and click on the OIDC provider link, you will see OIDC provider has created for your cluster. 
 
-![oidc](/static/images/iam/irsa/oidc.PNG)
+![oidc](/static/images/iam/irsa/oidc.png)
 
 
 ### Create Service Account with attaching an IAM role
@@ -54,15 +55,17 @@ aws iam list-policies --query 'Policies[?PolicyName==`AmazonS3ReadOnlyAccess`].A
 ```
 
 ::::expand{header="Check Output"}
-```bash
-"arn\:aws\:iam::aws\:policy/AmazonS3ReadOnlyAccess"
+```json
+[
+    "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+]
 ```
 ::::
 
 
 Now you will create a IAM role bound to a service account with read-only access to S3
 
-```
+```bash
 eksctl create iamserviceaccount \
     --name iam-test \
     --cluster eksworkshop-eksctl \
@@ -70,7 +73,6 @@ eksctl create iamserviceaccount \
     --approve \
     --override-existing-serviceaccounts
 ```
-
 
 ::::expand{header="Check Output"}
 ```bash
@@ -120,7 +122,7 @@ Select the Trust relationships tab and select Edit trust relationship to view th
 
 ![iam-role-trust-policy](/static/images/iam/irsa/iam-role-trust-policy.png)
 
-The principal for this policy is `arn:aws:iam::XXXXXXXXXX:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/80D562ED8026E91294D52E09BEA261D41` i.e. the OIDC provider for the EKS Cluster can only assume this role and allowed action is `sts:AssumeRoleWithWebIdentity`.
+The principal for this policy is `arn:aws:iam::XXXXXXXXXX:oidc-provider/oidc.eks.us-west-2.amazonaws.com/id/80D562ED8026E91294D52E09BEA261D41` i.e. the OIDC provider for the EKS Cluster can only assume this role and allowed action is `sts:AssumeRoleWithWebIdentity`.
 
 You can also see that there are 2 conditions in this Policy. The first condition contains `sub` field and ensures that only Kubernetes pod with identity `system:serviceaccount:default:iam-test` can assume this the IAM Role. The second condition has `aud` field which says that the audience must be `sts.amazonaws.com`.
 
@@ -137,7 +139,7 @@ aws s3 mb s3://eksworkshop-$ACCOUNT_ID-$AWS_REGION --region $AWS_REGION
 The output looks like below
 
 ```bash
-make_bucket: eksworkshop-XXXXXXXX-us-east-1
+make_bucket: eksworkshop-XXXXXXXX-us-west-2
 ```
 Now let us use the above service account with our initial Pod example, which lists S3 objects.
 
@@ -161,21 +163,39 @@ spec:
 EOF
 
 kubectl apply -f eks-iam-test3.yaml
-kubectl get pod
 ```
 
-Let us check the pod status and check the logs to verify that the command ran successfully this time.
+::::expand{header="Check Output"}
+```bash
+pod/eks-iam-test3 created
+```
+::::
+
+Run the below command to see the pod status.
 
 ```bash
 kubectl get pod
+```
+
+The output looks like below
+
+```bash
+NAME            READY   STATUS    RESTARTS   AGE
+NAME            READY   STATUS      RESTARTS   AGE
+eks-iam-test1   0/1     Error       0          115m
+eks-iam-test2   1/1     Running     0          19m
+eks-iam-test3   0/1     Completed   0          61s
+```
+
+The pod status shows `Completed`. Let us check the logs to verify that the command ran successfully this time.
+
+```bash
 kubectl logs  eks-iam-test3
 ```
 The output should look like below.
 
 ```bash
-eks-iam-test3                                   0/1     Completed   0          6m2s
-
-2023-03-05 07:22:11 eksworkshop-XXXXXXXXXX-us-east-1
+2023-03-14 12:32:02 eksworkshop-XXXXXXXXXX-us-west-2
 ```
 
 The above output indicates that the container is now able to access the AWS S3 service and list the bucket names successfully.
@@ -201,13 +221,28 @@ spec:
 EOF
 
 kubectl apply -f eks-iam-test4.yaml
+```
+
+::::expand{header="Check Output"}
+```bash
+pod/eks-iam-test4 created
+```
+::::
+
+Run the below command to see the pod status.
+
+```bash
 kubectl get pod
 ```
 
 The output looks like below
 
 ```bash
-eks-iam-test4                                   1/1     Running     0          5s
+NAME            READY   STATUS      RESTARTS   AGE
+eks-iam-test1   0/1     Error       0          125m
+eks-iam-test2   1/1     Running     0          30m
+eks-iam-test3   0/1     Completed   0          11m
+eks-iam-test4   1/1     Running     0          6m12s
 ```
 
 If we inspect the Pod using Kubectl and jq, we can see there are now two volumes mounted into our Pod. The second one has been mounted via that mutating webhook. The aws-iam-token is still being generated by the Kubernetes API Server, but with a new OIDC JWT audience.
@@ -230,9 +265,9 @@ spec:
     - name: AWS_STS_REGIONAL_ENDPOINTS
       value: regional
     - name: AWS_DEFAULT_REGION
-      value: us-east-1
+      value: us-west-2
     - name: AWS_REGION
-      value: us-east-1
+      value: us-west-2
     - name: AWS_ROLE_ARN
       value: arn:aws:iam::XXXXXXXXX:role/eksctl-eksworkshop-eksctl-addon-iamserviceac-Role1-1CF1FE6ZXXRZF
     - name: AWS_WEB_IDENTITY_TOKEN_FILE
@@ -285,11 +320,11 @@ Note that there are two additional environment variables added. One of them is `
 kubectl exec -it eks-iam-test4 -- cat /var/run/secrets/eks.amazonaws.com/serviceaccount/token
 ```
 
-::::expand{header="Check Output"}
+The Output looks like below.
+
 ```bash
 eyJhbGciOiJSUzI1NiIsImtpZCI6ImY2NDU3OGViMmFiMjRlOTIxNWM0NjA4Yjg1NTU5YmNiODgxOTQ1NDQifQ.eyJhdWQiOlsic3RzLmFtYXpvbmF3cy5jb20iXSwiZXhwIjoxNjc4MDk5Njc4LCJpYXQiOjE2NzgwMTMyNzgsImlzcyI6Imh0dHBzOi8vb2lkYy5la3MudXMtZWFzdC0xLmFtYXpvbmF3cy5jb20vaWQvODBENTYyRUQ4MDI2RTkxMjk0RDUyRTA5QkVBMjYxRDQiLCJrdWJlcm5ldGVzLmlvIjp7Im5hbWVzcGFjZSI6ImRlZmF1bHQiLCJwb2QiOnsibmFtZSI6ImVrcy1pYW0tdGVzdDQiLCJ1aWQiOiIwZDY0NDAyZi01Yzg3LTQ2OWMtYjQ0MS04YmQzMzJiMWJkMDcifSwic2VydmljZWFjY291bnQiOnsibmFtZSI6ImlhbS10ZXN0IiwidWlkIjoiODE0NWE2ZDUtNDkzMi00OGU5LTg2YjUtN2MzM2ViOWQ2YWQxIn19LCJuYmYiOjE2NzgwMTMyNzgsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpkZWZhdWx0OmlhbS10ZXN0In0.T_s2O-GNW9KrErQ8Vm6WS_3iiKbWR4Zkiv0F7IJaPVxqiMLtkAGbX7ucYkHOxpumgK-9OphzPrBSWZFpoHFYQkIuvN8YRyWJCvcQEzA2dF9IAJVMH8xzyyaxZdTonnRP2M_HHBtYIOYJBty4YzLxwsHiUqxA6c_7Q2Q03eLvaKYU4RM3hibICpcd-ENMEiB9k22B4sgrTe-DzbmJiUghKz4r-Ag-nkS3hiz0Imec2LQ0Xp7BHU74q7015WcbF8J2EdU8kNUwoTqKkuu_wrksk_0XpWLasbsNvLptKAnFQ1hOu_I9wJieL_0P0GMjz-_nviUIjdw7OxnWcZPg3qci5w
 ```
-::::
 
 Decoding this token at [https://jwt.io/](https://jwt.io/) shows below Payload Data.
 
@@ -300,7 +335,7 @@ Decoding this token at [https://jwt.io/](https://jwt.io/) shows below Payload Da
   ],
   "exp": 1678099678,
   "iat": 1678013278,
-  "iss": "https://oidc.eks.us-east-1.amazonaws.com/id/80D562ED8026E91294D52E09BEA261D4",
+  "iss": "https://oidc.eks.us-west-2.amazonaws.com/id/80D562ED8026E91294D52E09BEA261D4",
   "kubernetes.io": {
     "namespace": "default",
     "pod": {

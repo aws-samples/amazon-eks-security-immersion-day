@@ -3,38 +3,6 @@ title : "Validating Amazon EKS optimized Bottlerocket AMI against the CIS Benchm
 weight : 34
 ---
 
-
-### Prerequisites
-
-This workshop is most suitable for participants who are currently building solutions in AWS using compute and/or container services.
-
-#### Target Audience
-
-This workshop is designed for an audience looking to build vulnerability management solutions using AWS services and native controls. Technical owners and individual contributors in Platform teams, Security teams, and Cloud Architecture teams can use this workshop to build advanced vulnerability management configurations.
-
-
-#### Costs
-
-In this workshop, you will create various AWS services. **This workshop will not incur any costs when run using AWS Event Dashboard at an AWS Event**. If you plan to run the workshop on your own, please make sure to check the [AWS Free Tier](https://aws.amazon.com/free/) page along with the building a cost estimation using the [AWS Pricing Calculator](https://calculator.aws/#/) to understand the spend involved.
-
-#### Navigating the workshop
-
-Navigate the workshop using the left navigation bar. You can see the range of tasks on the left.
-
-
-#### Cleanup
-
-Use the cleanup page for instructions on how to cleanup after the workshop is completed.
-
-#### Feedback
-
-We appreciate your opinion on how to improve this resource! If you have any feedback or suggestions for improvement, please email [amazon-eks-security-immersion-day@amazon.com](mailto:amazon-eks-security-immersion-day@amazon.com)
-.
-
-
-### Validating Amazon EKS optimized Bottlerocket AMI against the CIS Benchmark
-
-
 The [Center for Internet Security (CIS)](https://www.cisecurity.org/) Benchmarks are best practices for the secure configuration of a target system. They define various Benchmarks for the Kubernetes control plane and the data plane. For [Amazon EKS](https://aws.amazon.com/eks/) clusters, it’s strongly recommended to follow the [CIS Amazon EKS Benchmark](https://aws.amazon.com/blogs/containers/introducing-cis-amazon-eks-benchmark/). However, many organizations also need to harden the operating system on the worker nodes for security and compliance purposes. [Bottlerocket](https://aws.amazon.com/bottlerocket/) is a Linux-based open-source operating system that is purpose-built by Amazon Web Services for containers. If an organization needs to ensure compliance, the organization must implement the [CIS Benchmark for Bottlerocket](https://www.cisecurity.org/benchmark/bottlerocket). 
 
 In this module, we will have detailed step-by-step instructions on how you can bootstrap an Amazon EKS optimized Bottlerocket Amazon Machine Image (AMI) for the requirements of the [CIS Bottlerocket Benchmarks](https://aws.amazon.com/about-aws/whats-new/2022/08/center-for-internet-security-bottlerocket-available/). It will also illustrates how to continuously validate the worker nodes against the Benchmark after deployment to minimize the risk of security configuration drift.

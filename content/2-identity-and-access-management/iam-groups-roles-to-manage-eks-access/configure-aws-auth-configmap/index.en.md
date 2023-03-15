@@ -1,7 +1,9 @@
 ---
-title : "Configure aws-auth configmap for mapping between IAM Role(i.e. K8s User) to K8s RBAC Role"
+title : "Configure aws-auth configmap"
 weight : 26
 ---
+
+In this section, we will configure aws-auth configmap for mapping between IAM Role(i.e. Kubernetes User) to Kubernetes RBAC Role.
 
 #### Gives Access to our IAM Roles to EKS Cluster
 
@@ -36,13 +38,28 @@ eksctl create iamidentitymapping \
   --group system:masters
 ```
 
+::::expand{header="Check Output"}
+```json
+2023-03-14 09:57:10 [ℹ]  checking arn arn:aws:iam::XXXXXXXXXX:role/k8sDev against entries in the auth ConfigMap
+2023-03-14 09:57:10 [ℹ]  adding identity "arn:aws:iam::XXXXXXXXXX:role/k8sDev" to auth ConfigMap
+
+2023-03-14 09:57:10 [ℹ]  checking arn arn:aws:iam::XXXXXXXXXX:role/k8sInteg against entries in the auth ConfigMap
+2023-03-14 09:57:10 [ℹ]  adding identity "arn:aws:iam::XXXXXXXXXX:role/k8sInteg" to auth ConfigMap
+
+2023-03-14 09:57:10 [ℹ]  checking arn arn:aws:iam::XXXXXXXXXX:role/k8sAdmin against entries in the auth ConfigMap
+2023-03-14 09:57:10 [ℹ]  adding identity "arn:aws:iam::XXXXXXXXXX:role/k8sAdmin" to auth ConfigMap
+```
+::::
+
 you should have the config map looking something like:
 
 ```bash
 kubectl get cm -n kube-system aws-auth -o yaml
 ```
 
-```bash
+The output looks like below.
+
+```yaml
 apiVersion: v1
 data:
   mapRoles: |
@@ -64,11 +81,15 @@ data:
 kind: ConfigMap
 ```
 
+In the above output, the AWS IAM Role for example `arn:aws:iam::xxxxxxxxxx:role/k8sAdmin` is mapped to a Kubernetes RBAC user `admin`, which is added to the Kubernetes RBAC group `system:masters`.
+
 We can leverage eksctl to get a list of all identities managed in our cluster. Example:
 
 ```bash
 eksctl get iamidentitymapping --cluster eksworkshop-eksctl
 ```
+
+The output looks like below.
 
 ```bash
 arn:aws:iam::xxxxxxxxxx:role/eksctl-quick-nodegroup-ng-fe1bbb6-NodeInstanceRole-1KRYARWGGHPTTsystem:node:{{EC2PrivateDNSName}}system:bootstrappers,system:nodes

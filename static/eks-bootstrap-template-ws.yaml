@@ -480,7 +480,7 @@ Resources:
                   print('Creating cluster ' + cluster_name)
                   response = eks.create_cluster(
                       name=cluster_name,
-                      version='1.23',
+                      version='1.25',
                       roleArn=event['ResourceProperties']['ClusterRoleArn'],
                       resourcesVpcConfig={
                           'subnetIds': event['ResourceProperties']['SubnetIds'],
@@ -768,7 +768,7 @@ Resources:
                   instance_id = instance['InstanceId']
                   commands = '''
               su -l -c 'aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com' ec2-user
-              curl -sSL -o /tmp/kubectl https://s3.us-west-2.amazonaws.com/amazon-eks/1.23.7/2022-06-29/bin/linux/amd64/kubectl
+              curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.25.6/2023-01-30/bin/linux/amd64/kubectl
               chmod +x /tmp/kubectl
               mv /tmp/kubectl /usr/local/bin/kubectl
               su -l -c 'aws eks update-kubeconfig --name {eks_cluster_name} --region {region} --role-arn {instance_role_arn}' ec2-user

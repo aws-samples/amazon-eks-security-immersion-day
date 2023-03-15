@@ -14,6 +14,13 @@ We are going to create 3 roles:
 -   a **k8sDev** role which will give access to the **developers** namespace in our EKS cluster
 -   a **k8sInteg** role which will give access to the **integration** namespace in our EKS cluster
 
+Set below environment variables
+```bash
+export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
+export AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
+```
+
+
 Create the roles:
 
 ```bash
@@ -43,6 +50,15 @@ aws iam create-role \
   --output text \
   --query 'Role.Arn'
 ```
+
+::::expand{header="Check Output"}
+```bash
+arn:aws:iam::XXXXXXXXXXX:role/k8sAdmin
+arn:aws:iam::XXXXXXXXXXX:role/k8sDev
+arn:aws:iam::XXXXXXXXXXX:role/k8sInteg
+```
+::::
+
 
 > In this example, the assume-role-policy allows the root account to assume the role. We are going to allow specific groups to also be able to assume those roles. Check the [official documentation](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts-technical-overview.html)  for more information.
 

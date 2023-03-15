@@ -3,37 +3,6 @@ title : "IAM Roles for Service Accounts(IRSA)"
 weight : 34
 ---
 
-
-### Prerequisites
-
-This workshop is most suitable for participants who are currently building solutions in AWS using compute and/or container services.
-
-#### Target Audience
-
-This workshop is designed for an audience looking to build vulnerability management solutions using AWS services and native controls. Technical owners and individual contributors in Platform teams, Security teams, and Cloud Architecture teams can use this workshop to build advanced vulnerability management configurations.
-
-
-#### Costs
-
-In this workshop, you will create various AWS services. **This workshop will not incur any costs when run using AWS Event Dashboard at an AWS Event**. If you plan to run the workshop on your own, please make sure to check the [AWS Free Tier](https://aws.amazon.com/free/) page along with the building a cost estimation using the [AWS Pricing Calculator](https://calculator.aws/#/) to understand the spend involved.
-
-#### Navigating the workshop
-
-Navigate the workshop using the left navigation bar. You can see the range of tasks on the left.
-
-
-#### Cleanup
-
-Use the cleanup page for instructions on how to cleanup after the workshop is completed.
-
-#### Feedback
-
-We appreciate your opinion on how to improve this resource! If you have any feedback or suggestions for improvement, please email [amazon-eks-security-immersion-day@amazon.com](mailto:amazon-eks-security-immersion-day@amazon.com)
-.
-
-
-### IAM Roles for Service Accounts(IRSA)
-
 #### Why do we need IRSA in the first place?
 
 Before getting into the details of what is IRSA and how does it work, let us first understand what is the problem statement.
@@ -59,15 +28,38 @@ spec:
 EOF
 
 kubectl apply -f eks-iam-test1.yaml
-kubectl get pod
-kubectl logs  eks-iam-test1
 ```
 
 ::::expand{header="Check Output"}
 ```bash
-An error occurred (AccessDenied) when calling the ListBuckets operation: Access Denied
-``
+pod/eks-iam-test1 created
+```
 ::::
+
+Run the below command to see the pod status
+
+```bash
+kubectl get pod
+```
+
+The output looks like below
+
+```bash
+NAME            READY   STATUS   RESTARTS   AGE
+eks-iam-test1   0/1     Error    0          30s
+```
+
+The pod status shows `Error`. Let us check logs for the exact reason.
+
+```bash
+kubectl logs  eks-iam-test1
+```
+
+The output looks like below.
+
+```bash
+An error occurred (AccessDenied) when calling the ListBuckets operation: Access Denied
+```
 
 As you see in the above output, the pod is not able to access the AWS S3 service due to `AccessDenied` permission error.
 
@@ -77,7 +69,6 @@ As the IAM role within the EC2 Instance Profile does not have necessary permissi
 
 
 This leads us on to the next question: how could we inject AWS credentials into a container so the container does not default to the EC2 instance profile? Injecting AWS credentials via Kubernetes Secrets or environment variables would not be secure, and the user would have to manage the lifecycle of these credentials. We would not recommend either of those approaches.
-
 
 #### Fine-Grained IAM Roles for Service Accounts
 

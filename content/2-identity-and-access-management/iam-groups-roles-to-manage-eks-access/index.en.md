@@ -3,36 +3,6 @@ title : "Using IAM Groups to Manage Kubernetes Cluster Access"
 weight : 34
 ---
 
-
-### Prerequisites
-
-This workshop is most suitable for participants who are currently building solutions in AWS using compute and/or container services.
-
-#### Target Audience
-
-This workshop is designed for an audience looking to build vulnerability management solutions using AWS services and native controls. Technical owners and individual contributors in Platform teams, Security teams, and Cloud Architecture teams can use this workshop to build advanced vulnerability management configurations.
-
-
-#### Costs
-
-In this workshop, you will create various AWS services. **This workshop will not incur any costs when run using AWS Event Dashboard at an AWS Event**. If you plan to run the workshop on your own, please make sure to check the [AWS Free Tier](https://aws.amazon.com/free/) page along with the building a cost estimation using the [AWS Pricing Calculator](https://calculator.aws/#/) to understand the spend involved.
-
-#### Navigating the workshop
-
-Navigate the workshop using the left navigation bar. You can see the range of tasks on the left.
-
-
-#### Cleanup
-
-Use the cleanup page for instructions on how to cleanup after the workshop is completed.
-
-#### Feedback
-
-We appreciate your opinion on how to improve this resource! If you have any feedback or suggestions for improvement, please email [amazon-eks-security-immersion-day@amazon.com](mailto:amazon-eks-security-immersion-day@amazon.com)
-.
-
-### Using IAM Groups to Manage Kubernetes Cluster Access
-
 In this module, we’ll learn about how to simplify access to different parts of the kubernetes clusters depending on IAM Roles.
 
 
@@ -59,13 +29,20 @@ C9_ROLE="${array[1]}"
 echo "$C9_ROLE"
 ```
 
-::::expand{header="Check Output"}
+::::expand{header="Check Output if you running on your own"}
 ```bash
-IAM Role Attached to Cloud9 Instance: eksworkshop-admin
+eksworkshop-admin
 ```
 ::::
 
-Note the IAM role `eksworkshop-admin` in the above output is used to create and authenticate the EKS Cluster.
+::::expand{header="Check Output if you running at AWS Event"}
+```bash
+eks-bootstrap-template-ws-Cloud9InstanceRole-V1RKIVUA1ZM0
+```
+::::
+
+
+Note the IAM role `eksworkshop-admin` or  `eks-bootstrap-template-ws-Cloud9InstanceRole-V1RKIVUA1ZM0` in the above output is used to create and authenticate the EKS Cluster.
 
 Let us check if this IAM role is part of the `aws-auth` config map in `kube-system` namespace.
 
@@ -81,12 +58,12 @@ else
 fi
 ```
 
-::expand[eksworkshop-admin doesn't  exist in aws-auth config map in kube-system namespace]{header="Check output"}
+::expand[eks-bootstrap-template-ws-Cloud9InstanceRole-V1RKIVUA1ZM0 doesn't  exist in aws-auth config map in kube-system namespace]{header="Check output"}
 
-Note that the above IAM Role used to EKS cluster doesnt exist in `aws-auth`
- configmapo, which is expected.
+Note that the above IAM Role used to EKS cluster doesn't exist in `aws-auth`
+ configmap, which is expected.
 
-It is recommended to created a dedicated IAM role to create the EKS cluster with Least privileged IAM permissions to be able to perform CRUD operations on the EKS clusters. 
+It is recommended to created a dedicated IAM role to create the EKS cluster with Least privileged IAM permissions to be able to perform CRUD operations on the EKS clusters.
 
 Below diagram shows an example of IAM permissions and trust policy attached to this IAM Role.
 

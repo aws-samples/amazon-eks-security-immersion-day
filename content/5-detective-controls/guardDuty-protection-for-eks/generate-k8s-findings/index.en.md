@@ -37,8 +37,13 @@ As you can see, we are granting the user `system:anonymous` with access to the v
 
 ```bash
 kubectl apply -f anonymous.yaml
+```
+
+::::expand{header="Check Output"}
+```bash
 clusterrolebinding.rbac.authorization.k8s.io/anonymous-admin created
 ```
+::::
 
 Go back [AWS GuardDuty console](console.aws.amazon.com/guardduty) and check that a finding is generated for this.
 

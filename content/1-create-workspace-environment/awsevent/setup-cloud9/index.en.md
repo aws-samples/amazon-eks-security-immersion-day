@@ -11,9 +11,17 @@ Once you have logged into the AWS Management Console from your Workshop Studio, 
 
 ![sign-in](/static/images/cloud9-IDE1.png)
 
-* Close the welcome screen on Cloud 9 and wait for the terminal to be initialized. WS Studio C9 Welcome
+* Closing the **Welcome tab**
+![c9before](/static/images/create-workspace/cloud9-1.png)
 
-![](/static/images/cloud9-IDE2.png)
+* Opening a new **terminal** tab in the main work area
+![c9newtab](/static/images/create-workspace/cloud9-2.png)
+
+* Closing the lower work area
+![c9newtab](/static/images/create-workspace/cloud9-3.png)
+
+* Your workspace should now look like this
+![c9after](/static/images/create-workspace/cloud9-4.png)
 
 #### A. Disable Cloud9 AWS temporary credentials
 
@@ -37,7 +45,21 @@ echo 'yq() {
 }' | tee -a ~/.bashrc && source ~/.bashrc
 ```
 
+#### Verify the binaries are in the path and executable
+```bash
+for command in kubectl jq envsubst aws
+  do
+    which $command &>/dev/null && echo "$command in path" || echo "$command NOT FOUND"
+  done
+```
 #### D. Confirm EKS Setup
+
+
+Set below environment variables
+```bash
+export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
+export AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
+```
 
 You can test access to your cluster by running the following command. The output will be a list of worker nodes
 
@@ -54,3 +76,7 @@ ip-10-254-166-231.us-east-2.compute.internal   Ready    <none>   6h23m   v1.23.1
 ip-10-254-176-243.us-east-2.compute.internal   Ready    <none>   6h23m   v1.23.13-eks-6022eca
 ip-10-254-201-2.us-east-2.compute.internal     Ready    <none>   6h23m   v1.23.13-eks-6022eca
 ```
+
+
+::alert[If the output from `kubectl` command contains `Kubeconfig user entry is using deprecated API version client.authentication.k8s.io/v1alpha1. Run 'aws eks update-kubeconfig' to update` then run below command to fix it. `aws eks --region $AWS_REGION update-kubeconfig --name eksworkshop-eksctl`]{header="Note"}
+

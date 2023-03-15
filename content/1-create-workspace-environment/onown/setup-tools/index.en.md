@@ -25,7 +25,7 @@ eksctl completion bash >> ~/.bash_completion
 #### Install kubectl
 ```bash
 sudo curl --silent --location -o /usr/local/bin/kubectl \
-   https://amazon-eks.s3.us-west-2.amazonaws.com/1.20.4/2021-04-12/bin/linux/amd64/kubectl
+   https://s3.us-west-2.amazonaws.com/amazon-eks/1.25.6/2023-01-30/bin/linux/amd64/kubectl
 
 sudo chmod +x /usr/local/bin/kubectl
 ```
@@ -100,5 +100,3 @@ If the installation was successful, the following message is returned.
 ```
 The Session Manager plugin is installed successfully. Use the AWS CLI to start a session.
 ```
-
-4. 

@@ -46,3 +46,14 @@ rm /tmp/kubeconfig*
 rm  ~/.aws/{config,credentials}
 aws configure set default.region ${AWS_REGION}
 ```
+
+::::expand{header="Check Output"}
+```bash
+namespace "development" deleted
+namespace "integration" deleted
+pod "nginx-admin" deleted
+2023-03-14 10:38:40 [ℹ]  removing identity "arn:aws:iam::XXXXXXXXXX:role/k8sAdmin" from auth ConfigMap (username = "admin", groups = ["system:masters"])
+2023-03-14 10:38:40 [ℹ]  removing identity "arn:aws:iam::XXXXXXXXXX:role/k8sDev" from auth ConfigMap (username = "dev-user", groups = [])
+2023-03-14 10:38:42 [ℹ]  removing identity "arn:aws:iam::XXXXXXXXXX:role/k8sInteg" from auth ConfigMap (username = "integ-user", groups = [])
+```
+::::

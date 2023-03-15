@@ -25,6 +25,21 @@ The **k8sAdmin** Group will be allowed to assume the **k8sAdmin** IAM Role.
 aws iam create-group --group-name k8sAdmin
 ```
 
+::::expand{header="Check Output"}
+```json
+{
+    "Group": {
+        "Path": "/",
+        "GroupName": "k8sAdmin",
+        "GroupId": "AGPAYGIGGNX6INPRF5C7E",
+        "Arn": "arn:aws:iam::XXXXXXXXXXX:group/k8sAdmin",
+        "CreateDate": "2023-03-14T09:33:25+00:00"
+    }
+}
+```
+::::
+
+
 Let's add a Policy on our group which will allow users from this group to assume our k8sAdmin Role:
 
 ```bash
@@ -55,6 +70,21 @@ The **k8sDev** Group will be allowed to assume the **k8sDev** IAM Role.
 aws iam create-group --group-name k8sDev
 ```
 
+::::expand{header="Check Output"}
+```json
+{
+    "Group": {
+        "Path": "/",
+        "GroupName": "k8sDev",
+        "GroupId": "AGPAYGIGGNX6GRTEAJQE3",
+        "Arn": "arn:aws:iam::XXXXXXXXXXX:group/k8sDev",
+        "CreateDate": "2023-03-14T09:35:00+00:00"
+    }
+}
+```
+::::
+
+
 Let's add a Policy on our group which will allow users from this group to assume our k8sDev Role:
 
 ```bash
@@ -81,7 +111,19 @@ aws iam put-group-policy \
 ```bash
 aws iam create-group --group-name k8sInteg
 ```
-
+::::expand{header="Check Output"}
+```json
+{
+    "Group": {
+        "Path": "/",
+        "GroupName": "k8sInteg",
+        "GroupId": "AGPAYGIGGNX6KBNORQ3GN",
+        "Arn": "arn:aws:iam::XXXXXXXXXXX:group/k8sInteg",
+        "CreateDate": "2023-03-14T09:35:55+00:00"
+    }
+}
+```
+::::
 
 Let's add a Policy on our group which will allow users from this group to assume our k8sInteg Role:
 
@@ -105,14 +147,14 @@ aws iam put-group-policy \
 --policy-document "$INTEG_GROUP_POLICY"
 ```
 
-
 You now should have your 3 groups
 
 ```bash
 aws iam list-groups
 ```
+The output will look like below.
 
-```bash
+```json
 {
     "Groups": [
         {

@@ -5,6 +5,34 @@ weight : 22
 
 With the bootstrap container created and ready for use in Amazon ECR, we can create a managed node group running Bottlerocket configured to CIS Bottlerocket Benchmark. 
 
+
+Let us set some environment variables.
+
+```bash
+EKS_VPC_ID=$(eksctl get cluster eksworkshop-eksctl -ojson | jq -r '.[0]["ResourcesVpcConfig"]["VpcId"]')
+echo $EKS_VPC_ID
+
+EKS_VPC_PRIV_SUBNET1=$(eksctl get cluster eksworkshop-eksctl -ojson | jq -r '.[0]["ResourcesVpcConfig"]["SubnetIds"][0]')
+echo $EKS_VPC_PRIV_SUBNET1
+EKS_VPC_PRIV_SUBNET2=$(eksctl get cluster eksworkshop-eksctl -ojson | jq -r '.[0]["ResourcesVpcConfig"]["SubnetIds"][1]')
+echo $EKS_VPC_PRIV_SUBNET2
+EKS_VPC_PRIV_SUBNET3=$(eksctl get cluster eksworkshop-eksctl -ojson | jq -r '.[0]["ResourcesVpcConfig"]["SubnetIds"][2]')
+echo $EKS_VPC_PRIV_SUBNET3
+
+EKS_CLUSTER_SEC_GROUP_ID=$(eksctl get cluster eksworkshop-eksctl -ojson | jq -r '.[0]["ResourcesVpcConfig"]["ClusterSecurityGroupId"]')
+echo $EKS_CLUSTER_SEC_GROUP_ID
+```
+
+::::expand{header="Check Output"}
+```bash
+vpc-030e4a3055ba71b2c
+subnet-021c732a5fb47987d
+subnet-0a519601dde1343db
+subnet-06b2953cd4cf217a7
+sg-006edc1b420a36f44
+```
+::::
+
 Run the following cat command to insert the environment variables defined earlier into the cluster.yaml file located in the root of the GitHub repository.
 
 ```bash
@@ -13,16 +41,31 @@ cat > br-mng.yaml <<EOF
 ---
 apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
-
+vpc:
+  id: $EKS_VPC_ID
+  securityGroup: $EKS_CLUSTER_SEC_GROUP_ID
+  subnets:
+    private:
+      private-one:
+        id: $EKS_VPC_PRIV_SUBNET1
+      private-two:
+        id: $EKS_VPC_PRIV_SUBNET2
+      private-three:
+        id: $EKS_VPC_PRIV_SUBNET3
 metadata:
   name: eksworkshop-eksctl
   region: $AWS_REGION
-  version: '1.25'
+  version: '1.23'
 
 managedNodeGroups:
   - name: bottlerocket-mng
     instanceType: m5.large
     desiredCapacity: 1
+    privateNetworking: true
+    subnets:
+      - private-one
+      - private-two
+      - private-three
     amiFamily: Bottlerocket
     iam:
        attachPolicyARNs:
@@ -71,7 +114,6 @@ managedNodeGroups:
 EOF
 ```
 
-
 [Bottlerocket configuration settings](https://github.com/bottlerocket-os/bottlerocket#settings) are passed through to the managed nodes through user data in TOML format as referenced above to include the setting referencing the bootstrap container we created. 
 
 To provision the cluster, run the following:
@@ -83,31 +125,30 @@ It will take couple of minutes to create the EKS managed nodegroup.
 
 ::::expand{header="Check Output"}
 ```bash
-2023-03-10 11:34:17 [ℹ]  nodegroup "bottlerocket-mng" will use "" [Bottlerocket/1.23]
-2023-03-10 11:34:20 [ℹ]  7 existing nodegroup(s) (eksworkshop-eksctl-ng,false,mng1,mng2,ng-3f4edeea,ng-8de513ec,self-ng) will be excluded
-2023-03-10 11:34:20 [ℹ]  1 nodegroup (bottlerocket-mng) was included (based on the include/exclude rules)
-2023-03-10 11:34:20 [ℹ]  will create a CloudFormation stack for each of 1 managed nodegroups in cluster "eksworkshop-eksctl"
-2023-03-10 11:34:20 [ℹ]  
-2 sequential tasks: { fix cluster compatibility, 1 task: { 1 task: { create managed nodegroup "bottlerocket-mng" } } 
-}
-2023-03-10 11:34:20 [ℹ]  checking cluster stack for missing resources
-2023-03-10 11:34:21 [ℹ]  cluster stack has all required resources
-2023-03-10 11:34:25 [ℹ]  building managed nodegroup stack "eksctl-eksworkshop-eksctl-nodegroup-bottlerocket-mng"
-2023-03-10 11:34:26 [ℹ]  deploying stack "eksctl-eksworkshop-eksctl-nodegroup-bottlerocket-mng"
-2023-03-10 11:34:26 [ℹ]  waiting for CloudFormation stack "eksctl-eksworkshop-eksctl-nodegroup-bottlerocket-mng"
-2023-03-10 11:34:56 [ℹ]  waiting for CloudFormation stack "eksctl-eksworkshop-eksctl-nodegroup-bottlerocket-mng"
-2023-03-10 11:35:35 [ℹ]  waiting for CloudFormation stack "eksctl-eksworkshop-eksctl-nodegroup-bottlerocket-mng"
-2023-03-10 11:37:23 [ℹ]  waiting for CloudFormation stack "eksctl-eksworkshop-eksctl-nodegroup-bottlerocket-mng"
-2023-03-10 11:37:25 [ℹ]  no tasks
-2023-03-10 11:37:25 [✔]  created 0 nodegroup(s) in cluster "eksworkshop-eksctl"
-2023-03-10 11:37:25 [ℹ]  nodegroup "bottlerocket-mng" has 1 node(s)
-2023-03-10 11:37:25 [ℹ]  node "ip-192-168-28-39.ec2.internal" is ready
-2023-03-10 11:37:25 [ℹ]  waiting for at least 1 node(s) to become ready in "bottlerocket-mng"
-2023-03-10 11:37:25 [ℹ]  nodegroup "bottlerocket-mng" has 1 node(s)
-2023-03-10 11:37:25 [ℹ]  node "ip-192-168-28-39.ec2.internal" is ready
-2023-03-10 11:37:25 [✔]  created 1 managed nodegroup(s) in cluster "eksworkshop-eksctl"
-2023-03-10 11:37:30 [ℹ]  checking security group configuration for all nodegroups
-2023-03-10 11:37:30 [ℹ]  all nodegroups have up-to-date cloudformation templates
+2023-03-14 18:14:46 [!]  no eksctl-managed CloudFormation stacks found for "eksworkshop-eksctl", will attempt to create nodegroup(s) on non eksctl-managed cluster
+2023-03-14 18:14:46 [ℹ]  nodegroup "bottlerocket-mng" will use "" [Bottlerocket/1.23]
+2023-03-14 18:14:46 [ℹ]  2 existing nodegroup(s) (EKSNodegroup-y3DRhRdZRTlm,EKSNodegroupBottlerocket-SfbjgDKn4rVG) will be excluded
+2023-03-14 18:14:46 [ℹ]  1 nodegroup (bottlerocket-mng) was included (based on the include/exclude rules)
+2023-03-14 18:14:46 [ℹ]  will create a CloudFormation stack for each of 1 managed nodegroups in cluster "eksworkshop-eksctl"
+2023-03-14 18:14:46 [ℹ]  1 task: { 1 task: { 1 task: { create managed nodegroup "bottlerocket-mng" } } }
+2023-03-14 18:14:46 [ℹ]  building managed nodegroup stack "eksctl-eksworkshop-eksctl-nodegroup-bottlerocket-mng"
+2023-03-14 18:14:46 [ℹ]  deploying stack "eksctl-eksworkshop-eksctl-nodegroup-bottlerocket-mng"
+2023-03-14 18:14:46 [ℹ]  waiting for CloudFormation stack "eksctl-eksworkshop-eksctl-nodegroup-bottlerocket-mng"
+2023-03-14 18:15:17 [ℹ]  waiting for CloudFormation stack "eksctl-eksworkshop-eksctl-nodegroup-bottlerocket-mng"
+2023-03-14 18:16:08 [ℹ]  waiting for CloudFormation stack "eksctl-eksworkshop-eksctl-nodegroup-bottlerocket-mng"
+2023-03-14 18:17:19 [ℹ]  waiting for CloudFormation stack "eksctl-eksworkshop-eksctl-nodegroup-bottlerocket-mng"
+2023-03-14 18:18:09 [ℹ]  waiting for CloudFormation stack "eksctl-eksworkshop-eksctl-nodegroup-bottlerocket-mng"
+2023-03-14 18:19:01 [ℹ]  waiting for CloudFormation stack "eksctl-eksworkshop-eksctl-nodegroup-bottlerocket-mng"
+2023-03-14 18:19:01 [ℹ]  no tasks
+2023-03-14 18:19:01 [✔]  created 0 nodegroup(s) in cluster "eksworkshop-eksctl"
+2023-03-14 18:19:01 [ℹ]  nodegroup "bottlerocket-mng" has 1 node(s)
+2023-03-14 18:19:01 [ℹ]  node "ip-10-254-177-246.us-west-2.compute.internal" is ready
+2023-03-14 18:19:01 [ℹ]  waiting for at least 1 node(s) to become ready in "bottlerocket-mng"
+2023-03-14 18:19:01 [ℹ]  nodegroup "bottlerocket-mng" has 1 node(s)
+2023-03-14 18:19:01 [ℹ]  node "ip-10-254-177-246.us-west-2.compute.internal" is ready
+2023-03-14 18:19:01 [✔]  created 1 managed nodegroup(s) in cluster "eksworkshop-eksctl"
+2023-03-14 18:19:01 [ℹ]  checking security group configuration for all nodegroups
+2023-03-14 18:19:01 [ℹ]  all nodegroups have up-to-date cloudformation templates
 ```
 ::::
 
@@ -131,7 +172,7 @@ Once the managed nodegroup has been provisioned, you can verify the bootstrap co
 Run the below command to create an SSM session with bottlerocket node.
 
 ```bash
-aws ssm start-session --target $(aws ec2 describe-instances --filters "Name=tag:Name,Values=bottlerocket-cis-blog-eks-bottlerocket-mng-Node" | jq -r '.[][0]["Instances"][0]["InstanceId"]')
+aws ssm start-session --target $(aws ec2 describe-instances --filters "Name=tag:Name,Values=eksworkshop-eksctl-bottlerocket-mng-Node" | jq -r '.[][0]["Instances"][0]["InstanceId"]')
 ```
 
 ::::expand{header="Check Output"}
@@ -175,8 +216,7 @@ In the SSM shell, Run the below commands in the same order `enter-admin-containe
 ```bash
 [ssm-user@control]$ enter-admin-container
 [root@admin]# sudo sheltie
-bash-5.1# journalctl -u 
-bootstrap-containers@cis-bootstrap.service
+bash-5.1# journalctl -u bootstrap-containers@cis-bootstrap.service
 Nov 22 15:37:17 ip-192-168-42-35.ec2.internal host-ctr[1598]: time="2022-11-22T15:37:17Z" level=info msg="successfully started container task"
 Nov 22 15:37:17 ip-192-168-42-35.ec2.internal host-ctr[1598]: time="2022-11-22T15:37:17Z" level=info msg="container task exited" code=0
 Nov 22 15:37:17 ip-192-168-42-35.ec2.internal bootstrap-containers[1711]: 15:37:17 [INFO] bootstrap-containers started
