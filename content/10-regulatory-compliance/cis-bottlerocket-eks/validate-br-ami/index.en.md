@@ -115,7 +115,7 @@ spec:
          eks.amazonaws.com/nodegroup: bottlerocket-mng     
       containers:
         - name: eks-cis-benchmark
-          image: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$VALIDATION_ECR_REPO
+          image: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$VALIDATION_ECR_REPO:latest
           imagePullPolicy: Always
           securityContext:
             capabilities:
