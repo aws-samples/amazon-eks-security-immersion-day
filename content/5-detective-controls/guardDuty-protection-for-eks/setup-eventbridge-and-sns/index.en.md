@@ -3,7 +3,7 @@ title : "Setup EventBridge and SNS"
 weight : 23
 ---
 
-In this section we will look at how to be notified for any findings detected by GuardDuty in your EKS cluster. To do this, we will create an Amazon EventBridge rule to filter specific GuardDuty Kubernetes events and send messages to an Amazon SNS topic, which has an email subscription to get an automated email notification.
+In this section we will look at how to be notified for any findings detected by Amazon GuardDuty in your EKS cluster. To do this, we will create an Amazon EventBridge rule to filter specific Amazon GuardDuty Kubernetes events and send messages to an Amazon SNS topic, which has an email subscription to get an automated email notification.
 
 We will start by creating the Amazon SNS topic and subscribe it with your email address.
 
@@ -54,7 +54,7 @@ Check your email you have specified above and confirm the subscription to the SN
 
 #### Create an Amazon EventBridge rule
 
-Run below command to create a Cloudwatch Event Rule with event pattern set to GuardDuty Findings.
+Run below command to create a Cloudwatch Event Rule with event pattern set to Amazon GuardDuty Findings.
 
 ```bash
 aws events put-rule \
@@ -94,7 +94,7 @@ The output looks like below
 
 #### Create a SNS Topic
 
-Got the [SNS AWS Console](console.aws.amazon.com/sns/v3), go to Topics and click **Create Topic**.
+Go to the [AWS console](console.aws.amazon.com/sns/v3), go to Topics and click **Create Topic**.
 
 ![SNSHome](/static/images/detective-controls/SNSHome.png)
 
@@ -114,7 +114,7 @@ Check your email you have specified above and confirm the subscription to the SN
 
 Now, let’s create an Amazon EventBridge rule to catch GuardDuty Kubernetes findings and route the messages to the SNS topic.
 
-Search and go to the [Amazon EventBridge Console](console.aws.amazon.com/events). Under **Buses** section, click om **Rules** and click **Create rule**. Name it as **EKSAuditRoute** and leave everything as default and click Next.
+Search and go to the [Amazon EventBridge Console](console.aws.amazon.com/events). Under **Buses** section, click on **Rules** and click **Create rule**. Name it as **EKSAuditRoute** and leave everything as default and click Next.
 
 ![EBridgeRule](/static/images/detective-controls/EBridgeRule.png)
 

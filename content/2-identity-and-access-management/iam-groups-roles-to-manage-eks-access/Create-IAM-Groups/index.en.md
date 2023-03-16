@@ -1,5 +1,5 @@
 ---
-title : "Create IAM Groups"
+title : "Create AWS IAM Groups"
 weight : 23
 ---
 
@@ -15,7 +15,7 @@ We will define 3 groups:
 -   **k8sDev** - users from this group will have full access only in the development namespace of the cluster
 -   **k8sInteg** - users from this group will have access to integration namespace.
 
-> In fact, users from **k8sDev** and **k8sInteg** groups will only have access to namespaces where we will define kubernetes RBAC access for their associated kubernetes role. We'll see this but first, let's creates the groups.
+> In fact, users from **k8sDev** and **k8sInteg** groups will only have access to namespaces where we will define kubernetes RBAC access for their associated kubernetes role. We'll see this but first, let's create the groups.
 
 #### Create k8sAdmin IAM Group
 

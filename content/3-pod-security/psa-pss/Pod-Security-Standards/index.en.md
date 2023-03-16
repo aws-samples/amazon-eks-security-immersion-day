@@ -1,15 +1,15 @@
 ---
-title : "Pod Security Standards"
+title : "Pod Security Standards(PSS)"
 weight : 21
 ---
 
-# Introduction
+#### Introduction
 
 In Kubernetes, PSPs are replaced with [Pod Security Admission (PSA)](https://kubernetes.io/docs/concepts/security/pod-security-admission/), a built-in admission controller that implements the security controls outlined in the [Pod Security Standards (PSS)](https://kubernetes.io/docs/concepts/security/pod-security-standards/). PSS was introduced into Kubernetes in 2020, prior to Kubernetes version 1.21. PSA reached a beta state in Kubernetes version 1.23, and was enabled in Amazon EKS version 1.23 by default.
 
-> Kubernetes users can move to PSA and PSS prior to Kubernetes version 1.25, and before they replace PSP; both solutions can coexist in the same cluster. It’s considered a best practice to ease adoption and migration by using PSA/PSS  PSPs, until PSPs are removed from clusters. For additional guidance on migrating from PSPs to PSA, you should review the [Kubernetes documentation](https://kubernetes.io/docs/tasks/configure-pod-container/migrate-from-psp/) on this topic.
+> Kubernetes users can move to PSA and PSS prior to Kubernetes version 1.25, and before they replace PSP; both solutions can coexist in the same cluster. It’s considered a best practice to ease adoption and migration by using PSA/PSS, until PSPs are removed from clusters. For additional guidance on migrating from PSPs to PSA, you should review the [Kubernetes documentation](https://kubernetes.io/docs/tasks/configure-pod-container/migrate-from-psp/) on this topic.
 
-The below *kubectl* snippet can be used To identify pods in clusters that are annotated to use PSP.
+The below *kubectl* snippet can be used to identify pods in clusters that are annotated to use PSP.
 
 ```
 kubectl get pod -A \
@@ -17,7 +17,7 @@ kubectl get pod -A \
 -o jsonpath='{range .items[?(@.metadata.annotations.kubernetes\.io/psp)]}{.metadata.name}{“\t”}{.metadata.annotations.kubernetes\.io/psp}{“\t”}{.metadata.namespace}{“\n”}’
 ```
 
-# Pod Security Standards (PSS)
+#### Pod Security Standards (PSS) Profiles
 
 The security settings prescribed by PSS were derived from the experiences of the Kubernetes community with PSP.
 

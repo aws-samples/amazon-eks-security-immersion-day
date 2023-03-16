@@ -21,7 +21,7 @@ NAME      SECRETS   AGE
 default   1         3h9m
 ```
 
-Let us get the secret associated the default service account.
+Let us get the secret associated the default Service Account.
 
 ```bash
 DEFAULT_SA_SECRET_NAME=$(kubectl get sa default -ojson | jq -r '.secrets[0].name')
@@ -80,7 +80,7 @@ A [projected volume](https://kubernetes.io/docs/concepts/storage/projected-volum
 3. configMap
 4. serviceAccountToken
 
-In Kubernetes 1.12 the [ProjectedServiceAccountToke](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#service-account-token-volume-projection) feature was introduced. This feature allows a fully compliant OIDC JWT token issued by the TokenRequest API of Kubernetes to be mounted into the Pod as a Projected Volume. The relevant Service Account Token Volume Projection flags are enabled by default on an EKS cluster. Therefore, fully compliant OIDC JWT Service Account tokens are being projected into each pod instead of the JWT token mentioned in the previous paragraph.
+In Kubernetes 1.12 the [ProjectedServiceAccountToken](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#service-account-token-volume-projection) feature was introduced. This feature allows a fully compliant OIDC JWT token issued by the TokenRequest API of Kubernetes to be mounted into the Pod as a Projected Volume. The relevant Service Account Token Volume Projection flags are enabled by default on an EKS cluster. Therefore, fully compliant OIDC JWT Service Account tokens are being projected into each pod instead of the JWT token mentioned in the previous paragraph.
 
 To inspect this OIDC Token, let us create a new pod that just has a sleep process inside with the following command:
 
@@ -122,7 +122,7 @@ eks-iam-test1   0/1     Error     0          96m
 eks-iam-test2   1/1     Running   0          81s
 ```
 
-Let us look at the Volumes and VolumeMounts in the pod `eks-iam-test2` specification.
+Let us look at the Volumes and volumeMounts in the pod `eks-iam-test2` specification.
 
 ```bash
 kubectl get pod eks-iam-test2 -oyaml

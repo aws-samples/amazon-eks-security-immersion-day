@@ -1,9 +1,9 @@
 ---
-title : "Pod Security Admission"
+title : "Pod Security Admission (PSA)"
 weight : 22
 ---
 
-# Introduction
+#### Pod Security Admission (PSA) Modes
 
 Pod Security Admission (PSA) went Beta in Kubernetes version 1.23, and consequently became available in Amazon EKS 1.23.
 
@@ -21,7 +21,7 @@ The PSA admission controller implements the controls, outlined by the PSS profil
 
 > For Kubernetes (and Amazon EKS) versions prior to 1.23, Kubernetes Dynamic Admission Controller version can be used.
 
-## Default PSA and PSS settings
+#### Default PSA and PSS settings
 
 The default (cluster-wide) settings for PSA and PSS are seen below.
 
@@ -53,7 +53,7 @@ The above settings configure the following cluster-wide scenario:
 - Namespaces are opted into more restrictive PSS policies via labels.
 
 
-## Namespaces opt-in to PSA/PSS settings
+#### Namespaces opt-in to PSA/PSS settings
 
 Given the above default PSA/PSS configuration, you must configure specific PSA modes and PSS profiles at the Kubernetes Namespace level, to opt Namespaces into more restrictive pod security provided by PSA and PSS. In this way, you can configure Namespaces to define the admission control mode you want to use for pod security. 
 
@@ -100,7 +100,7 @@ metadata:
 ![Namespaces opt into PSA and PSS settings](/static/images/pod-security/pss-psa/k8s-psa-pss.png)
 
 
-## PSA enforce mode user experience (UX) issues
+#### PSA enforce mode user experience (UX) issues
 
 When used independently, the PSA modes have different responses that result in different user experiences. The enforce mode prevents Pods from being created if the respective Pod specs violate the configured PSS profile. However, in this mode, non-Pod Kubernetes objects that create Pods, such as Deployments, won’t be prevented from being applied to the cluster, even if the Pod spec therein violates the applied PSS profile. In this case, the Deployment is applied while the Pods are prevented from being applied.
 
@@ -120,12 +120,11 @@ unrestricted capabilities (container "test" must set
 securityContext.capabilities.drop=["ALL"]), runAsNonRoot != true (pod or container 
 "test" must set securityContext.runAsNonRoot=true), seccompProfile (pod or 
 container "test" must set securityContext.seccompProfile.type to "RuntimeDefault" or "Localhost")
-While the Deployment was created, the Pod was not. It’s clear that a best practice would be to use warn and audit modes at all times, for a better user experience.
 ```
 
 While the Deployment was created, the Pod was not. It’s clear that a best practice would be to use *warn* and *audit* modes at all times, for a better user experience.
 
-### Mixed PSA modes and PSS profiles
+#### Mixed PSA modes and PSS profiles
 PSA modes can be mixed for a customized solution. For example, when you want to measure the impact of new restrictions, before the *enforce* PSA mode is enabled, you could use the following PSA/PSS settings to enforce the *Baseline* PSS profile, yet *audit* and *warn* on the *Restricted* PSS profile.
 
 ```

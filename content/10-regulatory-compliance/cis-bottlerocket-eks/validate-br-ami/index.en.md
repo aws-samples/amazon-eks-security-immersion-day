@@ -1,5 +1,5 @@
 ---
-title : "Validating the Bottlerocket AMI against the CIS Benchmark"
+title : "Validate Bottlerocket AMI against CIS Benchmark"
 weight : 24
 ---
 
@@ -93,10 +93,10 @@ Let's go to the [Amazon ECR console](https://us-east-1.console.aws.amazon.com/ec
 ![bottlerocket-cis-validating-image](/static/images/regulatory-compliance/cis-bottlerocket-eks/bottlerocket-cis-validating-image.png)
 
 
-Third, we will use another cat command to insert the environment variables defined previously into the job-eks.yaml file located at the root of the GitHub repository. This file is used to deploy the Kubernetes batch job object which references the validation image onto the cluster:
+Third, we will use another cat command to insert the environment variables defined previously to create the file job-eks.yaml. This file is used to deploy the Kubernetes batch job object which references the validation image onto the cluster:
 
 ```bash
-cd ..
+cd ~/environment/containers-blog-maelstrom/cis-bottlerocket-benchmark-eks/
 cat > job-eks.yaml <<EOF
 ---
 apiVersion: batch/v1

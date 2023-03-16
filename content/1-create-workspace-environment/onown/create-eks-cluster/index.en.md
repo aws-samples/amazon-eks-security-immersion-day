@@ -4,10 +4,7 @@ weight : 24
 ---
 
 
-::alert[`eksctl` version must be 0.58.0 or above to deploy EKS 1.21, [click here](/1-create-workspace-environment/onown/setup-tools))) to get the latest version.]{header="WARNING" type="warning"}
-
-
-Create an eksctl deployment file (**eksworkshop.yaml**) use in creating your cluster using the following syntax:
+Create an eksctl deployment file (**eksworkshop.yaml**) used in creating your cluster using the following syntax:
 
 ```bash
 cat << EOF > eksworkshop.yaml

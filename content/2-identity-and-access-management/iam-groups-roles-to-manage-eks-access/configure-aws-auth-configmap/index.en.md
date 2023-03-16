@@ -9,14 +9,14 @@ In this section, we will configure aws-auth configmap for mapping between IAM Ro
 
 In order to give access to the IAM Roles we defined previously to our EKS cluster, we need to add specific **mapRoles** to the `aws-auth` ConfigMap
 
-The Advantage of using Role to access the cluster instead of specifying directly IAM users is that it will be easier to manage so we won't have to update the ConfigMap each time we want to add or remove users, we will just need to add or remove users from the IAM Group and we just configure the ConfigMap to allow the IAM Role associated to the IAM Group.
+The advantage of using Role to access the cluster instead of specifying directly IAM users is that it will be easier to manage so we won't have to update the ConfigMap each time we want to add or remove users, we will just need to add or remove users from the IAM Group and we just configure the ConfigMap to allow the IAM Role associated to the IAM Group.
 
 
-### Update the aws-auth ConfigMap to allow our IAM roles
+### Update the aws-auth configmap to allow our IAM roles
 
-The **aws-auth** ConfigMap from the kube-system namespace must be edited in order to allow or delete arn Groups.
+The **aws-auth** configmap from the kube-system namespace must be edited in order to allow or delete IAM roles arns.
 
-This file makes the mapping between IAM role and k8S RBAC rights. We can edit it manually:
+This file makes the mapping between IAM role and Kubernetes RBAC rights. We can edit it manually:
 
 We can edit it using [eksctl](https://github.com/weaveworks/eksctl)  :
 

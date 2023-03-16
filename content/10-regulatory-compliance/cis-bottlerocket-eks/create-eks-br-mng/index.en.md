@@ -55,7 +55,7 @@ vpc:
 metadata:
   name: eksworkshop-eksctl
   region: $AWS_REGION
-  version: '1.23'
+  version: '1.25'
 
 managedNodeGroups:
   - name: bottlerocket-mng
@@ -126,7 +126,7 @@ It will take couple of minutes to create the EKS managed nodegroup.
 ::::expand{header="Check Output"}
 ```bash
 2023-03-14 18:14:46 [!]  no eksctl-managed CloudFormation stacks found for "eksworkshop-eksctl", will attempt to create nodegroup(s) on non eksctl-managed cluster
-2023-03-14 18:14:46 [ℹ]  nodegroup "bottlerocket-mng" will use "" [Bottlerocket/1.23]
+2023-03-14 18:14:46 [ℹ]  nodegroup "bottlerocket-mng" will use "" [Bottlerocket/1.25]
 2023-03-14 18:14:46 [ℹ]  2 existing nodegroup(s) (EKSNodegroup-y3DRhRdZRTlm,EKSNodegroupBottlerocket-SfbjgDKn4rVG) will be excluded
 2023-03-14 18:14:46 [ℹ]  1 nodegroup (bottlerocket-mng) was included (based on the include/exclude rules)
 2023-03-14 18:14:46 [ℹ]  will create a CloudFormation stack for each of 1 managed nodegroups in cluster "eksworkshop-eksctl"
@@ -164,7 +164,7 @@ The output will look like below.
 
 ```bash
 NAME                            STATUS   ROLES    AGE    VERSION
-ip-192-168-28-39.ec2.internal   Ready    <none>   108s   v1.23.15-eks-69f0cbf
+ip-192-168-28-39.ec2.internal   Ready    <none>   108s   v1.25.6-eks-48e63af
 ```
 
 Once the managed nodegroup has been provisioned, you can verify the bootstrap container ran successfully on the Bottlerocket host. Since we configured our node group without SSH access, we’ll use [AWS Systems Manager Session Manager](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager.html) to connect to the Bottlerocket [control container](https://github.com/bottlerocket-os/bottlerocket#control-container), enter the [admin container](https://github.com/bottlerocket-os/bottlerocket#admin-container), and through the admin container obtain access to a host root shell:

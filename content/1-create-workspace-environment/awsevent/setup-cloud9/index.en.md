@@ -3,11 +3,11 @@ title : "Open Cloud9 Environment"
 weight : 23
 ---
 
-Once you have logged into the AWS Management Console from your Workshop Studio, you will already have an EKS cluster and Cloud9 environment. Your Cloud 9 workspace will also have all the required tools installed in it.
+Once you have logged into the AWS Management Console from your Workshop Studio, you will already have an EKS cluster and Cloud9 environment. Your Cloud9 workspace will also have all the required tools installed in it.
 
 
-* Navigate to [Cloud 9](https://console.aws.amazon.com/cloud9) in AWS Console.
-* Click on **Open IDE** to open your Cloud 9 workspace.
+* Navigate to [Cloud9](https://console.aws.amazon.com/cloud9) in AWS Console.
+* Click on **Open IDE** to open your Cloud9 workspace.
 
 ![sign-in](/static/images/cloud9-IDE1.png)
 

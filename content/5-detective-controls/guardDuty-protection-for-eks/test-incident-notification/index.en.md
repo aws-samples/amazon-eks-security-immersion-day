@@ -8,7 +8,7 @@ Now, let’s generate another GuardDuty finding in your Cloud9 terminal to check
 #### [`Execution:Kubernetes/ExecInKubeSystemPod`](https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_finding-types-kubernetes.html#execution-kubernetes-execinkubesystempod)
 
 
-This time will generate a new finding related to a command being executed inside a pod within the kube-system namespace. More information about this [here](https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_finding-types-kubernetes.html#execution-kubernetes-execinkubesystempod).
+This time we will generate a new finding related to a command being executed inside a pod within the kube-system namespace. More information about this [here](https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_finding-types-kubernetes.html#execution-kubernetes-execinkubesystempod).
 
 Run the below commands to generate this finding. Note, the exact pod name varies in the second command. Use the pod name you see for the aws-node pod as displayed in the output of the first command.
 
@@ -20,12 +20,12 @@ kubectl -n kube-system exec $AWS_NODE_POD -- ls
 
 ![kubectl_exec](/static/images/detective-controls/kubectl_exec.png)
 
-Go back to the GuardDuty console to check if a finding is generated.
+Go back to the [A]mazon GuardDuty console](https://console.aws.amazon.com/guardduty/home) to check if a finding is generated.
 
 ![GDexecinkubepods](/static/images/detective-controls/GDexecinkubepods.png)
 
 
-GuardDuty sends a notification to the Eventbridge within 5 minutes of the finding. You can’t customize this default frequency.
+Amazon GuardDuty sends a notification to the Eventbridge within 5 minutes of the finding. You can’t customize this default frequency.
 
 After the event is emitted from GuardDuty and an Eventbridge rule is triggered, you should receive an email through the subscription on the SNS topic shortly after.
 

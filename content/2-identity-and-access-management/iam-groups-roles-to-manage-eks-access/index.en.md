@@ -1,9 +1,9 @@
 ---
-title : "Using IAM Groups to Manage Kubernetes Cluster Access"
+title : "Using AWS IAM Groups and Roles to Manage Kubernetes Cluster Access"
 weight : 34
 ---
 
-In this module, we’ll learn about how to simplify access to different parts of the kubernetes clusters depending on IAM Roles.
+In this module, we’ll learn about how to simplify access to different parts of the kubernetes clusters depending on AWS IAM Roles.
 
 
 When an Amazon EKS cluster is created, the IAM entity (user or role) that creates the cluster is
@@ -58,7 +58,7 @@ else
 fi
 ```
 
-::expand[eks-bootstrap-template-ws-Cloud9InstanceRole-V1RKIVUA1ZM0 doesn't  exist in aws-auth config map in kube-system namespace]{header="Check output"}
+::expand[eks-bootstrap-template-ws-Cloud9InstanceRole-V1RKIVUA1ZM0 doesn't  exist in aws-auth configmap in kube-system namespace]{header="Check output"}
 
 Note that the above IAM Role used to EKS cluster doesn't exist in `aws-auth`
  configmap, which is expected.
@@ -82,7 +82,7 @@ Instead of assigning this permission policy to each individual user, you could a
 
 ![assumepolicy](/static/images/iam/iam-role-rbac/assumepolicy.png)
 
-Assume the IAM role EKS-Cluster-Creator to create the EKS CLuster. In this module, the Cloud9 Instance assums this Role to create the cluster.
+Assume the IAM role EKS-Cluster-Creator to create the EKS CLuster. In this module, the Cloud9 Instance assumes this Role to create the cluster.
 
 ![Assume-EKS-Cluster-CreatorRole](/static/images/iam/iam-role-rbac/Assume-EKS-Cluster-CreatorRole.PNG)
 

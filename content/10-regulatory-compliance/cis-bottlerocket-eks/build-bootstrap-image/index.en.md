@@ -64,7 +64,7 @@ ip6tables -A INPUT -p icmp -m state --state ESTABLISHED -j ACCEPT
 Make a note to a special rule to allow inbound traffic at port `10250` for kubelet. This is required to enable use cases such as kubectl logs and kubectl exec. We will test these commands later in the workshop to see if it works.
 
 
-We’ll use a script from the repository to create an Amazon Elastic Container Registry ([Amazon ECR](https://docs.aws.amazon.com/ecr/?icmpid=docs_homepage_containers)) repository to store the container image. You can safely ignore the error message An error occurred (RepositoryNotFoundException) output while running the script.
+We’ll use a script from the repository to create an Amazon Elastic Container Registry ([Amazon ECR](https://docs.aws.amazon.com/ecr/?icmpid=docs_homepage_containers)) repository to store the container image. You can safely ignore the error message `An error occurred (RepositoryNotFoundException)` output while running the script.
 
 Run the below commands.
 

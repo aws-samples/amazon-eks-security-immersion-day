@@ -1,5 +1,5 @@
 ---
-title : "Create IAM Users"
+title : "Create AWS IAM Users"
 weight : 24
 ---
 
@@ -177,7 +177,7 @@ Recap:
 -   **PierreInteg** is in **k8sInteg** group and will be able to assume IAM role **k8sInteg**
 
 
-Let's go to the AWS IAM Console and check one of the above IAM Groups and see that there are IAM users part of the group.
+Let's go to the [AWS IAM Console](https://console.aws.amazon.com/iamv2/home#/home) and check one of the above IAM Groups and see that there are IAM users part of the group.
 
 ![IAM-group-users](/static/images/iam/iam-role-rbac/IAM-group-users.png)
 

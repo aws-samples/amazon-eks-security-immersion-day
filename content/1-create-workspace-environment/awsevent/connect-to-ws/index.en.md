@@ -3,7 +3,7 @@ title : "Connecting to the AWS Workshop Studio"
 weight : 22
 ---
 
-To help you get hands-on as quickly as possible, the Amazon EKS Security Immersion Workshop team has pre-created you AWS environment. You will need the participant hash, which should have been provided upon entry, and your email address to track your unique session.
+To help you get hands-on as quickly as possible, the Amazon EKS Security Immersion Workshop team has pre-created your AWS environment. You will need the participant hash, which should have been provided upon entry, and your email address to track your unique session.
 
 The facilitator will provide you with an AWS account to deploy the components covered in this workshop. To access this AWS account you need to login to Workshop Studio.
 
@@ -20,7 +20,7 @@ The facilitator will provide you with an AWS account to deploy the components co
 
 ![sign-in](/static/images/on-time2.png)
 
-* Optional: if prompted for the Event access code, enter value PLACEHOLDER and select Next
+* Optional: if prompted for the Event access code and select Next. You can find this access code from the Workshop Studio login URL given to you.
 
 ![sign-in](/static/images/event-hash.png)
 

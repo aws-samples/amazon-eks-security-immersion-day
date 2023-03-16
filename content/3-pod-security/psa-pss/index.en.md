@@ -20,7 +20,7 @@ When considering Pod Security, there are several settings that can be used to co
 
 #### Kubernetes Security Context Elements
 
-Security Context Elements are applied to Kubernetes pods and containers to apply specific security settings. They can can be applied at pod and container levels. Container-level Security Context elements are more granular than there pod counterparts, and override pod-level settings.
+Security Context Elements are applied to Kubernetes pods and containers to apply specific security settings. They can be applied at pod and container levels. Container-level Security Context elements are more granular than there pod counterparts, and override pod-level settings.
 
 A example Pod *Security Context* can be seen below. The settings therein apply to every container within the pod, unless overridden by a container-level *Security Context*.
 

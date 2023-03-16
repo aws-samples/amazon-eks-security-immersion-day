@@ -3,15 +3,15 @@ title : "Lab: Amazon EKS  Pod Security"
 weight : 23
 ---
 
-# Introduction
+#### Introduction
 
 The following hands-on lab is based on the Amazon EKS testing done with PSA and PSS. This testing can be reviewed in the [AWS Samples OSS project on GitHub](https://github.com/aws-samples/k8s-psa-pss-testing).
 
-## Lab assumptions
+#### Lab assumptions
 
 Amazon EKS 1.23 (or later version) is provisioned and `kubectl` CLI is installed and connected to the cluster
 
-## Steps
+#### Steps
 
 1. Clone the GitHub repo: https://github.com/aws-samples/k8s-psa-pss-testing
 
@@ -31,7 +31,7 @@ Amazon EKS 1.23 (or later version) is provisioned and `kubectl` CLI is installed
 
 > __Note:__ If you have time and are so inclined, feel free to mix PSA modes and PSS profiles to go beyond the documented test scenarios.
 
-# Summary
+#### Summary
 
 PSA and PSS are the native Kubernetes replacement for PSP; moreover, PSA and PSS can coexist with PSP in the same cluster, to facilitate PSP replacement. Testing of PSA and PSS with Amazon EKS 1.23 is documented in this [AWS Samples OSS project](https://github.com/aws-samples/k8s-psa-pss-testing).
 

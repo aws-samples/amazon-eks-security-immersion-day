@@ -1,11 +1,11 @@
 ---
-title : "IAM Roles for Service Accounts(IRSA)"
+title : "IAM Roles for service accounts(IRSA)"
 weight : 34
 ---
 
-#### Why do we need IRSA in the first place?
+#### What is IRSA and why it is needed?
 
-Before getting into the details of what is IRSA and how does it work, let us first understand what is the problem statement.
+Before we get into the details of what is IRSA and how does it work, let us first understand what security challenges does it address?
 
 A common challenge architects face when designing a Kubernetes solution on AWS is how to grant containerized workload permissions to access an AWS service or resource. AWS Identity and Access Management (IAM) provides fine-grained access control where you can specify who can access which AWS service or resources, ensuring the principle of least privilege. The challenge when your workload is running in Kubernetes, however, is providing an identity to that Kubernetes workload that IAM can use for authentication.
 
@@ -70,17 +70,17 @@ As the IAM role within the EC2 Instance Profile does not have necessary permissi
 
 This leads us on to the next question: how could we inject AWS credentials into a container so the container does not default to the EC2 instance profile? Injecting AWS credentials via Kubernetes Secrets or environment variables would not be secure, and the user would have to manage the lifecycle of these credentials. We would not recommend either of those approaches.
 
-#### Fine-Grained IAM Roles for Service Accounts
+#### Fine-Grained IAM Roles for service accounts
 
-Applications in a Pod’s containers can use an AWS SDK or the AWS CLI to make API requests to AWS services using AWS Identity and Access Management (IAM) permissions. For example, applications may need to upload files to an S3 bucket or query a DynamoDB table. To do so applications must sign their AWS API requests with AWS credentials. [IAM Roles for Service Accounts (IRSA)](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) provide the ability to manage credentials for your applications, similar to the way that IAM Instance Profiles provide credentials to Amazon EC2 instances. Instead of creating and distributing your AWS credentials to the containers or relying on the Amazon EC2 Instance Profile for authorization, you associate an IAM Role with a Kubernetes Service Account and configure your Pods to use that Service Account.
+Applications in a Pod’s containers can use an AWS SDK or the AWS CLI to make API requests to AWS services using AWS Identity and Access Management (IAM) permissions. For example, applications may need to upload files to an S3 bucket or query a DynamoDB table. To do so applications must sign their AWS API requests with AWS credentials. [IAM Roles for service accounts (IRSA)](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) provide the ability to manage credentials for your applications, similar to the way that IAM Instance Profiles provide credentials to Amazon EC2 instances. Instead of creating and distributing your AWS credentials to the containers or relying on the Amazon EC2 Instance Profile for authorization, you associate an IAM Role with a Kubernetes Service Account and configure your Pods to use that Service Account.
 
 
-You can associate an IAM role with a Kubernetes service account. This service account can then provide AWS permissions to the containers in any pod that uses that service account. With this feature, you no longer need to provide extended permissions to the Amazon EKS node IAM role so that pods on that node can call AWS APIs.
+You can associate an IAM role with a Kubernetes Service Account. This Service Account can then provide AWS permissions to the containers in any pod that uses that Service Account. With this feature, you no longer need to provide extended permissions to the Amazon EKS node IAM role so that pods on that node can call AWS APIs.
 
 The IAM roles for service accounts feature provides the following benefits:
 
-* **Least privilege** — By using the IAM roles for service accounts feature, you no longer need to provide extended permissions to the node IAM role so that pods on that node can call AWS APIs. You can scope IAM permissions to a service account, and only pods that use that service account have access to those permissions.
-* **Credential isolation** — A container can only retrieve credentials for the IAM role that is associated with the service account to which it belongs. A container never has access to credentials that are intended for another container that belongs to another pod.
+* **Least privilege** — By using the IAM roles for service accounts feature, you no longer need to provide extended permissions to the node IAM role so that pods on that node can call AWS APIs. You can scope IAM permissions to a service account, and only pods that use that Service Account have access to those permissions.
+* **Credential isolation** — A container can only retrieve credentials for the IAM role that is associated with the Service Account to which it belongs. A container never has access to credentials that are intended for another container that belongs to another pod.
 * **Auditability** – Access and event logging is available through AWS CloudTrail to help ensure retrospective auditing.
 
 
@@ -94,8 +94,8 @@ IRSA implementation includes various components as shown below.
 ![irsa](/static/images/iam/irsa/irsa.png)
 
 
-Enabling IRSA including the the following procedures:
+Enabling IRSA including the following procedures:
 
 1. IAM OIDC provider for EKS cluster.
-2. Configure Kubernetes service account to assume IAM role
-3. Configure pods to use Kubernetes service account
+2. Configure Kubernetes Service Account to assume IAM role
+3. Configure pods to use Kubernetes Service Account

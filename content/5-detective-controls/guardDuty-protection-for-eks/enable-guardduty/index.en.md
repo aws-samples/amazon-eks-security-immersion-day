@@ -40,7 +40,7 @@ Click **Enable GuardDuty**
 As per [the update](https://aws.amazon.com/about-aws/whats-new/2022/01/amazon-guardduty-elastic-kubernetes-service-clusters/), Amazon GuardDuty for EKS Protection no longer enabled by default
 
 
-In the GuardDuty console, you will see that EKS Protection is disabled.
+In the [Amazon GuardDuty console](https://console.aws.amazon.com/guardduty/home), you will see that EKS Protection is disabled.
 
 ![GuardDuty Disabled](/static/images/detective-controls/GDDisable.png)
 
