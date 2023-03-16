@@ -14,6 +14,7 @@ This finding means **The `system:anonymous` user was granted API permission on a
 Run the following in your terminal to create the YAML manifest that has a ClusterRole and a ClusterRoleBinding definition.
 
 ```bash
+cd ~/environment
 cat << EoF > anonymous.yaml
 ### Finding type: Policy:Kubernetes/AnonymousAccessGranted
 
@@ -61,6 +62,7 @@ From your terminal, run the command below to create the YAML manifest for the fi
 
 
 ```bash
+cd ~/environment
 cat << EoF > elevate.yaml
 ### Finding type: Policy:Kubernetes/AdminAccessToDefaultServiceAccount
 
@@ -104,6 +106,7 @@ These findings means **A privileged container with root level access was launche
 
 
 ```bash
+cd ~/environment
 cat << EoF > pod_with_sensitive_mount.yaml
 ###  Finding type: PrivilegeEscalation:Kubernetes/PrivilegedContainer
 ###  Finding type: Kubernetes/ContainerWithSensitiveMount Incident

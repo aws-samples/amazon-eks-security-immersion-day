@@ -35,6 +35,27 @@ The Amazon EKS optimized Bottlerocket AMI (as of this writing) supports 18 out o
 |   |                      | 13 | 15 | 28
 
 
+
+#### Install Session Manager plugin on Linux
+
+1. Download the Session Manager plugin RPM package.
+```bash
+cd ~/environment
+curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/linux_64bit/session-manager-plugin.rpm" -o "session-manager-plugin.rpm"
+```
+2. Run the install command.
+```bash
+sudo yum install -y session-manager-plugin.rpm
+```
+3. Run the following commands to verify that the Session Manager plugin installed successfully.
+```bash
+session-manager-plugin
+```
+If the installation was successful, the following message is returned.
+```
+The Session Manager plugin is installed successfully. Use the AWS CLI to start a session.
+```
+
 The code used in this solution is available in GitHub. Please clone the repository to prepare for the walkthrough.
 
 ```bash
@@ -53,22 +74,4 @@ export BOOTSTRAP_ECR_REPO=bottlerocket-cis-bootstrap-image
 export VALIDATION_ECR_REPO=bottlerocket-cis-validation-image
 ```
 
-#### Install Session Manager plugin on Linux
-
-1. Download the Session Manager plugin RPM package.
-```bash
-curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/linux_64bit/session-manager-plugin.rpm" -o "session-manager-plugin.rpm"
-```
-2. Run the install command.
-```bash
-sudo yum install -y session-manager-plugin.rpm
-```
-3. Run the following commands to verify that the Session Manager plugin installed successfully.
-```bash
-session-manager-plugin
-```
-If the installation was successful, the following message is returned.
-```
-The Session Manager plugin is installed successfully. Use the AWS CLI to start a session.
-```
 

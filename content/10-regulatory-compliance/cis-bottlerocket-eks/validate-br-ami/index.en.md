@@ -9,6 +9,8 @@ First, we’ll need to again create an Amazon ECR repository to house the valida
 
 ```bash
 cd ~/environment/containers-blog-maelstrom/cis-bottlerocket-benchmark-eks/bottlerocket-cis-validating-image
+sed -i  -e 's#$20#$18#g' validating-script.sh
+sed -i  -e 's#$31#$29#g' validating-script.sh
 chmod +x create-ecr-repo.sh
 ./create-ecr-repo.sh
 ```
@@ -129,12 +131,18 @@ spec:
           path: /
       restartPolicy: Never
 EOF
+kubectl apply -f job-eks.yaml
 ```
+
+::::expand{header="Check Output"}
+```bash
+job.batch/eks-cis-benchmark created
+```
+::::
 
 Apply the batch job using kubectl and check if the pod completed the execution:
 
 ```bash
-kubectl apply -f job-eks.yaml
 kubectl get Job,pod
 ```
 The output looks like the following:
