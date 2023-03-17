@@ -10,7 +10,7 @@ The EKS cluster has an OpenID Connect (OIDC) issuer URL associated with it. To u
 
 **Create IAM OIDC identity provider for EKS cluster**
 
-Run the below command to retrieve the OpenID Connect issuer URL associated with the EKS Cluster.
+Run the below command to retrieve the OpenID Connect issuer URL associated with the Amazon EKS Cluster.
 
 1. Determine whether you have an existing IAM OIDC provider for your cluster. Retrieve your cluster's OIDC provider ID and store it in a variable.
 
@@ -111,7 +111,7 @@ Events:              <none>
 
 In the above input, note that the service account annotation contains the IAM Role.
 
-::alert[If you go to the [CloudFormation in IAM Console](https://console.aws.amazon.com/cloudformation/), you will find that the stack "**eksctl-eksworkshop-eksctl-addon-iamserviceaccount-default-iam-test**" has created a role for your service account.]{header="Note"}
+::alert[If you go to the [AWS CloudFormation in IAM Console](https://console.aws.amazon.com/cloudformation/), you will find that the stack "**eksctl-eksworkshop-eksctl-addon-iamserviceaccount-default-iam-test**" has created a role for your service account.]{header="Note"}
 
 Let’s see how this IAM role looks within the AWS Management Console. Navigate to IAM and then IAM Roles and search for the role. You will see the Annotations field when you describe your Service Account.
 
@@ -122,7 +122,7 @@ Select the Trust relationships tab and select Edit trust relationship to view th
 
 ![iam-role-trust-policy](/static/images/iam/irsa/iam-role-trust-policy.png)
 
-The principal for this policy is `arn:aws:iam::XXXXXXXXXX:oidc-provider/oidc.eks.us-west-2.amazonaws.com/id/80D562ED8026E91294D52E09BEA261D41` i.e. the OIDC provider for the EKS Cluster can only assume this role and allowed action is `sts:AssumeRoleWithWebIdentity`.
+The principal for this policy is `arn:aws:iam::XXXXXXXXXX:oidc-provider/oidc.eks.us-west-2.amazonaws.com/id/80D562ED8026E91294D52E09BEA261D41` i.e. the OIDC provider for the Amazon EKS Cluster can only assume this role and allowed action is `sts:AssumeRoleWithWebIdentity`.
 
 You can also see that there are 2 conditions in this Policy. The first condition contains `sub` field and ensures that only Kubernetes pod with identity `system:serviceaccount:default:iam-test` can assume this the IAM Role. The second condition has `aud` field which says that the audience must be `sts.amazonaws.com`.
 

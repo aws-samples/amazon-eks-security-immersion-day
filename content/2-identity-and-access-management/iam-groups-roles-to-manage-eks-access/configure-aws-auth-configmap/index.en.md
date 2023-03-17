@@ -5,9 +5,9 @@ weight : 26
 
 In this section, we will configure aws-auth configmap for mapping between IAM Role(i.e. Kubernetes User) to Kubernetes RBAC Role.
 
-#### Gives Access to our IAM Roles to EKS Cluster
+#### Gives Access to our IAM Roles to Amazon EKS Cluster
 
-In order to give access to the IAM Roles we defined previously to our EKS cluster, we need to add specific **mapRoles** to the `aws-auth` ConfigMap
+In order to give access to the IAM Roles we defined previously to our Amazon EKS cluster, we need to add specific **mapRoles** to the `aws-auth` ConfigMap
 
 The advantage of using Role to access the cluster instead of specifying directly IAM users is that it will be easier to manage so we won't have to update the ConfigMap each time we want to add or remove users, we will just need to add or remove users from the IAM Group and we just configure the ConfigMap to allow the IAM Role associated to the IAM Group.
 

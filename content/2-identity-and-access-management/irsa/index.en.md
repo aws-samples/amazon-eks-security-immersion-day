@@ -84,7 +84,7 @@ The IAM roles for service accounts feature provides the following benefits:
 * **Auditability** – Access and event logging is available through AWS CloudTrail to help ensure retrospective auditing.
 
 
-Below diagram from a blog [Introducing fine-grained IAM roles for service accounts](https://aws.amazon.com/blogs/opensource/introducing-fine-grained-iam-roles-service-accounts/) explains how applications running in EKS access Kubernetes resources using RBAC and AWS Services using IAM Permissions.
+Below diagram from a blog [Introducing fine-grained IAM roles for service accounts](https://aws.amazon.com/blogs/opensource/introducing-fine-grained-iam-roles-service-accounts/) explains how applications running in Amazon EKS access Kubernetes resources using RBAC and AWS Services using IAM Permissions.
 
 
 ![iam-rbac-example](/static/images/iam/irsa/iam-rbac-example-1024x997.png)
@@ -96,6 +96,6 @@ IRSA implementation includes various components as shown below.
 
 Enabling IRSA including the following procedures:
 
-1. IAM OIDC provider for EKS cluster.
+1. IAM OIDC provider for Amazon EKS cluster.
 2. Configure Kubernetes Service Account to assume IAM role
 3. Configure pods to use Kubernetes Service Account

@@ -1,5 +1,5 @@
 ---
-title : "Create EKS Cluster"
+title : "Create Amazon EKS Cluster"
 weight : 24
 ---
 
@@ -43,5 +43,5 @@ Next, use the file you created as the input for the eksctl cluster creation.
 eksctl create cluster -f eksworkshop.yaml
 ```
 
-Launching EKS and all the dependencies will take approximately 15 minutes
+Launching Amazon EKS and all the dependencies will take approximately 15 minutes
 

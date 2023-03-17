@@ -1,5 +1,5 @@
 ---
-title : "Amazon GuardDuty Protection for EKS"
+title : "Amazon GuardDuty Protection for Amazon EKS"
 weight : 34
 ---
 

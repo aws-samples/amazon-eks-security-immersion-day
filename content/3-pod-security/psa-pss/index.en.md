@@ -3,12 +3,6 @@ title : "Pod Security Standards"
 weight : 41
 ---
 
-#### Introduction
-
-The Kubernetes pod specification includes a variety of different attributes that can strengthen or weaken your overall security posture. As a Kubernetes practitioner your chief concern should be preventing a process, that’s running within a container, from escaping the isolation boundaries of the container runtime and gaining access to the underlying host.
-
-> Pod Security Concepts are outlined in the [EKS Best Practices Guide](https://aws.github.io/aws-eks-best-practices/security/docs/pods/), as wells as [Kubernetes Pod Security Documentation](https://kubernetes.io/docs/concepts/security/pod-security-standards/).
-
 #### Pod Security Concepts
 
 When considering Pod Security, there are several settings that can be used to control what containers, within pods, can do.

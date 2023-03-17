@@ -3,13 +3,13 @@ title : "Open Cloud9 Environment"
 weight : 23
 ---
 
-Once you have logged into the AWS Management Console from your Workshop Studio, you will already have an EKS cluster and Cloud9 environment. Your Cloud9 workspace will also have all the required tools installed in it.
+Once you have logged into the AWS Management Console from your Workshop Studio, you will already have an Amazon EKS cluster and AWS Cloud9 environment. Your AWS Cloud9 workspace will also have all the required tools installed in it.
 
 
-* Navigate to [Cloud9](https://console.aws.amazon.com/cloud9) in AWS Console.
-* Click on **Open IDE** to open your Cloud9 workspace.
+* Navigate to [AWS Cloud9](https://console.aws.amazon.com/cloud9) in AWS Console.
+* Click on **Open IDE** to open your AWS Cloud9 workspace.
 
-![sign-in](/static/images/cloud9-IDE1.png)
+![sign-in](/static/images/create-workspace/cloud9-IDE1.png)
 
 * Closing the **Welcome tab**
 ![c9before](/static/images/create-workspace/cloud9-1.png)
@@ -23,9 +23,9 @@ Once you have logged into the AWS Management Console from your Workshop Studio, 
 * Your workspace should now look like this
 ![c9after](/static/images/create-workspace/cloud9-4.png)
 
-#### A. Disable Cloud9 AWS temporary credentials
+#### A. Disable AWS Cloud9 AWS temporary credentials
 
-Go to Cloud9
+Go to AWS Cloud9
 
 * Open the **Preferences** tab.
 * Open the **AWS Settings** and disable **AWS Managed Temporary Credentials**
@@ -52,7 +52,7 @@ for command in kubectl jq envsubst aws
     which $command &>/dev/null && echo "$command in path" || echo "$command NOT FOUND"
   done
 ```
-#### D. Confirm EKS Setup
+#### D. Confirm Amazon EKS Setup
 
 
 Set below environment variables

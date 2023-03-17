@@ -1,12 +1,12 @@
 ---
-title : "Setup Cloud9 Environment"
+title : "Setup AWS Cloud9 Environment"
 weight : 22
 ---
 
-### Create a Cloud9 Environment
+### Create a AWS Cloud9 Environment
 
 
-* Go to [Cloud9 Console](https://us-west-2.console.aws.amazon.com/cloud9/home?region=us-west-2)
+* Go to [AWS Cloud9 Console](https://us-west-2.console.aws.amazon.com/cloud9/home?region=us-west-2)
 * Select **Create environment**
 * Name it **eksworkshop**, click Next.
 * Choose **t3.small** for instance type, take all default values and click **Create environment**
@@ -25,9 +25,9 @@ When it comes up, customize the environment by:
 * Your workspace should now look like this
 ![c9after](/static/images/create-workspace/cloud9-4.png)
 
-### Increase the disk size on the Cloud9 instance 
+### Increase the disk size on the AWS Cloud9 instance 
 
-::alert[The following command adds more disk space to the root volume of the EC2 instance that Cloud9 runs on. Once the command completes, we reboot the instance and it could take a minute or two for the IDE to come back online.]{header="Note"}
+::alert[The following command adds more disk space to the root volume of the EC2 instance that AWS Cloud9 runs on. Once the command completes, we reboot the instance and it could take a minute or two for the IDE to come back online.]{header="Note"}
 
 
 ```bash
@@ -72,7 +72,7 @@ fi
 1. Enter **eksworkshop-admin** for the Name, and click **Create role**.
 ![createrole](/static/images/create-workspace/createrole.png)
 
-### Attach the IAM role to the cloud9 workspace
+### Attach the IAM role to the AWS Cloud9 workspace
 
 1. Click the grey circle button (in top right corner) and select **Manage EC2 Instance**.
 
@@ -125,7 +125,7 @@ aws configure get default.region
 
 **Validate the IAM role**
 
-Use the [GetCallerIdentity](https://docs.aws.amazon.com/cli/latest/reference/sts/get-caller-identity.html) CLI command to validate that the Cloud9 IDE is using the correct IAM role.
+Use the [GetCallerIdentity](https://docs.aws.amazon.com/cli/latest/reference/sts/get-caller-identity.html) CLI command to validate that the AWS Cloud9 IDE is using the correct IAM role.
 
 ```bash
 aws sts get-caller-identity --query Arn | grep eksworkshop-admin -q && echo "IAM role valid" || echo "IAM role NOT valid"

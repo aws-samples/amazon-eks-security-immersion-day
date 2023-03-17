@@ -42,7 +42,7 @@ eks-bootstrap-template-ws-Cloud9InstanceRole-V1RKIVUA1ZM0
 ::::
 
 
-Note the IAM role `eksworkshop-admin` or  `eks-bootstrap-template-ws-Cloud9InstanceRole-V1RKIVUA1ZM0` in the above output is used to create and authenticate the EKS Cluster.
+Note the IAM role `eksworkshop-admin` or  `eks-bootstrap-template-ws-Cloud9InstanceRole-V1RKIVUA1ZM0` in the above output is used to create and authenticate the Amazon EKS Cluster.
 
 Let us check if this IAM role is part of the `aws-auth` config map in `kube-system` namespace.
 
@@ -63,31 +63,31 @@ fi
 Note that the above IAM Role used to EKS cluster doesn't exist in `aws-auth`
  configmap, which is expected.
 
-It is recommended to created a dedicated IAM role to create the EKS cluster with Least privileged IAM permissions to be able to perform CRUD operations on the EKS clusters.
+It is recommended to create a dedicated IAM role to create the EKS cluster with Least privileged IAM permissions to be able to perform CRUD operations on the EKS clusters.
 
 Below diagram shows an example of IAM permissions and trust policy attached to this IAM Role.
 
-![EKS Cluster Creator Role](/static/images/iam/iam-role-rbac/Least-Privileged-IAMRole.PNG)
+![Amazon EKS Cluster Creator Role](/static/images/iam/iam-role-rbac/Least-Privileged-IAMRole.PNG)
 
 
 Note that the IAM Role is assigned only a trust policy that allows any IAM principals (users or roles) in that account to assume this role.
 
 At first glance, this looks to be a wide-open policy. But just because this role trusts any IAM user does not mean that any user can assume this role. Because the permission to assume a role is **NOT** automatically granted to an IAM principal. It has to be **EXPLICITLY** granted through a permission policy.
 
-So what you will have to do next is create an IAM permissions policy like the one shown below and assign it to the user or role that wants to authenticate to the EKS cluster.
+So what you will have to do next is create an IAM permissions policy like the one shown below and assign it to the user or role that wants to authenticate to the Amazon EKS cluster.
 
-The net result is that such an IAM principal can now assume the role named EKS-Cluster-Creator and will be able to authenticate itself to the EKS cluster.
+The net result is that such an IAM principal can now assume the role named EKS-Cluster-Creator and will be able to authenticate itself to the Amazon EKS cluster.
 
 Instead of assigning this permission policy to each individual user, you could also create an IAM group, assign the permission policy to the group and then assign the users to the group.
 
 ![assumepolicy](/static/images/iam/iam-role-rbac/assumepolicy.png)
 
-Assume the IAM role EKS-Cluster-Creator to create the EKS CLuster. In this module, the Cloud9 Instance assumes this Role to create the cluster.
+Assume the IAM role EKS-Cluster-Creator to create the Amazon EKS CLuster. In this module, the Cloud9 Instance assumes this Role to create the cluster.
 
 ![Assume-EKS-Cluster-CreatorRole](/static/images/iam/iam-role-rbac/Assume-EKS-Cluster-CreatorRole.PNG)
 
 
-Access the EKS cluster with EKS-Cluster-Creator and then use this  role to create the additional Kubernetes RBAC roles with limited set of permissions for admins / developers.
+Access the Amazon EKS cluster with EKS-Cluster-Creator and then use this  role to create the additional Kubernetes RBAC roles with limited set of permissions for admins / developers.
 
 ![Create-Additional-K8s-Roles](/static/images/iam/iam-role-rbac/Create-Additional-K8s-Roles.PNG)
 

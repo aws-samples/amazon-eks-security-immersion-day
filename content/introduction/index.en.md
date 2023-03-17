@@ -20,7 +20,7 @@ At the end of the workshop, you will learn about how to implement various Amazon
 
 For best results, the participants should have familiarity with the AWS console as well as some proficiency with command-line tooling.
 
-Background in EKS, Kubernetes, Docker, and container workflows are highly recommended as prerequisites.
+Background in Amazon EKS, Kubernetes, Docker, and container workflows are highly recommended as prerequisites.
 
 #### Duration
 

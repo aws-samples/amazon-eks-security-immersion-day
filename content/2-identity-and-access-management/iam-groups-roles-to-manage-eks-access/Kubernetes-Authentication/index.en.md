@@ -42,7 +42,7 @@ Namespaces are an excellent way of creating security boundaries, they also provi
 
 
 
-If you have different teams which needs different kind of cluster access, it would be difficult to manually add or remove access for each EKS clusters you want them to give or remove access from.
+If you have different teams which needs different kind of cluster access, it would be difficult to manually add or remove access for each Amazon EKS clusters you want them to give or remove access from.
 
 We can leverage on AWS [IAM Groups](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_groups.html)  to easily add or remove users and give them permission to whole cluster, or just part of it depending on which groups they belong to.
 

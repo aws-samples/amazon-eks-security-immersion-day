@@ -121,7 +121,7 @@ To provision the cluster, run the following:
 ```bash
 eksctl create nodegroup -f br-mng.yaml
 ```
-It will take couple of minutes to create the EKS managed nodegroup.
+It will take couple of minutes to create the Amazon EKS managed nodegroup.
 
 ::::expand{header="Check Output"}
 ```bash

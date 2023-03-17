@@ -1,5 +1,5 @@
 ---
-title : "Test EKS access"
+title : "Test Amazon EKS access"
 weight : 27
 ---
 
@@ -290,6 +290,6 @@ kube-system   kube-proxy-pr7k7           1/1     Running   0          100m
 
 ## Conclusion
 
-In this module, we have seen how to configure EKS to provide finer access to users combining IAM Groups and Kubernetes RBAC. You can create different groups depending on your needs, configure their associated RBAC access in your cluster, and simply add or remove users from the group to grant or revoke access to your cluster.
+In this module, we have seen how to configure Amazon EKS to provide finer access to users combining IAM Groups and Kubernetes RBAC. You can create different groups depending on your needs, configure their associated RBAC access in your cluster, and simply add or remove users from the group to grant or revoke access to your cluster.
 
 Users will only have to configure their AWS CLI in order to automatically retrieve their associated rights in your cluster.
