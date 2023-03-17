@@ -20,7 +20,7 @@ kubectl -n kube-system exec $AWS_NODE_POD -- ls
 
 ![kubectl_exec](/static/images/detective-controls/kubectl_exec.png)
 
-Go back to the [A]mazon GuardDuty console](https://console.aws.amazon.com/guardduty/home) to check if a finding is generated.
+Go back to the [Amazon GuardDuty console](https://console.aws.amazon.com/guardduty/home) to check if a finding is generated.
 
 ![GDexecinkubepods](/static/images/detective-controls/GDexecinkubepods.png)
 
