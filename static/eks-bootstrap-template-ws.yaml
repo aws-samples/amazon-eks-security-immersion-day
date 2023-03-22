@@ -247,7 +247,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - iam:PassRole
-                Resource: !GetAtt Cloud9InstanceProfile.Arn
+                Resource: !GetAtt Cloud9InstanceRole.Arn
           PolicyName: UpdateEC2InstanceProfile
 
   Cloud9RoleAttacherFunction:
