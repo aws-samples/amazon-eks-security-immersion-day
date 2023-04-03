@@ -61,6 +61,12 @@ export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
 export AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
 ```
 
+Create a kubectl context for the Amazon EKS Cluster.
+
+```bash
+aws eks --region $AWS_REGION update-kubeconfig --name eksworkshop-eksctl
+```
+
 You can test access to your cluster by running the following command. The output will be a list of worker nodes
 
 ```bash
@@ -76,7 +82,3 @@ ip-10-254-166-231.us-east-2.compute.internal   Ready    <none>   6h23m   v1.23.1
 ip-10-254-176-243.us-east-2.compute.internal   Ready    <none>   6h23m   v1.23.13-eks-6022eca
 ip-10-254-201-2.us-east-2.compute.internal     Ready    <none>   6h23m   v1.23.13-eks-6022eca
 ```
-
-
-::alert[If the output from `kubectl` command contains `Kubeconfig user entry is using deprecated API version client.authentication.k8s.io/v1alpha1. Run 'aws eks update-kubeconfig' to update` then run below command to fix it. `aws eks --region $AWS_REGION update-kubeconfig --name eksworkshop-eksctl`]{header="Note"}
-

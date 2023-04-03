@@ -7,7 +7,40 @@ Before we get into how IRSA works, let us understand some Basics and underlying 
 
 ### Kubernetes Service Accounts
 
-Kubernetes Pods are given an identity through a Kubernetes concept called a Kubernetes Service Account. When a Service Account is created, a JWT token is automatically created as a Kubernetes Secret. This Secret can then be mounted into Pods and used by that Service Account to authenticate to the Kubernetes API Server.
+A service account is a type of non-human account that, in Kubernetes, provides a distinct identity in a Kubernetes cluster. Application Pods, system components, and entities inside and outside the cluster can use a specific ServiceAccount's credentials to identify as that ServiceAccount. This identity is useful in various situations, including authenticating to the API server or implementing identity-based security policies.
+
+There are different ways to manage the credentials for the Service Accounts.
+
+* [TokenRequest AP](https://kubernetes.io/docs/reference/kubernetes-api/authentication-resources/token-request-v1/) (recommended): Request a short-lived service account token from within your own application code. The token expires automatically and can rotate upon expiration. If you have a legacy application that is not aware of Kubernetes, you could use a sidecar container within the same pod to fetch these tokens and make them available to the application workload.
+* [Token Volume Projection](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#serviceaccount-token-volume-projection) (also recommended): In Kubernetes v1.20 and later, use the Pod specification to tell the kubelet to add the service account token to the Pod as a projected volume. Projected tokens expire automatically, and the kubelet rotates the token before it expires.
+* [Service Account Token Secrets](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#manually-create-an-api-token-for-a-serviceaccount) (not recommended): You can mount service account tokens as Kubernetes Secrets in Pods. These tokens don't expire and don't rotate. This method is not recommended, especially at scale, because of the risks associated with static, long-lived credentials. In Kubernetes v1.24 and later, the LegacyServiceAccountTokenNoAutoGeneration feature gate prevents Kubernetes from automatically creating these tokens for ServiceAccounts. LegacyServiceAccountTokenNoAutoGeneration is enabled by default; in other words, Kubernetes does not create these tokens.
+
+
+#### Default ServiceAccount credentials from Kubernetes version 1.24 or later
+
+As mentioned above, In Kubernetes v1.24 and later, Kubernetes does not create the service account tokens as Kubernetes Secrets in Pods.
+
+To check this, run below command.
+
+```bash
+kubectl get sa
+```
+
+The output looks like below
+
+```bash
+NAME      SECRETS   AGE
+default   0         3h9m
+```
+
+As you see in the above output, there is no secret created for the sevice account.
+
+#### Default ServiceAccount credentials until Kubernetes version 1.23
+
+::alert[Note the Amazon EKS Cluster provisioned for this workshop is 1.25. The below command output in this sub section is relevent for Kubernetes version until 1.23 only. It is provided here just for reference purpose as to understand how default Kubernetes Service Account behavior changes from version 1.24 onwards]{header="WARNING" type="warning"}
+
+
+ When a Service Account is created, a JWT token is automatically created as a Kubernetes Secret. This Secret can then be mounted into Pods and used by that Service Account to authenticate to the Kubernetes API Server.
 
 
 ```bash
@@ -67,7 +100,6 @@ The Output for the Payload part of the token looks like below.
   "sub": "system:serviceaccount:default:default"
 }
 ```
-
 
 ### Projected Service Account Token
 

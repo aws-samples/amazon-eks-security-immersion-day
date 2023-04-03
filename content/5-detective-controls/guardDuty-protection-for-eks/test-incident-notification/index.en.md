@@ -15,10 +15,15 @@ Run the below commands to generate this finding. Note, the exact pod name varies
 
 ```bash
 AWS_NODE_POD=`kubectl get pods -n kube-system -l k8s-app=aws-node -o name | head -n 1`
-kubectl -n kube-system exec $AWS_NODE_POD -- ls
+kubectl -n kube-system exec $AWS_NODE_POD -- /app/grpc-health-probe  -addr=:50051
 ```
 
-![kubectl_exec](/static/images/detective-controls/kubectl_exec.png)
+The output looks like below
+
+```bash
+Defaulted container "aws-node" out of: aws-node, aws-vpc-cni-init (init)
+{"level":"info","ts":"2023-04-03T06:41:13.817Z","caller":"/root/sdk/go1.19.2/src/runtime/proc.go:250","msg":"status: SERVING"}
+```
 
 Go back to the [Amazon GuardDuty console](https://console.aws.amazon.com/guardduty/home) to check if a finding is generated.
 
