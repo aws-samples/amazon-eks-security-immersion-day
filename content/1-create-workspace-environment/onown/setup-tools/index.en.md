@@ -29,12 +29,6 @@ sudo curl --silent --location -o /usr/local/bin/kubectl \
 
 sudo chmod +x /usr/local/bin/kubectl
 ```
-#### Install latest awscli
-```bash
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-unzip awscliv2.zip
-sudo ./aws/install
-```
 #### Install jq, envsubst (from GNU gettext utilities) and bash-completion
 ```bash
 sudo yum -y install jq gettext bash-completion moreutils

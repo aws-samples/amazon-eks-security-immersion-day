@@ -4,6 +4,8 @@ weight : 21
 ---
 
 
+::alert[Note that below steps are for configuring EKS Audit Log Monitoring for a standalone account. To configure EKS Audit Log Monitoring in multiple-account environments,you need to use delegated administrator account to manage their member accounts using AWS Organizations. Please refer to the [documentation](https://docs.aws.amazon.com/guardduty/latest/ug/guardduty-eks-audit-log-monitoring.html)]{header="Note"}
+
 
 :::::tabs{variant="container"}
 

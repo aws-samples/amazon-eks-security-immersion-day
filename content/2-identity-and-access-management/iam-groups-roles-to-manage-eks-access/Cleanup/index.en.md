@@ -1,6 +1,6 @@
 ---
 title : "Cleanup"
-weight : 28
+weight : 29
 ---
 
 Once you have completed this chapter, you can cleanup the files and resources you created by issuing the following commands:

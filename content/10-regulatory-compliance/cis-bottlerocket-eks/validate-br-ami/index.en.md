@@ -9,8 +9,6 @@ First, we’ll need to again create an Amazon ECR repository to house the valida
 
 ```bash
 cd ~/environment/containers-blog-maelstrom/cis-bottlerocket-benchmark-eks/bottlerocket-cis-validating-image
-sed -i  -e 's#$20#$18#g' validating-script.sh
-sed -i  -e 's#$31#$29#g' validating-script.sh
 chmod +x create-ecr-repo.sh
 ./create-ecr-repo.sh
 ```

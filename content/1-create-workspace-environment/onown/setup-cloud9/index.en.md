@@ -95,7 +95,14 @@ aws cloud9 update-environment  --environment-id $C9_PID --managed-credentials-ac
 rm -vf ${HOME}/.aws/credentials
 ```
 
-We should configure our aws cli with our current region as default.
+#### Install latest awscli
+```bash
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+```
+
+Run below commands to set few environment variables.
 
 ::alert[If you are [at an AWS event](/1-create-workspace-environment/awsevent), ask your instructor which **AWS region** to use.]{header="Note"}
 
