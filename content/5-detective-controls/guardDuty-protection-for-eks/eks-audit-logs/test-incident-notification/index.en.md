@@ -30,9 +30,15 @@ Go back to the [Amazon GuardDuty console](https://console.aws.amazon.com/guarddu
 ![GDexecinkubepods](/static/images/detective-controls/GDexecinkubepods.png)
 
 
-Amazon GuardDuty sends a notification to the Eventbridge within 5 minutes of the finding. You can’t customize this default frequency.
+Amazon GuardDuty sends a notification to the Eventbridge.
 
 After the event is emitted from GuardDuty and an Eventbridge rule is triggered, you should receive an email through the subscription on the SNS topic shortly after.
+
+::alert[Sometime, the Email Notification may take longer time. In that case, you can check your Email later.]{header="Note"}
+
+The Email Notification will like below once it is arrived.
+
+![GDEmailNotification](/static/images/detective-controls/GDEmailNotification.png)
 
 You can monitor Eventbridge metrics by CloudWatch. See details [here](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-monitoring.html)
 

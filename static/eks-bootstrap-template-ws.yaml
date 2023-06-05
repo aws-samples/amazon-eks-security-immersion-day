@@ -566,6 +566,7 @@ Resources:
         - !Ref PrivateSubnetC
       AmiType: AL2_x86_64
       CapacityType: ON_DEMAND
+      NodegroupName: "mng-al2"
       InstanceTypes:
         - t3a.small
       RemoteAccess:
@@ -575,7 +576,7 @@ Resources:
       ScalingConfig:
         DesiredSize: 2
         MinSize: 2
-        MaxSize: 10
+        MaxSize: 5
 
   EKSNodegroupBottlerocket:
     Type: AWS::EKS::Nodegroup
@@ -588,6 +589,7 @@ Resources:
         - !Ref PrivateSubnetC
       AmiType: BOTTLEROCKET_x86_64
       CapacityType: ON_DEMAND
+      NodegroupName: "mng-br"
       InstanceTypes:
         - t3a.small
       RemoteAccess:
@@ -595,9 +597,9 @@ Resources:
         SourceSecurityGroups:
           - !GetAtt Cloud9RoleAttacherCustomResource.SecurityGroupId
       ScalingConfig:
-        DesiredSize: 2
-        MinSize: 2
-        MaxSize: 10
+        DesiredSize: 0
+        MinSize: 0
+        MaxSize: 5
 
   # OIDC provider (for EKS IAM Roles for Service Accounts)
   ThumbprintExtractorRole:

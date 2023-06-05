@@ -35,6 +35,72 @@ default   0         3h9m
 
 As you see in the above output, there is no secret created for the sevice account.
 
+#### Default ServiceAccount credentials until Kubernetes version 1.23
+
+::alert[Note the Amazon EKS Cluster provisioned for this workshop is 1.25. The below command output in this sub section is relevent for Kubernetes version until 1.23 only. It is provided here just for reference purpose as to understand how default Kubernetes Service Account behavior changes from version 1.24 onwards]{header="WARNING" type="warning"}
+
+
+ When a Service Account is created, a JWT token is automatically created as a Kubernetes Secret. This Secret can then be mounted into Pods and used by that Service Account to authenticate to the Kubernetes API Server.
+
+
+```bash
+kubectl get sa
+```
+
+The output looks like below
+
+```bash
+NAME      SECRETS   AGE
+default   1         3h9m
+```
+
+Let us get the secret associated the default Service Account.
+
+```bash
+DEFAULT_SA_SECRET_NAME=$(kubectl get sa default -ojson | jq -r '.secrets[0].name')
+echo "Default Service Account Secret Name: $DEFAULT_SA_SECRET_NAME"
+```
+
+The output looks like below.
+
+```bash
+Default Service Account Secret Name: default-token-j9sbj
+```
+
+
+Unfortunately, this default token has a few problems that make it unusable for IAM authentication. 
+1. It is only the Kubernetes API server that can validate this token
+2. These Service Account tokens do not expire
+3. Rotating the signing key is a difficult process
+
+ Let us view the token by retrieving the secret.
+
+```bash
+kubectl get secret $DEFAULT_SA_SECRET_NAME -o json | jq -r '.data.token' | base64 -d
+```
+
+::::expand{header="Check Output"}
+```bash
+eyJhbGciOiJSUzI1NiIsImtpZCI6Ill1MWdtZkV2ZlBoUFVTcmJVaVpJTC12MDRuTldxM0tUdWZUQzR2MUVlc3MifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJkZWZhdWx0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6ImRlZmF1bHQtdG9rZW4tajlzYmoiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiZGVmYXVsdCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6Ijc1ZjE4OTliLTkxNDYtNGQ4MS04MzVjLTkxY2U5ZTlmODhhNSIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpkZWZhdWx0OmRlZmF1bHQifQ.BIrVHf6QPzMXq7QSeKQQgXpDYY71zfsG1jyBcvqjkQd2P1LrgJVNov-D_piIFZs5lmI8W_uX9L4m5sB6gXauCvZllRygwySHWXIZVy_tHf6SFTLZWNgZBm3isWEJhcJzWEr5E9miq2ZgfcnwfuY6Rg23mf-1UEXDAAwqltJV5gRN878X5dJwrIeUjQHivE1PEDrfKbKdQJ8I284s8FQnxBgE8WRwWyuGIfOnmdmQk5zwpmuWKpIymt3PrD--jc6YCk3knaRHLPnErpXm0lSCvEXfUSvUXQNeyAv6Bijc3C2Y7sXKkwkAHjl8qZFK-WmXSet5HdwLi-j8uVUn6ammUA
+```
+::::
+
+
+ Copy the token from the above output and decode it using this online tool [https://jwt.io/](https://jwt.io/)
+
+The Output for the Payload part of the token looks like below.
+
+```json
+{
+  "iss": "kubernetes/serviceaccount",
+  "kubernetes.io/serviceaccount/namespace": "default",
+  "kubernetes.io/serviceaccount/secret.name": "default-token-j9sbj",
+  "kubernetes.io/serviceaccount/service-account.name": "default",
+  "kubernetes.io/serviceaccount/service-account.uid": "75f1899b-9146-4d81-835c-91ce9e9f88a5",
+  "sub": "system:serviceaccount:default:default"
+}
+```
+
 ### Projected Service Account Token
 
 **Projected Volumes**
