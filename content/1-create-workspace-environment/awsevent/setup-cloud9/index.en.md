@@ -76,9 +76,7 @@ kubectl get nodes
 You should see below output
 
 ```bash
-NAME                                           STATUS   ROLES    AGE     VERSION
-ip-10-254-158-206.us-east-2.compute.internal   Ready    <none>   6h23m   v1.23.13-eks-fb459a0
-ip-10-254-166-231.us-east-2.compute.internal   Ready    <none>   6h23m   v1.23.13-eks-fb459a0
-ip-10-254-176-243.us-east-2.compute.internal   Ready    <none>   6h23m   v1.23.13-eks-6022eca
-ip-10-254-201-2.us-east-2.compute.internal     Ready    <none>   6h23m   v1.23.13-eks-6022eca
+NAME                                           STATUS   ROLES    AGE   VERSION
+ip-10-254-156-7.us-west-2.compute.internal     Ready    <none>   12h   v1.25.9-eks-0a21954
+ip-10-254-169-183.us-west-2.compute.internal   Ready    <none>   12h   v1.25.9-eks-0a21954
 ```

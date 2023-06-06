@@ -14,6 +14,15 @@ Go to EKS Console and ensure that Amazon GuardDuty EKS Runtime Monitoring EKS Ma
 
 ![GDRuneTimeAgent](/static/images/detective-controls/GDRuneTimeAgent.png)
 
+The EKS Runtime Monitoring agent is deployed as Daemonset in the EKS Cluster. Let us check if the pods are running.
+
+```bash
+WSParticipantRole:~/environment $ kubectl get pod -n amazon-guardduty
+NAME                        READY   STATUS    RESTARTS   AGE
+aws-guardduty-agent-rbl82   1/1     Running   0          10m
+aws-guardduty-agent-xfnhs   1/1     Running   0          10m
+```
+
 If you select **Manage agent automatically** option, the EKS add-on agent will be automatically updated to newer versions of the agent, when the Kubernetes versions are upgraded. If automated agent management is not configured then you will need to manually deploy and update the agent to EKS clusters. Check [documentation](https://docs.aws.amazon.com/guardduty/latest/ug/eks-runtime-monitoring-security-agent-manual.html) for details.
 
 Below is the deployment Architecture for the GuardDuty security agent.
@@ -27,7 +36,11 @@ You can see that IRSA is not used (which means Instance Node Role is used by def
 
 
 ```bash
-WSParticipantRole:~/environment $ kubectl -n amazon-guardduty describe sa aws-guardduty-agent
+kubectl -n amazon-guardduty describe sa aws-guardduty-agent
+```
+The output will like below.
+
+```bash
 Name:                aws-guardduty-agent
 Namespace:           amazon-guardduty
 Labels:              k8s-app=aws-guardduty-agent
@@ -38,28 +51,19 @@ Tokens:              <none>
 Events:              <none>
 ```
 
-The EKS Runtime Monitoring agent is deployed as Daemonset in the EKS Cluster. Let us check if the pods are running.
-
-```bash
-WSParticipantRole:~/environment $ kubectl get pod -n amazon-guardduty
-NAME                        READY   STATUS    RESTARTS   AGE
-aws-guardduty-agent-rbl82   1/1     Running   0          10m
-aws-guardduty-agent-xfnhs   1/1     Running   0          10m
-```
-
 The Amazon EKS add-on for GuardDuty (`aws-guardduty-agent`) is designed to a light weight agent to minimize any impact on customer workloads. It uses less resources for its operation since all of the processing for Runtime Monitoring runs on the Amazon GuardDuty backend.
 
 Run below command to see resource usage of the Amazon EKS add-on for GuardDuty.
 
 ```bash
-WSParticipantRole:~/environment $ kubectl -n amazon-guardduty get ds -o yaml
+kubectl -n amazon-guardduty get ds -o yaml
 ```
 
 As you see in the below output, it uses 200m of cpu and 256MN of memory.
 
 ```yaml
 ....
-          image: 039403964562.dkr.ecr.us-west-2.amazonaws.com/aws-guardduty-agent:v1.1.0
+          image: XXXXXXXXXX.dkr.ecr.us-west-2.amazonaws.com/aws-guardduty-agent:v1.1.0
           name: aws-guardduty-agent
           resources:
             limits:

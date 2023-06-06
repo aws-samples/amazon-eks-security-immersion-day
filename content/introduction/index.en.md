@@ -33,7 +33,8 @@ As part of this workshop we will cover the following modules:
 | [Using AWS IAM Groups and Roles to Manage Kubernetes Cluster Access](/2-identity-and-access-management/iam-groups-roles-to-manage-eks-access) | 60 mins | N/A |
 | [IAM Role for service account (IRSA)](/2-identity-and-access-management/irsa) | 45 mins | N/A |
 | [Pod Security Standards](/3-pod-security/psa-pss) | 45 mins | N/A |
-| [Amazon GuardDuty Protection for EKS](/5-detective-controls/guardDuty-protection-for-eks/) | 45 mins | N/A |
+| [Amazon GuardDuty Protection for EKS - Audit Log Monitoring](/5-detective-controls/guardDuty-protection-for-eks/eks-audit-logs) | 45 mins | N/A |
+| [Amazon GuardDuty Protection for EKS - Runtime Monitoring](/5-detective-controls/guardDuty-protection-for-eks/eks-runtime) | 45 mins | N/A |
 | [Validating Amazon EKS optimized Bottlerocket AMI against the CIS Benchmark](/10-regulatory-compliance/cis-bottlerocket-eks/) | 60 mins | N/A |
 | [Container Image CVE Management with Amazon Inspector](/12-image-security/manage-image-cve-with-inspector/) | 30 mins | N/A |
 
