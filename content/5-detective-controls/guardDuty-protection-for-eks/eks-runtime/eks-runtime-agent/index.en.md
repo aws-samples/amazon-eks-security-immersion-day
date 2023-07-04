@@ -10,6 +10,12 @@ Under **EKS Protection**, go to **EKS clusters runtime coverage** to check the s
 ![GDRuneTimeAgenthealthy](/static/images/detective-controls/GDRuneTimeAgenthealthy.png)
 
 
+Choosing the option **Manage agent automatically** will also create a VPC endpoint through which the security agent delivers the runtime events to GuardDuty.
+
+Go to the [Endpoints section in VPC Console](https://us-west-2.console.aws.amazon.com/vpc/home?region=us-west-2#Endpoints:) to view thw VPC Endpoint created by the Amazon GuardDuty.
+
+![GDVPCEndpoint](/static/images/detective-controls/GDVPCEndpoint.png)
+
 Go to EKS Console and ensure that Amazon GuardDuty EKS Runtime Monitoring EKS Managed Add-on is deployed into the EKS cluster.
 
 ![GDRuneTimeAgent](/static/images/detective-controls/GDRuneTimeAgent.png)

@@ -1,6 +1,6 @@
 ---
 title : "Managing GuardDuty agent manually"
-weight : 23
+weight : 24
 ---
 
 This section describes how you can manage your Amazon EKS add-on agent (GuardDuty agent) after you enable EKS Runtime Monitoring.To use EKS Runtime Monitoring, you must enable EKS Runtime Monitoring and configure the Amazon EKS add-on, aws-guardduty-agent. Performing only one of these two steps will not help GuardDuty detect potential threats or generate findings.
@@ -32,7 +32,7 @@ eksctl delete addon --cluster $EKS_CLUSTER_NAME --name $GD_EKS_ADDON_NAME
 ```
 ::::
 
-::alert[If you add `--preserve` option to the above `eksctl delete addon` command, in addition to Amazon EKS no longer managing the add-on, the add-on software WILL NOT removed from your cluster. That means, it omly deletes the EKS add-on 'aws-guardduty-agent' and preserves its resources i.e. you will see pods running in the `amazon-guardduty` namesoace]{header="Note"}
+::alert[If you add `--preserve` option to the above `eksctl delete addon` command, in addition to Amazon EKS no longer managing the add-on, the add-on software WILL NOT removed from your cluster. That means, it only deletes the EKS add-on 'aws-guardduty-agent' and preserves its resources i.e. you will see pods running in the `amazon-guardduty` namesoace]{header="Note"}
 
 Ensure the Amazon EKS add-on `aws-guardduty-agent` is removed from the EKS Console.
 
@@ -49,6 +49,39 @@ The output will like below.
 ```bash
 No resources found in amazon-guardduty namespace.
 ```
+
+We also need to delete the automatically created VPC Endpoint.
+
+Run the following to get the VPC Endpoint id.
+
+```bash
+export VPC_ENDPOINT=$(aws ec2 describe-vpc-endpoints --filters    Name=service-name,Values=com.amazonaws.${AWS_REGION}.guardduty-data | jq -r '.VpcEndpoints[0].VpcEndpointId')
+echo $VPC_ENDPOINT
+```
+
+::::expand{header="Check Output"}
+```bash
+vpce-0116b6cd26efe36f2
+```
+::::
+
+Run the following to delete the VPC Endpoint.
+
+```bash
+aws ec2 delete-vpc-endpoints --vpc-endpoint-ids $VPC_ENDPOINT
+```
+
+::::expand{header="Check Output"}
+```json
+{
+    "Unsuccessful": []
+}
+```
+::::
+
+Go to the [Endpoints section in VPC Console](https://us-west-2.console.aws.amazon.com/vpc/home?region=us-west-2#Endpoints:) to ensure that the VPC Endpoint is deleted.
+
+![GDVPCEndpointdeleted](/static/images/detective-controls/GDVPCEndpointdeleted.png)
 
 Since the Amazon EKS add-on agent for GuardDuty is removed the EKS Cluster, you will see **Coverage status** Unhealthy under the **EKS clusters runtime coverage**.
 
@@ -158,8 +191,7 @@ export VPC_ENDPOINT_ID=$(aws ec2 create-vpc-endpoint \
     --service-name  "com.amazonaws.$AWS_REGION.guardduty-data" \
     --subnet-ids $SUBNET_LIST \
     --security-group-id $SECURITY_GROUP_ID \
-    --policy-document file://guardduty-vpce-policy.json \
-    --no-private-dns-enabled |jq -r '.VpcEndpoint.VpcEndpointId')
+    --policy-document file://guardduty-vpce-policy.json |jq -r '.VpcEndpoint.VpcEndpointId')
 echo $VPC_ENDPOINT_ID
 ```
 
@@ -168,6 +200,11 @@ echo $VPC_ENDPOINT_ID
 vpce-06b39a3d72b7c6f50
 ```
 ::::
+
+Go to the [Endpoints section in VPC Console](https://us-west-2.console.aws.amazon.com/vpc/home?region=us-west-2#Endpoints:) to ensure that the VPC Endpoint is created. Wait for few minuts until the Status becomes **Available**.
+
+
+![GDVPCEndpointcreated](/static/images/detective-controls/GDVPCEndpointcreated.png)
 
 ### Deploying GuardDuty security agent
 
@@ -198,9 +235,9 @@ aws eks  create-addon --cluster-name $EKS_CLUSTER_NAME --addon-name $GD_EKS_ADDO
 ::::
 
 
-Go to EKS Console and ensure that Amazon GuardDuty EKS Runtime Monitoring EKS Managed Add-on is deployed into the EKS cluster.
+Go to EKS Console and ensure that Amazon GuardDuty EKS Runtime Monitoring EKS Managed Add-on is deployed into the EKS cluster. Wait for few minuts until the Status becomes **Active**.
 
-![GDRuneTimeAgent](/static/images/detective-controls/GDRuneTimeAgent.png)
+![GDRuneTimeAgent2](/static/images/detective-controls/GDRuneTimeAgent2.png)
 
 The EKS Runtime Monitoring agent is deployed as Daemonset in the EKS Cluster. Let us check if the pods are running.
 
@@ -218,4 +255,4 @@ aws-guardduty-agent-m267n   1/1     Running   0          51s
 
 Since the Amazon EKS add-on agent for GuardDuty is deployed back into the EKS Cluster, you will see **Coverage status** Healthy under the **EKS clusters runtime coverage**.
 
-![GDAgentHealthy](/static/images/detective-controls/GDAgentHealthy.png)
+![GDAgentHealthy2](/static/images/detective-controls/GDAgentHealthy2.png)
