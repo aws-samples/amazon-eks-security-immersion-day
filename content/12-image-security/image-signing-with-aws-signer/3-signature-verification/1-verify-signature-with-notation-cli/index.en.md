@@ -1,6 +1,6 @@
 ---
-title : "Signature verification with Notation CLI"
-weight : 23
+title : "Container image verification using Notation CLI"
+weight : 21
 ---
 
 ### Configure Notation trustpolicy document
