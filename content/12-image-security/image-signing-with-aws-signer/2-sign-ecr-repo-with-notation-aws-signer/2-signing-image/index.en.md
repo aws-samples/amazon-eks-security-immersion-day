@@ -13,7 +13,7 @@ Run below commands to set few environmet variables.
 export AWS_REGION=us-west-2
 export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
 export IMAGE_REPO="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
-export IMAGE_NAME=pause1
+export IMAGE_NAME=pause
 ```
 
 Run the below commands to create the ECR Repo.
@@ -36,7 +36,7 @@ fi
 
 ::::expand{header="Check Output"}
 ```bash
-XXXXXXXXXX.dkr.ecr.us-west-2.amazonaws.com/pause1 does not exist. So creating it...
+XXXXXXXXXX.dkr.ecr.us-west-2.amazonaws.com/pause does not exist. So creating it...
 ECR_REPO_URI=XXXXXXXXXX.dkr.ecr.us-west-2.amazonaws.com/pause
 ```
 ::::

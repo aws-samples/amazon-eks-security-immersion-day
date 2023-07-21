@@ -116,27 +116,46 @@ The output will looke like below.
 Let us start a secure ssm session to the EC2 Instance.
 
 ```bash
-aws ssm start-session --target $AL2023_EC2_INSTANCE_ID
+export AL2023_EC2_INSTANCE_PRIVATE_IP=$(aws ec2 describe-instances     --instance-ids $AL2023_EC2_INSTANCE_ID | jq -r '.Reservations[0].Instances[0].PrivateDnsName')
+
+ssh -i "al2023-ssh-key.pem" ec2-user@$AL2023_EC2_INSTANCE_PRIVATE_IP
 ```
+
+The above command will ask for user command line input yes/no. Type **yes** and press *Enter*
 
 Ensure that the output from above command looks llke below. From now onwards, all the following commands in this section will be run on the EC2 Instance.
 
 ```bash
-Starting session with SessionId: i-0d45e819f38a652ea-07efc10ea62a9e558
-sh-5.2$
+Updates Information Summary: available
+    7 Security notice(s)
+        2 Important Security notice(s)
+        3 Medium Security notice(s)
+        2 Low Security notice(s)
+
+   ,     #_
+   ~\_  ####_        Amazon Linux 2023
+  ~~  \_#####\
+  ~~     \###|
+  ~~       \#/ ___   https://aws.amazon.com/linux/amazon-linux-2023
+   ~~       V~' '->
+    ~~~         /
+      ~~._.   _/
+         _/ _/
+       _/m/'
+Last login: Thu Jul 20 06:15:09 2023 from 172.31.15.165
+[ec2-user@ip-172-31-28-68 ~]$
 ```
  
 Go to the home directory on the EC2 Instance.
 
 ```bash
-cd ~
 pwd
 ```
 
 Ensure that the outout will look like below before proceeding further.
 
 ```bash
-/home/ssm-user
+/home/ec2-user
 ```
 
 ### Download and Install the container-signing tools
