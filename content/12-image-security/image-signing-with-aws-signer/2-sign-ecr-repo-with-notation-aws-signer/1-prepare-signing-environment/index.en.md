@@ -9,6 +9,7 @@ Note that the [rpm package](https://d2hvyiie56hcat.cloudfront.net/linux/amd64/in
 
 * Configure AWS CLI with your current region as default.
 ```bash
+cd ~/environment
 export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
 export AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
 ```
@@ -35,6 +36,52 @@ aws ec2 create-key-pair --region $AWS_REGION  --key-name "al2023-ssh-key"  |  jq
 chmod 400 al2023-ssh-key.pem
 ```
 
+Run below commands to get the Cloud9 EC2 Instance Id and IAM Role attached to it.
+
+```bash
+C9_EC2_INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+echo $C9_EC2_INSTANCE_ID
+export C9_EC2_INSTANCE_PROFILE_ARN=$(aws ec2 describe-iam-instance-profile-associations --filters Name=instance-id,Values=$C9_EC2_INSTANCE_ID | jq -r '.IamInstanceProfileAssociations[0].IamInstanceProfile.Arn')
+echo $C9_EC2_INSTANCE_PROFILE_ARN
+
+export EKS_CLUSTER_NAME="eksworkshop-eksctl"
+EKS_VPC_ID=$(eksctl get cluster $EKS_CLUSTER_NAME -ojson | jq -r '.[0]["ResourcesVpcConfig"]["VpcId"]')
+echo $EKS_VPC_ID
+export VPC_CIDR=$(aws ec2 describe-vpcs --vpc-ids $EKS_VPC_ID | jq -r '.Vpcs[0].CidrBlock')
+echo $VPC_CIDR
+SUBNET_ID=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$EKS_VPC_ID" | jq -r '.Subnets[0].SubnetId')
+echo $SUBNET_ID
+export DEFAULT_SECURITY_GROUP_ID=$(aws ec2 describe-security-groups     --filters Name=vpc-id,Values=$EKS_VPC_ID Name=group-name,Values="default"  | jq -r '.SecurityGroups[0].GroupId')
+echo $DEFAULT_SECURITY_GROUP_ID
+aws ec2 authorize-security-group-ingress --group-id $DEFAULT_SECURITY_GROUP_ID --protocol tcp --port 22 --cidr $VPC_CIDR
+```
+
+::::expand{header="Check Output"}
+```bash
+i-0d45e819f38a652ea
+arn:aws:iam::XXXXXXXXXX:instance-profile/eks-bootstrap-template-ws-Cloud9InstanceProfile-d55IOFoYH6uP
+vpc-0d46a9840f5d2e2e7
+10.254.0.0/16
+sg-0aea8cf2ace665f72
+{
+    "Return": true,
+    "SecurityGroupRules": [
+        {
+            "SecurityGroupRuleId": "sgr-0f54d4208ec9284be",
+            "GroupId": "sg-0aea8cf2ace665f72",
+            "GroupOwnerId": "414531612852",
+            "IsEgress": false,
+            "IpProtocol": "tcp",
+            "FromPort": 22,
+            "ToPort": 22,
+            "CidrIpv4": "10.254.0.0/16"
+        }
+    ]
+}
+
+```
+::::
+
 Run the below command to create an EC2 Instance with Amazon Linux 2023 AMI and ssh key pair. Let's call this EC2 Instance as AL2023 Instance.
 
 ```bash
@@ -42,6 +89,9 @@ AL2023_EC2_INSTANCE_ID=$(aws ec2 run-instances \
     --image-id $AL_2023_AMI \
     --instance-type t3.small \
     --key-name al2023-ssh-key \
+    --security-group-ids $DEFAULT_SECURITY_GROUP_ID \
+    --subnet-id $SUBNET_ID \
+    --iam-instance-profile Arn=$C9_EC2_INSTANCE_PROFILE_ARN \
     --count 1 | jq -r '.Instances[0].InstanceId')
 echo  $AL2023_EC2_INSTANCE_ID
 ```
@@ -55,69 +105,14 @@ i-0c80b1c9a2738e89b
 Let us wait until the EC2 Instance Status becomes Running.
 
 ```bash
-aws ec2 wait instance-running --instance-ids $AL2023_EC2_INSTANCE_ID
+aws ec2 wait instance-status-ok  --instance-ids $AL2023_EC2_INSTANCE_ID
 ```
 
-Next, we need to find the IAM Instance Profile attached to the Cloud9 Instance and then attach it to the above newly created EC2 Instance.
-
-Run below commands to get the Cloud9 EC2 Instance Id and IAM Role attached to it.
-
-```bash
-C9_EC2_INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
-echo $C9_EC2_INSTANCE_ID
-C9_EC2_IAM_ROLE=$(aws sts get-caller-identity -- Arn | cut -d / -f 2)
-echo $C9_EC2_IAM_ROLE
-```
-
-::::expand{header="Check Output"}
-```bash
-i-0d45e819f38a652ea
-eksworkshop-admin
-```
-::::
-
-Run the below commands to find the existing Association id for the AL2023 Instance.
-
-```bash
-export AL2023_EC2_ASSOCIATION_ID=$(aws ec2 describe-iam-instance-profile-associations --filters Name=instance-id,Values=$AL2023_EC2_INSTANCE_ID | jq -r '.IamInstanceProfileAssociations[0].AssociationId')
-echo $AL2023_EC2_ASSOCIATION_ID
-```
-
-::::expand{header="Check Output"}
-```bash
-iip-assoc-074ee0da634d11c6b
-```
-::::
-
-Run the below command to update AL2023 Instance Profile to the same Instance Profile attached to our Cloud9 EC2 Instance.
-
-```bash
-aws ec2 replace-iam-instance-profile-association \
-    --iam-instance-profile Name=$C9_EC2_IAM_ROLE \
-    --association-id $AL2023_EC2_ASSOCIATION_ID
-```
-
-The output will looke like below.
-
-```json
-{
-    "IamInstanceProfileAssociation": {
-        "AssociationId": "iip-assoc-0353dac8da4f707fa",
-        "InstanceId": "i-0c80b1c9a2738e89b",
-        "IamInstanceProfile": {
-            "Arn": "arn:aws:iam::XXXXXXXXXXX:instance-profile/eksworkshop-admin",
-            "Id": "AIPAQAHCJ2QPH2TKFLVPS"
-        },
-        "State": "associating"
-    }
-}
-```
-
-Let us start a secure ssm session to the EC2 Instance.
+Run below commands to ssh into the AL2023 EC2 Instance.
 
 ```bash
 export AL2023_EC2_INSTANCE_PRIVATE_IP=$(aws ec2 describe-instances     --instance-ids $AL2023_EC2_INSTANCE_ID | jq -r '.Reservations[0].Instances[0].PrivateDnsName')
-
+echo $AL2023_EC2_INSTANCE_PRIVATE_IP
 ssh -i "al2023-ssh-key.pem" ec2-user@$AL2023_EC2_INSTANCE_PRIVATE_IP
 ```
 
@@ -126,12 +121,11 @@ The above command will ask for user command line input yes/no. Type **yes** and 
 Ensure that the output from above command looks llke below. From now onwards, all the following commands in this section will be run on the EC2 Instance.
 
 ```bash
-Updates Information Summary: available
-    7 Security notice(s)
-        2 Important Security notice(s)
-        3 Medium Security notice(s)
-        2 Low Security notice(s)
-
+The authenticity of host 'ip-10-254-142-20.us-west-2.compute.internal (10.254.142.20)' can't be established.
+ECDSA key fingerprint is SHA256:6cEcpNxx4LnYQEKgUcZmEw63RgGRfelHaW9Gzcongnc.
+ECDSA key fingerprint is MD5:2f:50:72:3f:c5:1f:ae:c1:94:45:64:18:7a:ef:ad:a8.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added 'ip-10-254-142-20.us-west-2.compute.internal,10.254.142.20' (ECDSA) to the list of known hosts.
    ,     #_
    ~\_  ####_        Amazon Linux 2023
   ~~  \_#####\
@@ -142,8 +136,7 @@ Updates Information Summary: available
       ~~._.   _/
          _/ _/
        _/m/'
-Last login: Thu Jul 20 06:15:09 2023 from 172.31.15.165
-[ec2-user@ip-172-31-28-68 ~]$
+[ec2-user@ip-10-254-142-20 ~]$
 ```
  
 Go to the home directory on the EC2 Instance.
@@ -198,13 +191,15 @@ Install the package using the following command.
 ```bash
 sudo rpm -U aws-signer-notation-cli_amd64.rpm 
 ```
-The output will look like below.
-
+::::expand{header="Check Output"}
 ```bash
 No configuration file '/etc/signer-notation-options' found. Using default values.
 SIGNER_TRUST_STORE_NAME=aws-signer-ts
 NOTATION_INSTALL_PATH=/usr/local/bin
 ```
+::::
+
+
 
 ### Verify the package installation
 
@@ -215,8 +210,8 @@ Use the following command to display the Notation client version.
 ```bash
 notation version
 ```
-The output will look like below.
 
+::::expand{header="Check Output"}
 ```bash
 Notation - a tool to sign and verify artifacts.
 
@@ -224,6 +219,8 @@ Version:     1.0.0-rc.7
 Go version:  go1.20.4
 Git commit:  ebfb9ef707996e1dc11898db8b90faa8e8816ae6
 ```
+::::
+
 
 Use the following command to list the installed plugins for the Notation client and verify that you see the `com.amazonaws.signer.notation.plugin` plugin.
 
@@ -308,6 +305,15 @@ The output will look like below.
 
 6 directories, 7 files
 ```
+Let us exit from the Al2023 EC2 Instance.
 
+```bash
+exit
+```
 
-
+::::expand{header="Check Output"}
+```bash
+logout
+Connection to ip-10-254-142-20.us-west-2.compute.internal closed.
+```
+::::

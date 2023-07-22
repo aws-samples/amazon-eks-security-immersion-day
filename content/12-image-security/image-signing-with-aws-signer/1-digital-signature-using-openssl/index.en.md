@@ -1,5 +1,5 @@
 ---
-title : "Digital signature verification using openssl"
+title : "Digital signature verification using openssl tool"
 weight : 21
 ---
 
@@ -165,8 +165,7 @@ ls
 The output should show like below.
 
 ```bash
-private_key_file.pem   sign.sha256.base64
-public_key_file.pem   sample_plain_text_file.txt  sign.sha256
+private_key_file.pem  public_key_file.pem  sample_plain_text_file.txt  sign.sha256  sign.sha256.base64
 ```
 
 Once the digital signature is created, the Sender shares the following artifacts to the Receiver.

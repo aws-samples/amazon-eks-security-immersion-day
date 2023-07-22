@@ -107,6 +107,19 @@ The output will look like below.
 Successfully verified signature for XXXXXXXXXX.dkr.ecr.us-west-2.amazonaws.com/pause@sha256:33f19d2d8ba5fc17ac1099a840b0feac5f40bc6ac02d99891dbd13b0e204af4e
 ```
 
+Let us exit from the Al2023 EC2 Instance.
+
+```bash
+exit
+```
+
+::::expand{header="Check Output"}
+```bash
+logout
+Connection to ip-10-254-142-20.us-west-2.compute.internal closed.
+```
+::::
+
 Congratlulations !!! You have successfully completed the Module on signing the container image and verifying the sinature using the Notation CLI.
 
 

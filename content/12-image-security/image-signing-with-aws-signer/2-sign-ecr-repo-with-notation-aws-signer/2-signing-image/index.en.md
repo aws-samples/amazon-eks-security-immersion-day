@@ -5,12 +5,26 @@ weight : 22
 
 ### Create an ECR Repoistory
 
+Before we proceed, ensure that you exited from AL2023 Instance and back to the Cloud9 Environment.
+
+Run `pwd` to check you are in Cloud9.
+
+```bash
+pwd
+```
+::::expand{header="Check Output"}
+```bash
+WSParticipantRole:~/environment $ pwd
+/home/ec2-user/environment
+```
+::::
+
 Let us first create an Amazon ECR private repo and push the Kubernetes pause container image.
 
 Run below commands to set few environmet variables.
 
 ```bash
-export AWS_REGION=us-west-2
+export AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
 export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
 export IMAGE_REPO="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
 export IMAGE_NAME=pause
@@ -51,10 +65,17 @@ docker push ${IMAGE_REPO}/${IMAGE_NAME}
 
 ::::expand{header="Check Output"}
 ```bash
+3.2: Pulling from eks-distro/kubernetes/pause
+a5743ea8301c: Pull complete 
+Digest: sha256:8db8c8f2fc8d246dec0a37260f2ef822c261ad0367aec56a43d818410b3c3526
+Status: Downloaded newer image for public.ecr.aws/eks-distro/kubernetes/pause:3.2
+public.ecr.aws/eks-distro/kubernetes/pause:3.2
+
 Using default tag: latest
-The push refers to repository [XXXXXXXXX.dkr.ecr.us-west-2.amazonaws.com/pause]
-ece9f8b4c4aa: Layer already exists 
+The push refers to repository [XXXXXXXXXX.dkr.ecr.us-west-2.amazonaws.com/pause]
+ece9f8b4c4aa: Pushed 
 latest: digest: sha256:33f19d2d8ba5fc17ac1099a840b0feac5f40bc6ac02d99891dbd13b0e204af4e size: 526
+
 ```
 ::::
 
@@ -67,13 +88,30 @@ Ensure that the pause container image is pushed to [Amazon ECE Repo](https://con
 
 ### Create AWS signing profile
 
+In the previous section, we prepared the AWS signing environment in AL2023 EC2 Instance.
+
+Let us ssh into the AL2023 EC2 Instance and follow all the Instructions to sign the image.
+
+```bash
+ssh -i "al2023-ssh-key.pem" ec2-user@$AL2023_EC2_INSTANCE_PRIVATE_IP
+```
+
+Set below environment variables.
+
+```bash
+export AWS_REGION=us-west-2
+export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
+export IMAGE_REPO="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+export IMAGE_NAME=pause
+```
+
 We need to first create an AWS Signer signing profile using the `Notation-OCI-SHA384-ECDSA` signing platform. You can optionally specify a signature validity period using the `--signature-validity-period` parameter. This value may be specified using `DAYS`, `MONTHS`, or `YEARS`. If no validity period is specified, the default value of **135 months (i.e. 11 years and 3 months)** is used. We will use the default option in this lab.
 
 Run the following command to create a AWS Signer signing profile with default validity period.
 
 ```bash
 export AWS_SIGNING_PROFILE_ARN=$(aws signer put-signing-profile \
-    --profile-name notation_test2 \
+    --profile-name notation_test \
     --platform-id Notation-OCI-SHA384-ECDSA | jq -r '.arn')
 echo $AWS_SIGNING_PROFILE_ARN
 ```
@@ -139,38 +177,107 @@ sudo yum install amazon-ecr-credential-helper docker -y
 
 ::::expand{header="Check Output"}
 ```bash
-Last metadata expiration check: 2:36:24 ago on Tue Jul 18 00:00:13 2023.
+Last metadata expiration check: 5:05:00 ago on Fri Jul 21 12:02:52 2023.
 Dependencies resolved.
-=======================================================================================================================
- Package                                 Architecture      Version                        Repository              Size
-=======================================================================================================================
-=======================================================================================================================
-Install  1 Package
+=================================================================================================
+ Package                          Arch       Version                       Repository       Size
+=================================================================================================
+Installing:
+ amazon-ecr-credential-helper     x86_64     0.6.0-1.amzn2023              amazonlinux     2.2 M
+ docker                           x86_64     20.10.25-1.amzn2023.0.1       amazonlinux      42 M
+Installing dependencies:
+ containerd                       x86_64     1.7.2-1.amzn2023.0.1          amazonlinux      34 M
+ iptables-libs                    x86_64     1.8.8-3.amzn2023.0.2          amazonlinux     401 k
+ iptables-nft                     x86_64     1.8.8-3.amzn2023.0.2          amazonlinux     183 k
+ libcgroup                        x86_64     3.0-1.amzn2023.0.1            amazonlinux      75 k
+ libnetfilter_conntrack           x86_64     1.0.8-2.amzn2023.0.2          amazonlinux      58 k
+ libnfnetlink                     x86_64     1.0.1-19.amzn2023.0.2         amazonlinux      30 k
+ libnftnl                         x86_64     1.2.2-2.amzn2023.0.2          amazonlinux      84 k
+ pigz                             x86_64     2.5-1.amzn2023.0.3            amazonlinux      83 k
+ runc                             x86_64     1.1.7-1.amzn2023.0.1          amazonlinux     3.0 M
 
-Total download size: 2.2 M
-Installed size: 6.3 M
+Transaction Summary
+=================================================================================================
+Install  11 Packages
+
+Total download size: 81 M
+Installed size: 313 M
 Downloading Packages:
-amazon-ecr-credential-helper-0.6.0-1.amzn2023.x86_64.rpm                                14 MB/s | 2.2 MB     00:00    
------------------------------------------------------------------------------------------------------------------------
-Total                                                                                   11 MB/s | 2.2 MB     00:00     
+(1/11): libnfnetlink-1.0.1-19.amzn2023.0.2.x86_64.rpm            405 kB/s |  30 kB     00:00    
+(2/11): libnftnl-1.2.2-2.amzn2023.0.2.x86_64.rpm                 966 kB/s |  84 kB     00:00    
+(3/11): libcgroup-3.0-1.amzn2023.0.1.x86_64.rpm                  4.0 MB/s |  75 kB     00:00    
+(4/11): iptables-libs-1.8.8-3.amzn2023.0.2.x86_64.rpm             13 MB/s | 401 kB     00:00    
+(5/11): libnetfilter_conntrack-1.0.8-2.amzn2023.0.2.x86_64.rpm   1.9 MB/s |  58 kB     00:00    
+(6/11): runc-1.1.7-1.amzn2023.0.1.x86_64.rpm                      22 MB/s | 3.0 MB     00:00    
+(7/11): pigz-2.5-1.amzn2023.0.3.x86_64.rpm                       2.9 MB/s |  83 kB     00:00    
+(8/11): iptables-nft-1.8.8-3.amzn2023.0.2.x86_64.rpm             6.2 MB/s | 183 kB     00:00    
+(9/11): amazon-ecr-credential-helper-0.6.0-1.amzn2023.x86_64.rpm 6.8 MB/s | 2.2 MB     00:00    
+(10/11): containerd-1.7.2-1.amzn2023.0.1.x86_64.rpm               41 MB/s |  34 MB     00:00    
+(11/11): docker-20.10.25-1.amzn2023.0.1.x86_64.rpm                45 MB/s |  42 MB     00:00    
+-------------------------------------------------------------------------------------------------
+Total                                                             61 MB/s |  81 MB     00:01     
 Running transaction check
 Transaction check succeeded.
 Running transaction test
 Transaction test succeeded.
 Running transaction
-  Preparing        :                                                                                               1/1 
-  Installing       : amazon-ecr-credential-helper-0.6.0-1.amzn2023.x86_64                                          1/1 
-  Running scriptlet: amazon-ecr-credential-helper-0.6.0-1.amzn2023.x86_64                                          1/1 
-  Verifying        : amazon-ecr-credential-helper-0.6.0-1.amzn2023.x86_64                                          1/1 
+  Preparing        :                                                                         1/1 
+  Installing       : runc-1.1.7-1.amzn2023.0.1.x86_64                                       1/11 
+  Installing       : containerd-1.7.2-1.amzn2023.0.1.x86_64                                 2/11 
+  Running scriptlet: containerd-1.7.2-1.amzn2023.0.1.x86_64                                 2/11 
+  Installing       : pigz-2.5-1.amzn2023.0.3.x86_64                                         3/11 
+  Installing       : libcgroup-3.0-1.amzn2023.0.1.x86_64                                    4/11 
+  Installing       : libnftnl-1.2.2-2.amzn2023.0.2.x86_64                                   5/11 
+  Installing       : libnfnetlink-1.0.1-19.amzn2023.0.2.x86_64                              6/11 
+  Installing       : libnetfilter_conntrack-1.0.8-2.amzn2023.0.2.x86_64                     7/11 
+  Installing       : iptables-libs-1.8.8-3.amzn2023.0.2.x86_64                              8/11 
+  Installing       : iptables-nft-1.8.8-3.amzn2023.0.2.x86_64                               9/11 
+  Running scriptlet: iptables-nft-1.8.8-3.amzn2023.0.2.x86_64                               9/11 
+  Running scriptlet: docker-20.10.25-1.amzn2023.0.1.x86_64                                 10/11 
+  Installing       : docker-20.10.25-1.amzn2023.0.1.x86_64                                 10/11 
+  Running scriptlet: docker-20.10.25-1.amzn2023.0.1.x86_64                                 10/11 
+Created symlink /etc/systemd/system/sockets.target.wants/docker.socket → /usr/lib/systemd/system/docker.socket.
+
+  Installing       : amazon-ecr-credential-helper-0.6.0-1.amzn2023.x86_64                  11/11 
+  Running scriptlet: amazon-ecr-credential-helper-0.6.0-1.amzn2023.x86_64                  11/11 
+  Verifying        : libnfnetlink-1.0.1-19.amzn2023.0.2.x86_64                              1/11 
+  Verifying        : containerd-1.7.2-1.amzn2023.0.1.x86_64                                 2/11 
+  Verifying        : libnftnl-1.2.2-2.amzn2023.0.2.x86_64                                   3/11 
+  Verifying        : libcgroup-3.0-1.amzn2023.0.1.x86_64                                    4/11 
+  Verifying        : iptables-libs-1.8.8-3.amzn2023.0.2.x86_64                              5/11 
+  Verifying        : libnetfilter_conntrack-1.0.8-2.amzn2023.0.2.x86_64                     6/11 
+  Verifying        : amazon-ecr-credential-helper-0.6.0-1.amzn2023.x86_64                   7/11 
+  Verifying        : runc-1.1.7-1.amzn2023.0.1.x86_64                                       8/11 
+  Verifying        : pigz-2.5-1.amzn2023.0.3.x86_64                                         9/11 
+  Verifying        : iptables-nft-1.8.8-3.amzn2023.0.2.x86_64                              10/11 
+  Verifying        : docker-20.10.25-1.amzn2023.0.1.x86_64                                 11/11 
 
 Installed:
-  amazon-ecr-credential-helper-0.6.0-1.amzn2023.x86_64                                                                 
+  amazon-ecr-credential-helper-0.6.0-1.amzn2023.x86_64 containerd-1.7.2-1.amzn2023.0.1.x86_64   
+  docker-20.10.25-1.amzn2023.0.1.x86_64                iptables-libs-1.8.8-3.amzn2023.0.2.x86_64
+  iptables-nft-1.8.8-3.amzn2023.0.2.x86_64             libcgroup-3.0-1.amzn2023.0.1.x86_64      
+  libnetfilter_conntrack-1.0.8-2.amzn2023.0.2.x86_64   libnfnetlink-1.0.1-19.amzn2023.0.2.x86_64
+  libnftnl-1.2.2-2.amzn2023.0.2.x86_64                 pigz-2.5-1.amzn2023.0.3.x86_64           
+  runc-1.1.7-1.amzn2023.0.1.x86_64                    
 
 Complete!
 ```
 ::::
 
 To use the Amazon ECR Docker Credential Helper, we need to ensure `docker-credential-ecr-login` and `docker` binaries exists on your `PATH` and configure the ~/.docker/config.json as follows.
+
+```bash
+which docker
+which docker-credential-ecr-login
+```
+
+::::expand{header="Check Output"}
+```bash
+/usr/bin/docker
+/usr/bin/docker-credential-ecr-login
+```
+::::
+
 
 Run the following command to create `.docker' folder and create the docker config file.
 

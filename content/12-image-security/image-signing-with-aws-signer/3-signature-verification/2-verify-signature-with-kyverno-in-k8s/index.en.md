@@ -3,6 +3,20 @@ title : "Container image verification in Kubernetes with Kyverno"
 weight : 22
 ---
 
+Before we proceed, ensure that you exited from AL2023 Instance and back to the Cloud9 Environment.
+
+Run `pwd` to check you are in Cloud9.
+
+```bash
+pwd
+```
+::::expand{header="Check Output"}
+```bash
+WSParticipantRole:~/environment $ pwd
+/home/ec2-user/environment
+```
+::::
+
 In this section, we will explore container image signature validation in Kubernetes. We will use Amazon EKS with [Kubernetes Dynamic Admission Controllers](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/) and the Kyverno policy engine. The Kyverno-Notation-AWS Signer solution is found in the [kyverno-notation-aws](https://github.com/nirmata/kyverno-notation-aws) OSS project.
 
 ### Install Kyverno-Notation-AWS Signer solution
@@ -137,11 +151,16 @@ cronjob.batch/kyverno-cleanup-cluster-admission-reports created
 ```
 ::::
 
-Install the kyverno-notation-aws application.
+Clone the `kyverno-notation-aws` github.
+
 ```bash
 cd ~/environment
 git clone https://github.com/nirmata/kyverno-notation-aws.git
 cd kyverno-notation-aws/
+```
+
+Install the `kyverno-notation-aws` application.
+```bash
 kubectl apply -f configs/install.yaml
 ```
 
@@ -204,7 +223,7 @@ We need to update `caBundle` element in the above `TrustStore` resource to the A
 Run the below command to copy the AWS Signer root certificate file from AL2023 EC2 Instance to the Cloud9 environment.
 
 ```bash
-scp -i "al2023-ssh-key.pem" ec2-user@ec2-52-90-149-240.compute-1.amazonaws.com:/home/ec2-user/.config/notation/truststore/x509/signingAuthority/aws-signer-ts/aws-signer-notation-root.crt .
+scp -i "al2023-ssh-key.pem" ec2-user@$AL2023_EC2_INSTANCE_PRIVATE_IP:/home/ec2-user/.config/notation/truststore/x509/signingAuthority/aws-signer-ts/aws-signer-notation-root.crt .
 ```
 
 Update the `caBundle` element value in the `truststore.yaml` with the contents of the file `aws-signer-notation-root.crt`.
@@ -290,8 +309,12 @@ spec:
     - "$AWS_SIGNING_PROFILE_ARN"
 EOF
 ```
-Let us apply this `TrustPolicy` in the cluster.
 
+Let's apply the `trustpolicy.yaml` to the cluster.
+
+```bash
+kubectl apply -f trustpolicy.yaml 
+```
 
 ::::expand{header="Check Output"}
 ```bash

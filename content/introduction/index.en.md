@@ -37,7 +37,7 @@ As part of this workshop we will cover the following modules:
 | [Amazon GuardDuty Protection for EKS - Runtime Monitoring](/5-detective-controls/guardDuty-protection-for-eks/eks-runtime) | 45 mins | N/A |
 | [Validating Amazon EKS optimized Bottlerocket AMI against the CIS Benchmark](/10-regulatory-compliance/cis-bottlerocket-eks/) | 60 mins | N/A |
 | [Container Image CVE Management with Amazon Inspector](/12-image-security/manage-image-cve-with-inspector/) | 30 mins | N/A |
-
+| [Container Image Signing and Verification with AWS Signer](/12-image-security/image-signing-with-aws-signer/) | 90 mins | N/A |
 
 #### Cost
 
