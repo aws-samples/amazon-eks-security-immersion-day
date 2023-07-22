@@ -181,7 +181,7 @@ Resources:
       AutomaticStopTimeMinutes: 60
       SubnetId: !Ref PublicSubnetA
       ImageId: resolve:ssm:/aws/service/cloud9/amis/amazonlinux-2-x86_64
-      OwnerArn: arn:aws:iam::000474600478:user/jp
+      OwnerArn: arn:aws:iam::XXXXXXXXXX:user/jp
 
   Cloud9InstanceRole:
     Type: AWS::IAM::Role

@@ -553,7 +553,7 @@ echo $SIGNER_POLICY
 
 ::::expand{header="Check Output"}
 ```bash
-arn:aws:iam::000474600478:policy/notary-admission-signer
+arn:aws:iam::XXXXXXXXXX:policy/notary-admission-signer
 ```
 ::::
 
@@ -716,6 +716,6 @@ kubectl -n kyverno-notation-aws logs  $POD_NAME
 The output will look like below.
 
 ```2023-07-21T06:12:28.403Z        INFO    /auth.go:26     using region: us-east-1
-2023-07-21T06:44:50.650Z        INFO    /verify.go:144  verifying image 000474600478.dkr.ecr.us-east-1.amazonaws.com/pause@sha256:33f19d2d8ba5fc17ac1099a840b0feac5f40bc6ac02d99891dbd13b0e204af4e
+2023-07-21T06:44:50.650Z        INFO    /verify.go:144  verifying image XXXXXXXXXX.dkr.ecr.us-east-1.amazonaws.com/pause@sha256:33f19d2d8ba5fc17ac1099a840b0feac5f40bc6ac02d99891dbd13b0e204af4e
 ```
 
