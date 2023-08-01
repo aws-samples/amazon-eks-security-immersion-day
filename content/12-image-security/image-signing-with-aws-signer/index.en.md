@@ -1,6 +1,6 @@
 ---
 title : "Container Image Signing and Verification with AWS Signer"
-weight : 35
+weight : 40
 ---
 
 [AWS Signer](https://docs.aws.amazon.com/signer/latest/developerguide/Welcome.html) and [Amazon Elastic Container Registry (ECR)](https://aws.amazon.com/ecr/) [launched image signing](https://aws.amazon.com/about-aws/whats-new/2023/06/aws-container-image-signing/), a new feature that enables you to sign and verify container images. You can now use Signer, a managed signing service, to validate that only container images you have approved are deployed in your Amazon Elastic Kubernetes Service (EKS) clusters. 
