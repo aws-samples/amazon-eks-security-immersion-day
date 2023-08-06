@@ -31,5 +31,3 @@ Click on any of the topics to get more details and see relevant best practices a
 * [Regulatory Compliance](https://aws.github.io/aws-eks-best-practices/security/docs/compliance/)
 * [Incident response and forensics](https://aws.github.io/aws-eks-best-practices/security/docs/incidents/)
 * [Image security](https://aws.github.io/aws-eks-best-practices/security/docs/image/)
-
-
