@@ -69,7 +69,7 @@ constrainttemplate.templates.gatekeeper.sh/k8swhitelistedimages created
 
 2. Build Constraint
 
-The cluster admin will use the constraint to inform the OPA Gatekeeper to enforce the policy. For our example, as cluster admin we want to enforce that all the created pod should be from a known registry in a whitelist.
+The cluster admin will use the constraint to inform the OPA Gatekeeper to enforce the policy. For our example, as cluster admin we want to enforce that all the created pod should be from a known registry list in a whitelist.
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
 cd ~/environment
@@ -128,7 +128,7 @@ k8swhitelistedimages.constraints.gatekeeper.sh/k8senforcewhitelistedimages creat
 ```
 ::::
 
-3. Test if the use of unprivileged containers is enforced in the cluster
+3. Test the policy, if every Pod‘s image comes from a known registry in a whitelist is enforced in the cluster
 
 First, check for the CRD constraint and constrainttemplate were created.
 
@@ -148,7 +148,7 @@ k8swhitelistedimages   4m15s
 ```
 ::::
 
-Second, let’s try to deploy a privileged nginx pod:
+Second, let’s try to deploy a nginx pod from unknown registry:
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
 
@@ -169,16 +169,13 @@ kubectl create -f example.yaml
 :::
 
 You should now see an error message similar to below:
-
 ::::expand{header="Check Output"}
-![OPA](/static/images/pod-security/opa/opa-constraint2.png)
+![OPA](/static/images/pod-security/opa/opa-constraint2.PNG)
 ::::
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
 Error from server (Forbidden): error when creating "example.yaml": admission webhook "validation.gatekeeper.sh" denied the request: [k8senforcewhitelistedimages] pod "bad-nginx" has invalid image "nginx". Please, contact your DevOps. Follow the whitelisted images {"888888888888.dkr.ecr.us-east-1.amazonaws.com/", "888888888888.dkr.ecr.us-west-2.amazonaws.com/", "999999999999.dkr.ecr.us-east-1.amazonaws.com/", "amazon/aws-alb-ingress-controller", "amazon/aws-cli", "amazon/aws-efs-csi-driver", "amazon/aws-node-termination-handler", "amazon/cloudwatch-agent", "busybox", "docker.io/amazon/aws-alb-ingress-controller", "docker.io/radial/busyboxplus", "grafana/grafana", "jtblin/kube2iam", "k8s.gcr.io/autoscaling/cluster-autoscaler", "k8s.gcr.io/metrics-server-amd64", "kubernetesui/dashboard", "kubernetesui/metrics-scraper", "nvidia/k8s-device-plugin", "openpolicyagent/gatekeeper", "prom/alertmanager", "prom/prometheus", "quay.io/coreos/kube-state-metrics", "quay.io/kubernetes-ingress-controller/nginx-ingress-controller", "radial/busyboxplus"}
 :::
-
-
 
 Also observe the OPA Audit Controller and Controller manager logs to see the webhook requests being issued by the Kubernetes API server.
 
