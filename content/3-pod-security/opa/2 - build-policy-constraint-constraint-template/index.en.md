@@ -1,11 +1,11 @@
 ---
-title : "Build Policy using Constraint & Constraint Template"
+title : "Use case #1: Restrict privileged containers in the cluster"
 weight : 22
 ---
 
-In this section, we would be defining new constraint template and constraint that will force the use of unprivileged containers in the cluster.
+In this section, we would be defining new constraint template and constraint that will force the use of privileged containers in the cluster.
 
-### 1. Build Constraint Templates
+. Build Constraint Templates
 
 ConstraintTemplate describes the Rego that enforces the constraint and the schema of the constraint. The schema constraint allows the author of the constraint (cluster admin) to define the contraint behavior.
 
@@ -43,14 +43,20 @@ spec:
 EOF
 :::
 
+
 Create the ConstraintTemplate using the following command
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
 kubectl create -f /tmp/constrainttemplate.yaml
 :::
 
+::::expand{header="Check Output"}
+```bash
+constrainttemplate.templates.gatekeeper.sh/k8spspprivilegedcontainer created
+```
+:::
 
-### 2. Build Constraint
+2. Build Constraint
 
 The cluster admin will use the constraint to inform the OPA Gatekeeper to enforce the policy. For our example, as cluster admin we want to enforce that all the created pod should not be privileged.
 
@@ -74,6 +80,12 @@ Create the Constraint using the following command
 kubectl create -f /tmp/constraint.yaml
 :::
 
+::::expand{header="Check Output"}
+```bash
+k8spspprivilegedcontainer.constraints.gatekeeper.sh/psp-privileged-container created
+```
+:::
+
 ### 3. Test if the use of unprivileged containers is enforced in the cluster
 
 First, check for the CRD constraint and constrainttemplate were created.
@@ -81,6 +93,17 @@ First, check for the CRD constraint and constrainttemplate were created.
 :::code{showCopyAction=true showLineNumbers=false language=bash}
 kubectl get constraint
 kubectl get constrainttemplate
+:::
+
+::::expand{header="Check Output"}
+```bash
+Admin:~/environment $ kubectl get constraint
+NAME                       ENFORCEMENT-ACTION   TOTAL-VIOLATIONS
+psp-privileged-container
+Admin:~/environment $ kubectl get constrainttemplate
+NAME                        AGE
+k8spspprivilegedcontainer   61s
+```
 :::
 
 Second, let’s try to deploy a privileged nginx pod:
