@@ -12,7 +12,8 @@ ConstraintTemplate describes the Rego that enforces the constraint and the schem
 In this example, the cluster admin will force the use of unprivileged containers in the cluster. The OPA Gatekeeper will look for the securitycontext field and check if `privileged=true`. If it’s the case, then, the request will fail.
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
-cat > /tmp/constrainttemplate.yaml <<EOF
+cd ~/environment
+cat > constrainttemplate.yaml <<EOF
 apiVersion: templates.gatekeeper.sh/v1beta1
 kind: ConstraintTemplate
 metadata:
@@ -47,7 +48,7 @@ EOF
 Create the ConstraintTemplate using the following command
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
-kubectl create -f /tmp/constrainttemplate.yaml
+kubectl create -f constrainttemplate.yaml
 :::
 
 ::::expand{header="Check Output"}
@@ -61,7 +62,8 @@ constrainttemplate.templates.gatekeeper.sh/k8spspprivilegedcontainer created
 The cluster admin will use the constraint to inform the OPA Gatekeeper to enforce the policy. For our example, as cluster admin we want to enforce that all the created pod should not be privileged.
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
-cat > /tmp/constraint.yaml <<EOF
+cd ~/environment
+cat > constraint.yaml <<EOF
 apiVersion: constraints.gatekeeper.sh/v1beta1
 kind: K8sPSPPrivilegedContainer
 metadata:
@@ -77,7 +79,7 @@ EOF
 Create the Constraint using the following command
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
-kubectl create -f /tmp/constraint.yaml
+kubectl create -f constraint.yaml
 :::
 
 ::::expand{header="Check Output"}
@@ -86,7 +88,7 @@ k8spspprivilegedcontainer.constraints.gatekeeper.sh/psp-privileged-container cre
 ```
 ::::
 
-### 3. Test if the use of unprivileged containers is enforced in the cluster
+3. Test if the use of unprivileged containers is enforced in the cluster
 
 First, check for the CRD constraint and constrainttemplate were created.
 
@@ -135,7 +137,7 @@ You should now see an error message similar to below:
 ::::
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
-Error from server (Forbidden): error when creating "/tmp/example.yaml": admission webhook "validation.gatekeeper.sh" denied the request: [psp-privileged-container] Privileged container is not allowed: nginx, securityContext: {"privileged": true}
+Error from server (Forbidden): error when creating "example.yaml": admission webhook "validation.gatekeeper.sh" denied the request: [psp-privileged-container] Privileged container is not allowed: nginx, securityContext: {"privileged": true}
 :::
 
 
@@ -146,11 +148,11 @@ Also observe the OPA Audit Controller and Controller manager logs to see the web
 
 Controller Manager Logs
 
-![OPA](/static/images/pod-security/opa/controller-logs1.png)
+![OPA](/static/images/pod-security/opa/controller-logs1.PNG)
 
 Audit Controller Logs
 
-![OPA](/static/images/pod-security/opa/audit-logs1.png)
+![OPA](/static/images/pod-security/opa/audit-logs1.PNG)
 
 ::::
 
