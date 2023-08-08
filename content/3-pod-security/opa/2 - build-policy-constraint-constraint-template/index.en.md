@@ -109,7 +109,9 @@ k8spspprivilegedcontainer   61s
 Second, let’s try to deploy a privileged nginx pod:
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
-cat > /tmp/example.yaml <<EOF
+
+cd ~/environment
+cat > example.yaml <<EOF
 apiVersion: v1
 kind: Pod
 metadata:
@@ -123,14 +125,34 @@ spec:
     securityContext:
       privileged: true
 EOF
-kubectl create -f /tmp/example.yaml
+kubectl create -f example.yaml
 :::
 
 You should now see an error message similar to below:
 
+::::expand{header="Check Output"}
+![OPA](/static/images/pod-security/opa/opa-constraint1.png)
+::::
+
 :::code{showCopyAction=true showLineNumbers=false language=bash}
 Error from server (Forbidden): error when creating "/tmp/example.yaml": admission webhook "validation.gatekeeper.sh" denied the request: [psp-privileged-container] Privileged container is not allowed: nginx, securityContext: {"privileged": true}
 :::
+
+
+
+Also observe the OPA Audit Controller and Controller manager logs to see the webhook requests being issued by the Kubernetes API server.
+
+::::expand{header="Check Output"}
+
+Controller Manager Logs
+
+![OPA](/static/images/pod-security/opa/controller-logs1.png)
+
+Audit Controller Logs
+
+![OPA](/static/images/pod-security/opa/audit-logs1.png)
+
+::::
 
 The request was denied by Kubernetes API, because it didn’t meet the requirement from the constraint forced by OPA Gatekeeper.
 
