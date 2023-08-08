@@ -5,7 +5,7 @@ weight : 22
 
 In this section, we would be defining new constraint template and constraint that will force the use of privileged containers in the cluster.
 
-. Build Constraint Templates
+1. Build Constraint Templates
 
 ConstraintTemplate describes the Rego that enforces the constraint and the schema of the constraint. The schema constraint allows the author of the constraint (cluster admin) to define the contraint behavior.
 
@@ -54,7 +54,7 @@ kubectl create -f /tmp/constrainttemplate.yaml
 ```bash
 constrainttemplate.templates.gatekeeper.sh/k8spspprivilegedcontainer created
 ```
-:::
+::::
 
 2. Build Constraint
 
@@ -84,7 +84,7 @@ kubectl create -f /tmp/constraint.yaml
 ```bash
 k8spspprivilegedcontainer.constraints.gatekeeper.sh/psp-privileged-container created
 ```
-:::
+::::
 
 ### 3. Test if the use of unprivileged containers is enforced in the cluster
 
@@ -104,7 +104,7 @@ Admin:~/environment $ kubectl get constrainttemplate
 NAME                        AGE
 k8spspprivilegedcontainer   61s
 ```
-:::
+::::
 
 Second, let’s try to deploy a privileged nginx pod:
 

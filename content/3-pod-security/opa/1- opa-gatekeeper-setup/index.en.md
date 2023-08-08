@@ -41,7 +41,7 @@ mutatingwebhookconfiguration.admissionregistration.k8s.io/gatekeeper-mutating-we
 validatingwebhookconfiguration.admissionregistration.k8s.io/gatekeeper-validating-webhook-configuration created
 
 ```
-:::
+::::
 
 2. To validate that OPA Gatekeeper is running within your cluster run the following command:
 
@@ -57,7 +57,7 @@ gatekeeper-controller-manager-5ff69b954d-nvzsb   1/1     Running   0            
 gatekeeper-controller-manager-5ff69b954d-pmm7v   1/1     Running   0             41s
 gatekeeper-controller-manager-5ff69b954d-t59kk   1/1     Running   0             41s
 ```
-:::
+::::
 
 If you notice the `gatekeeper-audit-6584df88df-nsf28` pod is created when we deploy the OpaGatekeeperAddOn. The audit functionality enables periodic evaluations of replicated resources against the Constraints enforced in the cluster to detect pre-existing misconfigurations. Gatekeeper stores audit results as violations listed in the status field of the relevant Constraint. The `gatekeeper-controller-manager` is simply there to manage the OpaGatekeeperAddOn. 
 
@@ -83,7 +83,7 @@ kubectl logs -l control-plane=audit-controller -n gatekeeper-system -f
 {"level":"info","ts":1691054629.8529873,"logger":"controller","msg":"auditing is complete","process":"audit","audit_id":"2023-08-03T09:23:49Z","event_type":"audit_finished"}
 
 ```
-:::
+::::
 
 Run the following commands in separate terminal to check for the controller manager logs 
 
@@ -125,7 +125,7 @@ kubectl logs -l control-plane=controller-manager -n gatekeeper-system -f
 {"level":"info","ts":1691054570.4463212,"logger":"readiness-tracker","msg":"readiness satisfied, no further collection"}
 
 ```
-:::
+::::
 
 You can follow the OPA logs to see the webhook requests being issued by the Kubernetes API server.
 
