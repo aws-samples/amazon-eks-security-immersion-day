@@ -1,5 +1,5 @@
 ---
-title : "Lab 2 - Validating with kube-bench deployed as Kubernetes batch job"
+title : "Lab 2 - Validating with kube-bench deployed as a Kubernetes batch job"
 weight : 21
 ---
 

@@ -37,7 +37,7 @@ PolicyArn=$(aws iam create-policy --policy-name kube-bench-policy --policy-docum
 eksctl create iamserviceaccount --name kube-bunch-sa --namespace default --cluster eksworkshop-eksctl --role-name kube-bunch-role  \
     --attach-policy-arn $PolicyArn --approve
 ```
-6. Create a Kube-bench jobs (configure kube-bench with the --asff to send findings to AWS Security Hub)
+6. Configure kube-bench job with `--asff` to send findings to AWS Security Hub)
 ```shell
 cat <<EOF | kubectl apply -f -
 apiVersion: v1

@@ -3,7 +3,7 @@ title : "Lab 4: Running kube-bench in Debug mode (Optional)"
 weight : 21
 ---
 
-In this lab, we will create a kube-bench batch job in EKS cluster to run the CIS Amazon EKS Benchmark assessment.
+In this lab, we will create a kube-bench batch job in debug mode in EKS cluster to run the CIS Amazon EKS Benchmark assessment.
 1. Open the [AWS Cloud9 console](https://console.aws.amazon.com/cloud9/) created for the workshop 
 2. Create Debug Job
 ```shell
