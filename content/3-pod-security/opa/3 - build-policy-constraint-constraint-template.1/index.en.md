@@ -3,11 +3,11 @@ title : "Use case #2: Whitelist only known registry"
 weight : 22
 ---
 
-In this section, we would be defining new constraint template and constraint that will validate every Pod‘s image comes from a known registry in a whitelist.
+This section will define a new constraint template and constraint that will verify that every pod's image comes from a known registry on a whitelist.
 
 1. Build Constraint Templates
 
-In the below example, the cluster admin will force the use of only known image repositories in the cluster. 
+In the example below, the cluster administrator will mandate that only known image repositories be used in the cluster. 
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
 cd ~/environment
@@ -69,7 +69,7 @@ constrainttemplate.templates.gatekeeper.sh/k8swhitelistedimages created
 
 2. Build Constraint
 
-The cluster admin will use the constraint to inform the OPA Gatekeeper to enforce the policy. For our example, as cluster admin we want to enforce that all the created pod should be from a known registry list in a whitelist.
+As a cluster administrator, we might want to require that all newly created pods come from a known registry list in a whitelist.To enforce the policy, use the constraint example below.
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
 cd ~/environment
@@ -128,7 +128,7 @@ k8swhitelistedimages.constraints.gatekeeper.sh/k8senforcewhitelistedimages creat
 ```
 ::::
 
-3. Test the policy, if every Pod‘s image comes from a known registry in a whitelist is enforced in the cluster
+3. Test the policy 
 
 First, check for the CRD constraint and constrainttemplate were created.
 
@@ -177,7 +177,7 @@ You should now see an error message similar to below:
 Error from server (Forbidden): error when creating "example.yaml": admission webhook "validation.gatekeeper.sh" denied the request: [k8senforcewhitelistedimages] pod "bad-nginx" has invalid image "nginx". Please, contact your DevOps. Follow the whitelisted images {"888888888888.dkr.ecr.us-east-1.amazonaws.com/", "888888888888.dkr.ecr.us-west-2.amazonaws.com/", "999999999999.dkr.ecr.us-east-1.amazonaws.com/", "amazon/aws-alb-ingress-controller", "amazon/aws-cli", "amazon/aws-efs-csi-driver", "amazon/aws-node-termination-handler", "amazon/cloudwatch-agent", "busybox", "docker.io/amazon/aws-alb-ingress-controller", "docker.io/radial/busyboxplus", "grafana/grafana", "jtblin/kube2iam", "k8s.gcr.io/autoscaling/cluster-autoscaler", "k8s.gcr.io/metrics-server-amd64", "kubernetesui/dashboard", "kubernetesui/metrics-scraper", "nvidia/k8s-device-plugin", "openpolicyagent/gatekeeper", "prom/alertmanager", "prom/prometheus", "quay.io/coreos/kube-state-metrics", "quay.io/kubernetes-ingress-controller/nginx-ingress-controller", "radial/busyboxplus"}
 :::
 
-Also observe the OPA Audit Controller and Controller manager logs to see the webhook requests being issued by the Kubernetes API server.
+Additionally, check the Controller manager logs to see the webhook requests sent by the Kubernetes API server for validation and mutation, as well as the Audit logs to check for policy compliance on objects that already exist in the cluster.
 
 ::::expand{header="Check Output"}
 
@@ -191,5 +191,5 @@ Audit Controller Logs
 
 ::::
 
-The request was denied by Kubernetes API, because it didn’t meet the requirement from the constraint forced by OPA Gatekeeper.
+The request was denied by Kubernetes API, because it didn’t meet the requirement of known registries on whitelist imposed by OPA Gatekeeper constraint.
 

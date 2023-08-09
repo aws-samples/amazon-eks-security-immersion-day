@@ -3,13 +3,14 @@ title : "Use case #1: Restrict privileged containers in the cluster"
 weight : 22
 ---
 
-In this section, we would be defining new constraint template and constraint that will force the use of privileged containers in the cluster.
+In this section, we will define a new constraint template and constraint that will force the cluster to use unprivileged containers.
+
 
 1. Build Constraint Templates
 
-ConstraintTemplate describes the Rego that enforces the constraint and the schema of the constraint. The schema constraint allows the author of the constraint (cluster admin) to define the contraint behavior.
+ConstraintTemplate describes the Rego that enforces the constraint and the schema of the constraint. The schema constraint allows the author of the constraint (cluster admin) to define the constraint behavior.
 
-In this example, the cluster admin will force the use of unprivileged containers in the cluster. The OPA Gatekeeper will look for the securitycontext field and check if `privileged=true`. If it’s the case, then, the request will fail.
+In this scenario, the cluster administrator will force the cluster to use unprivileged containers. The OPA Gatekeeper will look for the securitycontext field and determine whether 'privileged=true' is present. If this is the case, the request will fail.
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
 cd ~/environment
@@ -59,7 +60,7 @@ constrainttemplate.templates.gatekeeper.sh/k8spspprivilegedcontainer created
 
 2. Build Constraint
 
-The cluster admin will use the constraint to inform the OPA Gatekeeper to enforce the policy. For our example, as cluster admin we want to enforce that all the created pod should not be privileged.
+The cluster administrator will use the constraint to notify the OPA Gatekeeper in order to enforce the policy. For our example, as cluster administrators, we want to ensure that all newly created pods are not privileged.
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
 cd ~/environment
@@ -88,7 +89,7 @@ k8spspprivilegedcontainer.constraints.gatekeeper.sh/psp-privileged-container cre
 ```
 ::::
 
-3. Test if the use of unprivileged containers is enforced in the cluster
+3. Test the policy, if the use of unprivileged containers is enforced in the cluster
 
 First, check for the CRD constraint and constrainttemplate were created.
 
@@ -142,8 +143,7 @@ Error from server (Forbidden): error when creating "example.yaml": admission web
 
 
 
-Also observe the OPA Audit Controller and Controller manager logs to see the webhook requests being issued by the Kubernetes API server.
-
+Additionally, check the Controller manager logs to see the webhook requests sent by the Kubernetes API server for validation and mutation, as well as the Audit logs to check for policy compliance on objects that already exist in the cluster.
 ::::expand{header="Check Output"}
 
 Controller Manager Logs
@@ -156,5 +156,6 @@ Audit Controller Logs
 
 ::::
 
-The request was denied by Kubernetes API, because it didn’t meet the requirement from the constraint forced by OPA Gatekeeper.
+The request was denied by the Kubernetes API because it did not meet the requirement of unprivileged containers imposed by the OPA Gatekeeper constraint.
+
 
