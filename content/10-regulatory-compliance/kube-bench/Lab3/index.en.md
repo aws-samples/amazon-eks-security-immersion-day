@@ -122,4 +122,4 @@ kube-bench   1/1           10s        6m28s
 ```
 ::::
 8. View the findings in security hub
-![Security Hub](/static/images/regulatory-compliance/kube-bench/Lab3/security-hub.jpg)
+![Security Hub](/static/images/regulatory-compliance/kube-bench/Lab3/security-hub.png)

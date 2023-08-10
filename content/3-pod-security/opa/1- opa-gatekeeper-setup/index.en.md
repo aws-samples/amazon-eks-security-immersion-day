@@ -49,7 +49,8 @@ validatingwebhookconfiguration.admissionregistration.k8s.io/gatekeeper-validatin
 kubectl get pods -n gatekeeper-system
 :::
 
-::::expand{header="Check Output"}
+The output will look like below.
+
 ```bash
 NAME                                             READY   STATUS    RESTARTS      AGE
 gatekeeper-audit-6584df88df-nsf28                1/1     Running   1 (37s ago)   41s
@@ -57,13 +58,13 @@ gatekeeper-controller-manager-5ff69b954d-nvzsb   1/1     Running   0            
 gatekeeper-controller-manager-5ff69b954d-pmm7v   1/1     Running   0             41s
 gatekeeper-controller-manager-5ff69b954d-t59kk   1/1     Running   0             41s
 ```
-::::
+
 
 If you notice the `gatekeeper-audit-6584df88df-nsf28` pod is created when we deploy the OpaGatekeeperAddOn. The audit functionality enables periodic evaluations of replicated resources against the Constraints enforced in the cluster to detect pre-existing misconfigurations. Gatekeeper stores audit results as violations listed in the status field of the relevant Constraint. The `gatekeeper-controller-manager` is simply there to manage the OpaGatekeeperAddOn. 
 
 3. Once OPA Gatekeeper pods are in 'Running' state, monitor Audit controller and Controller manager component logs for webhook requests that are being issued by the Kubernetes API server.
 
-Run the following command in separate terminal to monitor Audit controller logs 
+Run the following command in **separate terminal window** to monitor Audit controller logs 
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
 kubectl logs -l control-plane=audit-controller -n gatekeeper-system -f 
@@ -85,7 +86,7 @@ kubectl logs -l control-plane=audit-controller -n gatekeeper-system -f
 ```
 ::::
 
-Run the following command in separate terminal to monitor Controller manager logs 
+Run the following command in **separate terminal window** to monitor Controller manager logs 
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
 kubectl logs -l control-plane=controller-manager -n gatekeeper-system -f 

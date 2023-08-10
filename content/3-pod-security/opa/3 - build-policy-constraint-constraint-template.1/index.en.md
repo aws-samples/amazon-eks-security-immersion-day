@@ -5,13 +5,13 @@ weight : 22
 
 This section will define a new constraint template and constraint that will verify that every pod's image comes from a known registry on a whitelist.
 
-1. Build Constraint Templates
+### Build Constraint Templates
 
 In the example below, the cluster administrator will mandate that only known image repositories be used in the cluster. 
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
 cd ~/environment
-cat > constrainttemplate.yaml <<EOF
+cat > constrainttemplate-2.yaml <<EOF
 apiVersion: templates.gatekeeper.sh/v1beta1
 kind: ConstraintTemplate
 metadata:
@@ -58,7 +58,7 @@ EOF
 Create the ConstraintTemplate using the following command
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
-kubectl create -f constrainttemplate.yaml
+kubectl create -f constrainttemplate-2.yaml
 :::
 
 ::::expand{header="Check Output"}
@@ -67,14 +67,27 @@ constrainttemplate.templates.gatekeeper.sh/k8swhitelistedimages created
 ```
 ::::
 
-2. Build Constraint
+Ensure that the CRD for constrainttemplate is created.
+
+:::code{showCopyAction=true showLineNumbers=false language=bash}
+kubectl get constrainttemplate
+:::
+
+::::expand{header="Check Output"}
+```bash
+NAME                        AGE
+k8swhitelistedimages   4m15s
+```
+::::
+
+
+### Build Constraint
 
 To enforce the policy, we will use the constraint below, which will ensure that all newly created pods image comes from a known registry on a whitelist
 
-
 :::code{showCopyAction=true showLineNumbers=false language=bash}
 cd ~/environment
-cat > constraint.yaml <<EOF
+cat > constraint-2.yaml <<EOF
 apiVersion: constraints.gatekeeper.sh/v1beta1
 kind: k8sWhitelistedImages
 metadata:
@@ -120,7 +133,7 @@ EOF
 Create the Constraint using the following command
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
-kubectl create -f constraint.yaml
+kubectl create -f constraint-2.yaml
 :::
 
 ::::expand{header="Check Output"}
@@ -129,32 +142,28 @@ k8swhitelistedimages.constraints.gatekeeper.sh/k8senforcewhitelistedimages creat
 ```
 ::::
 
-3. Test the policy 
-
-First, check for the CRD constraint and constrainttemplate were created.
+Ensure that the CRD for constraint is created.
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
 kubectl get constraint
-kubectl get constrainttemplate
 :::
 
 ::::expand{header="Check Output"}
 ```bash
-Admin:~/environment $ kubectl get constraint
 NAME                       ENFORCEMENT-ACTION   TOTAL-VIOLATIONS
 k8swhitelistedimages.constraints.gatekeeper.sh/k8senforcewhitelistedimages
-Admin:~/environment $ kubectl get constrainttemplate
-NAME                        AGE
-k8swhitelistedimages   4m15s
 ```
 ::::
 
-Second, let’s try to deploy a nginx pod from unknown registry:
+
+### Test the policy 
+
+Let’s deploy a nginx pod from unknown registry.
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
 
 cd ~/environment
-cat > example.yaml <<EOF
+cat > example-2.yaml <<EOF
 apiVersion: v1
 kind: Pod
 metadata:
@@ -166,7 +175,7 @@ spec:
   - name: nginx
     image: nginx
 EOF
-kubectl create -f example.yaml
+kubectl create -f example-2.yaml
 :::
 
 You should now see an error message similar to below:
@@ -175,18 +184,18 @@ You should now see an error message similar to below:
 ::::
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
-Error from server (Forbidden): error when creating "example.yaml": admission webhook "validation.gatekeeper.sh" denied the request: [k8senforcewhitelistedimages] pod "bad-nginx" has invalid image "nginx". Please, contact your DevOps. Follow the whitelisted images {"888888888888.dkr.ecr.us-east-1.amazonaws.com/", "888888888888.dkr.ecr.us-west-2.amazonaws.com/", "999999999999.dkr.ecr.us-east-1.amazonaws.com/", "amazon/aws-alb-ingress-controller", "amazon/aws-cli", "amazon/aws-efs-csi-driver", "amazon/aws-node-termination-handler", "amazon/cloudwatch-agent", "busybox", "docker.io/amazon/aws-alb-ingress-controller", "docker.io/radial/busyboxplus", "grafana/grafana", "jtblin/kube2iam", "k8s.gcr.io/autoscaling/cluster-autoscaler", "k8s.gcr.io/metrics-server-amd64", "kubernetesui/dashboard", "kubernetesui/metrics-scraper", "nvidia/k8s-device-plugin", "openpolicyagent/gatekeeper", "prom/alertmanager", "prom/prometheus", "quay.io/coreos/kube-state-metrics", "quay.io/kubernetes-ingress-controller/nginx-ingress-controller", "radial/busyboxplus"}
+Error from server (Forbidden): error when creating "example-2.yaml": admission webhook "validation.gatekeeper.sh" denied the request: [k8senforcewhitelistedimages] pod "bad-nginx" has invalid image "nginx". Please, contact your DevOps. Follow the whitelisted images {"888888888888.dkr.ecr.us-east-1.amazonaws.com/", "888888888888.dkr.ecr.us-west-2.amazonaws.com/", "999999999999.dkr.ecr.us-east-1.amazonaws.com/", "amazon/aws-alb-ingress-controller", "amazon/aws-cli", "amazon/aws-efs-csi-driver", "amazon/aws-node-termination-handler", "amazon/cloudwatch-agent", "busybox", "docker.io/amazon/aws-alb-ingress-controller", "docker.io/radial/busyboxplus", "grafana/grafana", "jtblin/kube2iam", "k8s.gcr.io/autoscaling/cluster-autoscaler", "k8s.gcr.io/metrics-server-amd64", "kubernetesui/dashboard", "kubernetesui/metrics-scraper", "nvidia/k8s-device-plugin", "openpolicyagent/gatekeeper", "prom/alertmanager", "prom/prometheus", "quay.io/coreos/kube-state-metrics", "quay.io/kubernetes-ingress-controller/nginx-ingress-controller", "radial/busyboxplus"}
 :::
 
 Additionally, check the Controller manager logs to see the webhook requests sent by the Kubernetes API server for validation and mutation, as well as the Audit logs to check for policy compliance on objects that already exist in the cluster.
 
 ::::expand{header="Check Output"}
 
-Controller Manager Logs
+**Controller Manager Logs**
 
 ![OPA](/static/images/pod-security/opa/controller-logs2.PNG)
 
-Audit Controller Logs
+**Audit Controller Logs**
 
 ![OPA](/static/images/pod-security/opa/audit-logs2.PNG)
 
