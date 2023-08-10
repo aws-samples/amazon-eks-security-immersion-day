@@ -69,7 +69,8 @@ constrainttemplate.templates.gatekeeper.sh/k8swhitelistedimages created
 
 2. Build Constraint
 
-As a cluster administrator, we might want to require that all newly created pods come from a known registry list in a whitelist.To enforce the policy, use the constraint example below.
+To enforce the policy, we will use the constraint below, which will ensure that all newly created pods image comes from a known registry on a whitelist
+
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
 cd ~/environment

@@ -28,17 +28,16 @@ OPA generates policy decisions by evaluating the query input and against policie
 **Key Terminology**
 
 * **[OPA Constraint Framework](https://github.com/open-policy-agent/frameworks/tree/master/constraint)** - Framework that enforces CRD-based policies and allow declaratively configured policies to be reliably shareable
-* **[Constraint](https://github.com/open-policy-agent/frameworks/tree/master/constraint#what-is-a-constraint)** - A Constraint is a declaration that its author wants a system to meet a given set of requirements. Each Constraint is written with Rego, a declarative query language used by OPA to enumerate instances of data that violate the expected state of the system. All Constraints are evaluated as a logical AND. If one Constraint is not satisfied, then the whole request is rejected.
+* **[Constraint](https://github.com/open-policy-agent/frameworks/tree/master/constraint#what-is-a-constraint)** - A Constraint is a declaration that its author wants a system to meet a given set of requirements. Each Constraint is written with [Rego](https://www.openpolicyagent.org/docs/latest/policy-language/), a declarative query language used by OPA to enumerate instances of data that violate the expected state of the system. All Constraints are evaluated as a logical AND. If one Constraint is not satisfied, then the whole request is rejected.
 * **[Enforcement Point](https://github.com/open-policy-agent/frameworks/tree/master/constraint#what-is-an-enforcement-point)** - Places where constraints can be enforced. Examples are Git hooks, Kubernetes admission controllers, and audit systems.
 * **[Constraint Template](https://github.com/open-policy-agent/frameworks/tree/master/constraint#what-is-a-constraint-template)** - Templates that allows users to declare new constraints
 * **[Target](https://github.com/open-policy-agent/frameworks/tree/master/constraint#what-is-a-target)** - Represents a coherent set of objects sharing a common identification and/or selection scheme, generic purpose, and can be analyzed in the same validation context
 
 
-AWS Blogs on OPA: 
+**AWS Blogs on OPA:** 
 * [Using Open Policy Agent on Amazon EKS](https://aws.amazon.com/blogs/opensource/using-open-policy-agent-on-amazon-eks) 
 * [Realize Policy-as-Code with AWS Cloud Development Kit through Open Policy Agent](https://aws.amazon.com/blogs/opensource/realize-policy-as-code-with-aws-cloud-development-kit-through-open-policy-agent/) 
-* [OCI Artifact Support in Amazon ECR](https://aws.amazon.com/blogs/containers/oci-artifact-support-in-amazon-ecr/) 
 * [Policy-based countermeasures for Kubernetes – Part 1](https://aws.amazon.com/blogs/containers/policy-based-countermeasures-for-kubernetes-part-1/)
 * [Policy-based countermeasures for Kubernetes – Part 2](https://aws.amazon.com/blogs/containers/policy-based-countermeasures-for-kubernetes-part-2/)
 
-In this workshop, we take a look at how to implement OPA on an Amazon EKS cluster and take a look at a scenario to restrict privileged containers in the cluster using a OPA policy.
+In this workshop, we will look at how to implement OPA on an Amazon EKS cluster as well as some sample scenarios for enforcing policies in the cluster using an OPA constraint framework.

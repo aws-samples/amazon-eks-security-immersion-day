@@ -60,7 +60,7 @@ constrainttemplate.templates.gatekeeper.sh/k8spspprivilegedcontainer created
 
 2. Build Constraint
 
-The cluster administrator will use the constraint to notify the OPA Gatekeeper in order to enforce the policy. For our example, as cluster administrators, we want to ensure that all newly created pods are not privileged.
+To enforce the policy, we will use the constraint below, which will ensure that all newly created pods are not privileged.
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
 cd ~/environment
@@ -140,7 +140,6 @@ You should now see an error message similar to below:
 :::code{showCopyAction=true showLineNumbers=false language=bash}
 Error from server (Forbidden): error when creating "example.yaml": admission webhook "validation.gatekeeper.sh" denied the request: [psp-privileged-container] Privileged container is not allowed: nginx, securityContext: {"privileged": true}
 :::
-
 
 
 Additionally, check the Controller manager logs to see the webhook requests sent by the Kubernetes API server for validation and mutation, as well as the Audit logs to check for policy compliance on objects that already exist in the cluster.

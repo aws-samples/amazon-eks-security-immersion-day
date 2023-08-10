@@ -61,9 +61,9 @@ gatekeeper-controller-manager-5ff69b954d-t59kk   1/1     Running   0            
 
 If you notice the `gatekeeper-audit-6584df88df-nsf28` pod is created when we deploy the OpaGatekeeperAddOn. The audit functionality enables periodic evaluations of replicated resources against the Constraints enforced in the cluster to detect pre-existing misconfigurations. Gatekeeper stores audit results as violations listed in the status field of the relevant Constraint. The `gatekeeper-controller-manager` is simply there to manage the OpaGatekeeperAddOn. 
 
-3. Observe OPA Gatekeeper Component logs once operational
+3. Once OPA Gatekeeper pods are in 'Running' state, monitor Audit controller and Controller manager component logs for webhook requests that are being issued by the Kubernetes API server.
 
-Run the following commands in separate terminal to check for the audit controller logs 
+Run the following command in separate terminal to monitor Audit controller logs 
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
 kubectl logs -l control-plane=audit-controller -n gatekeeper-system -f 
@@ -85,7 +85,7 @@ kubectl logs -l control-plane=audit-controller -n gatekeeper-system -f
 ```
 ::::
 
-Run the following commands in separate terminal to check for the controller manager logs 
+Run the following command in separate terminal to monitor Controller manager logs 
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
 kubectl logs -l control-plane=controller-manager -n gatekeeper-system -f 
