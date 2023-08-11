@@ -14,7 +14,6 @@ test -n "$AWS_REGION" && echo AWS_REGION is "$AWS_REGION" || echo AWS_REGION is 
 
 If AWS_REGION is not set, follow the [Cloud9 setup steps](https://catalog.workshops.aws/eks-security-immersionday/en-US/1-create-workspace-environment/awsevent/setup-cloud9#d.-confirm-amazon-eks-setup).
 
-
 Lets verify if EKS_CLUSTER variable is set
 
 ```bash
@@ -22,9 +21,11 @@ test -n "$EKS_CLUSTER" && echo EKS_CLUSTER is "$EKS_CLUSTER" || echo EKS_CLUSTER
 ```
 
 ::::expand{header="If EKS_CLUSTER is not set,"}
+
 ```bash
 export EKS_CLUSTER="eksworkshop-eksctl"
 ```
+
 ::::
 
 ### **Create Secret in AWS Secret Manager**
@@ -99,7 +100,7 @@ eksctl create iamserviceaccount \
     --override-existing-serviceaccounts
 ```
 
-## **Confirm that the role and service account are configured correctly** 
+## **Confirm that the role and service account are configured correctly**
 
 Confirm that the IAM role's trust policy is configured correctly.
 
@@ -109,6 +110,7 @@ aws iam get-role --role-name $ROLE_NAME --query Role.AssumeRolePolicyDocument
 ```
 
 ::::expand{header="Sample output: }
+
 ```text
 {
     "Version": "2012-10-17",
@@ -129,6 +131,7 @@ aws iam get-role --role-name $ROLE_NAME --query Role.AssumeRolePolicyDocument
     ]
 }
 ```
+
 ::::
 
 Confirm that the policy that you attached to your role in a previous step is attached to the role.
@@ -138,18 +141,22 @@ aws iam list-attached-role-policies --role-name $ROLE_NAME --query AttachedPolic
 ```
 
 ::::expand{header="Sample output: }
+
 ```text
 arn:aws:iam::111122223333:policy/dbsecret_eksid_secrets_policy_10075
 ```
+
 ::::
 
 Confirm that the Kubernetes service account is annotated with the role.
+
 ```bash
 kubectl describe serviceaccount nginx-deployment-sa -n default
 
 ```
 
 ::::expand{header="Sample output: }
+
 ```text
 Name:                nginx-deployment-sa
 Namespace:           default
@@ -160,5 +167,5 @@ Mountable secrets:   <none>
 Tokens:              <none>
 Events:              <none>
 ```
-::::
 
+::::

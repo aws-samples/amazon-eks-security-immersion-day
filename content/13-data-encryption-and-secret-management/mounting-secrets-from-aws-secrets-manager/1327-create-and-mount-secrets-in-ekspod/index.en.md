@@ -40,7 +40,7 @@ nginx-deployment-spc   3s
 
 ## **Deploy POD and Mount secret in the POD**
 
-We will create a deployment that will deploy a POD that uses existing serviceaccount *"nginx-deployment-sa"*.  This POD is configured to mount secrets at path *"/mnt/secrets"* based on the SecretProviderClass *"nginx-deployment-spc"* to retrieve secrets from the AWS Secrets Manager. 
+We will create a deployment that will deploy a POD that uses existing serviceaccount *"nginx-deployment-sa"*.  This POD is configured to mount secrets at path *"/mnt/secrets"* based on the SecretProviderClass *"nginx-deployment-spc"* to retrieve secrets from the AWS Secrets Manager.
 
 ```bash
 cat << EOF > nginx-deployment.yaml
@@ -83,7 +83,7 @@ EOF
 
 Create a deployment and verify creation of PODs
 
-```bash 
+```bash
 kubectl apply -f nginx-deployment.yaml
 sleep 5
 kubectl get pods -l app=nginx -o wide
@@ -116,6 +116,6 @@ kubectl exec $(kubectl get pods | awk '/nginx-deployment/{print $1}' | head -1) 
 
 ::::
 
-The output shows that the secret fetched from AWS Secrets Manager and mounted under volume *"/mnt/secrets"*. 
+The output shows that the secret fetched from AWS Secrets Manager and mounted under volume *"/mnt/secrets"*.
 
 Notice that value of the JSON formatted secret is available as a single string in the file. If you would like to fetch individual values from the keys of JSON formatted secret and make it available as Kubernetes native secret object, proceed to the next section.
