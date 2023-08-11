@@ -75,5 +75,4 @@ kubectl delete -f \
 
 helm uninstall -n kube-system csi-secrets-store
 helm repo remove secrets-store-csi-driver
-
 ```

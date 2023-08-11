@@ -9,7 +9,6 @@ Lets verify if AWS_REGION variable is set.
 
 ```bash
 test -n "$AWS_REGION" && echo AWS_REGION is "$AWS_REGION" || echo AWS_REGION is not set
-
 ```
 
 If AWS_REGION is not set, follow the [Cloud9 setup steps](https://catalog.workshops.aws/eks-security-immersionday/en-US/1-create-workspace-environment/awsevent/setup-cloud9#d.-confirm-amazon-eks-setup).
@@ -83,7 +82,6 @@ If output is returned, then you already have an IAM OIDC provider for your clust
 
 ```bash
 eksctl utils associate-iam-oidc-provider --cluster $EKS_CLUSTER --approve
-
 ```
 
 ## **Configure Kubernetes Service Account to assume IAM Role**
@@ -109,7 +107,7 @@ export ROLE_NAME="nginx-deployment-sa-role"
 aws iam get-role --role-name $ROLE_NAME --query Role.AssumeRolePolicyDocument
 ```
 
-::::expand{header="Sample output: }
+::::expand{header="Sample output:"}
 
 ```text
 {
@@ -140,7 +138,7 @@ Confirm that the policy that you attached to your role in a previous step is att
 aws iam list-attached-role-policies --role-name $ROLE_NAME --query AttachedPolicies[].PolicyArn --output text
 ```
 
-::::expand{header="Sample output: }
+::::expand{header="Sample output:"}
 
 ```text
 arn:aws:iam::111122223333:policy/dbsecret_eksid_secrets_policy_10075
@@ -155,7 +153,7 @@ kubectl describe serviceaccount nginx-deployment-sa -n default
 
 ```
 
-::::expand{header="Sample output: }
+::::expand{header="Sample output:"}
 
 ```text
 Name:                nginx-deployment-sa

@@ -11,4 +11,4 @@ With the ASCP, you can store and manage your secrets in Secrets Manager and then
 
 If you use Secrets Manager automatic rotation for your secrets, you can also use the Secrets Store CSI Driver rotation reconciler feature to ensure you are retrieving the latest secret from Secrets Manager.
 
-In the following section, we will see example scenario of using secrets from [AWS Secrets Manager] (https://docs.aws.amazon.com/secretsmanager/latest/userguide/integrating_csi_driver.html). Similar steps are required to use parameters from [AWS Systems Manager parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/integrating_csi_driver.html).
+In the following section, we will see example scenario of using secrets from [AWS Secrets Manager](https://docs.aws.amazon.com/secretsmanager/latest/userguide/integrating_csi_driver.html). Similar steps are required to use parameters from [AWS Systems Manager parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/integrating_csi_driver.html).

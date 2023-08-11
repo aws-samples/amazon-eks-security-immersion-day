@@ -5,7 +5,7 @@ weight : 27
 
 ## **Create SecretProviderClass**
 
-Create SecretProviderClass custom resource with provider:aws . The SecretProviderClass must be in the same namespace as the pod using it later.
+Create SecretProviderClass custom resource with "provider:aws". The SecretProviderClass must be in the same namespace as the pod using it later.
 
 ```text
 cat << EOF > nginx-deployment-spc.yaml
@@ -25,15 +25,13 @@ EOF
 kubectl apply -f nginx-deployment-spc.yaml
 
 kubectl get SecretProviderClass
-
 ```
 
-::::expand{header="For successful resource creation, the final output looks like below, }
+::::expand{header="For successful resource creation, the final output looks like below,"}
 
 ```text
 NAME                   AGE
 nginx-deployment-spc   3s
-
 ```
 
 ::::
@@ -89,12 +87,11 @@ sleep 5
 kubectl get pods -l app=nginx -o wide
 ```
 
-::::expand{header=The successful deployment will look like below,}
+::::expand{header=The successful deployment will look like below,"}
 
 ```text
 NAME                                READY   STATUS    RESTARTS   AGE
 nginx-deployment-7f7ddc8488-c8thb   1/1     Running   0          7m55s
-
 ```
 
 ::::
@@ -111,7 +108,6 @@ kubectl exec $(kubectl get pods | awk '/nginx-deployment/{print $1}' | head -1) 
 
 ```text
 {"username":"testdb_user", "password":"super-sekret"}
-
 ```
 
 ::::

@@ -50,14 +50,13 @@ kubectl get SecretProviderClass nginx-deployment-spc-k8s-secrets
 ```text
 NAME                               AGE
 nginx-deployment-spc-k8s-secrets   9s
-
 ```
 
 ::::
 
 ## **Mount Secret Volumes in POD and setup secrets as Environment Variables**
 
-We will configure a POD to mount volumes for individually extracted key-value pairs from secret. Once the pod is created with secrets volume mounts, the Secrets Store CSI Driver then creates and syncs with Kubernetes secret object my-secret-01. Then the Pod can populate Environment variables from the Kubernetes secret.
+We will configure a POD to mount volumes for individually extracted key-value pairs from secret. Once the pod is created with secrets volume mounts, the Secrets Store CSI Driver then creates and syncs with Kubernetes secret object my-secret-01. POD can then populate Environment variables from the Kubernetes secret.
 
 ```bash
 cat << EOF > nginx-deployment-k8s-secrets.yaml
@@ -182,7 +181,6 @@ Lets check the Kubernetes secret created by CSI driver during POD creation.
 
 ```bash
 kubectl describe secrets my-secret-01
-
 ```
 
 ::::expand{header="Check the details of Kubernetes secret below," defaultExpanded=true}
@@ -199,7 +197,6 @@ Data
 ====
 db_password_01:  12 bytes
 db_username_01:  11 bytes
-
 ```
 
 ::::
