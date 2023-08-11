@@ -1,9 +1,7 @@
 ---
-title : "Cleanup The LAB"
+title : "Cleanup LAB Environment"
 weight : 29
 ---
-
-## **Cleanup LAB Environment**
 
 Confirm the environment variable setup correctly.
 

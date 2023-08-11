@@ -5,7 +5,7 @@ weight : 27
 
 ## **Create SecretProviderClass**
 
-Create SecretProviderClass custom resource with "provider:aws". The SecretProviderClass must be in the same namespace as the pod using it later.
+Create SecretProviderClass custom resource with provider\:aws. The SecretProviderClass must be in the same namespace as the pod using it later.
 
 ```text
 cat << EOF > nginx-deployment-spc.yaml
