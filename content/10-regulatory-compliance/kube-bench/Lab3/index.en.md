@@ -126,7 +126,7 @@ kube-bench-asff   1/1           8s         33s
 8. View the findings in security hub
 ![Security Hub](/static/images/regulatory-compliance/kube-bench/Lab3/security-hub.png)
    
-###Cleanup
+### Cleanup
 ```shell
 kubectl delete -f kubebench-asff.yaml
 eksctl delete iamserviceaccount --name kube-bunch-sa --namespace default --cluster eksworkshop-eksctl

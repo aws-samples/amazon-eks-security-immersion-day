@@ -35,9 +35,7 @@ sudo yum install -y $KUBEBENCH_URL
 ```shell
 kube-bench --benchmark eks-1.2.0
 ```
-
-The output will look like below.
-
+::::expand{header="Check Output"}
 ```bash
 ] 3 Worker Node Security Configuration
 [INFO] 3.1 Worker Node Configuration Files
@@ -285,4 +283,10 @@ any other namespaces you would like to use with Fargate.
 0 checks FAIL
 38 checks WARN
 0 checks INFO
+```
+::::
+
+### Cleanup
+```shell
+sudo yum remove -y kube-bench
 ```
