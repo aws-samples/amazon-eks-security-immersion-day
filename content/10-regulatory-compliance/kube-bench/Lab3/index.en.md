@@ -39,11 +39,11 @@ eksctl create iamserviceaccount --name kube-bunch-sa --namespace default --clust
 ```
 6. Configure kube-bench job with `--asff` to send findings to AWS Security Hub)
 ```shell
-cat <<EOF | kubectl apply -f -
+cat <<EOF >kubebench-asff.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: kube-bench-eks-config
+  name: kube-bench-asff-eks-config
 data:
   config.yaml: |
     AWS_ACCOUNT: $AWS_ACCOUNT_ID
@@ -54,7 +54,7 @@ data:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: kube-bench
+  name: kube-bench-asff
 spec:
   template:
     spec:
@@ -105,21 +105,30 @@ spec:
             path: "/etc/kubernetes"
         - name: kube-bench-eks-config
           configMap:
-            name: kube-bench-eks-config
+            name: kube-bench-asff-eks-config
             items:
               - key: config.yaml
                 path: config.yaml
 EOF
+kubectl apply -f kubebench-asff.yaml
 ```
+
 7. Verify the jobs
 ```shell
 kubectl get jobs
 ```
 ::::expand{header="Check Output"}
 ```shell
-NAME         COMPLETIONS   DURATION   AGE
-kube-bench   1/1           10s        6m28s
+NAME              COMPLETIONS   DURATION   AGE
+kube-bench-asff   1/1           8s         33s
 ```
 ::::
 8. View the findings in security hub
 ![Security Hub](/static/images/regulatory-compliance/kube-bench/Lab3/security-hub.png)
+   
+###Cleanup
+```shell
+kubectl delete -f kubebench-asff.yaml
+eksctl delete iamserviceaccount --name kube-bunch-sa --namespace default --cluster eksworkshop-eksctl
+aws securityhub disable-security-hub
+```

@@ -7,7 +7,7 @@ In this lab, we will create a kube-bench batch job in debug mode in EKS cluster 
 1. Open the [AWS Cloud9 console](https://console.aws.amazon.com/cloud9/) created for the workshop 
 2. Create Debug Job
 ```shell
-cat <<EOF | kubectl apply -f -
+cat <<EOF > kubebench-debug.yaml
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -53,6 +53,7 @@ spec:
           hostPath:
             path: "/etc/kubernetes"
 EOF
+kubectl apply -f kubebench-debug.yaml
 ```
 3. View kube-bench job Logs
 ```shell
@@ -400,3 +401,8 @@ systemctl restart kubelet.service
 0 checks INFO
 ```
 ::::
+
+### Cleanup
+```shell
+kubectl delete -f kubebench-debug.yaml
+```

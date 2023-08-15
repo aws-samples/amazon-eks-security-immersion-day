@@ -7,7 +7,7 @@ In this lab, we will create a kube-bench batch job in EKS cluster to run the CIS
 1. Open the [AWS Cloud9 console](https://console.aws.amazon.com/cloud9/) created for the workshop 
 2. Create Kubernetes Job
 ```shell
-cat <<EOF | kubectl apply -f -
+cat <<EOF >kubebench.yaml
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -93,6 +93,7 @@ spec:
             path: /opt/cni/bin/
           name: opt-cni-bin       
 EOF
+kubectl apply -f kubebench.yaml
 ```
 3. Wait for a few seconds for the job to complete
 ```shell
@@ -100,8 +101,8 @@ kubectl get pods
 ```
 ::::expand{header="Check Output"}
 ```shell
-NAME               READY   STATUS      RESTARTS   AGE
-kube-bench-87h5h   0/1     Completed   0          4s
+NAME              COMPLETIONS   DURATION   AGE
+kube-bench        1/1           5s         18s
 ```
 ::::
 4. View the Logs
@@ -358,3 +359,8 @@ any other namespaces you would like to use with Fargate.
 0 checks INFO
 ```
 ::::
+
+### Cleanup
+```shell
+kubectl delete -f kubebench.yaml
+```
