@@ -55,7 +55,7 @@ spec:
 EOF
 kubectl apply -f kubebench-debug.yaml
 ```
-3. View kube-bench job Logs
+3. Verify the jobs
 ```shell
 kubectl get jobs
 ```
