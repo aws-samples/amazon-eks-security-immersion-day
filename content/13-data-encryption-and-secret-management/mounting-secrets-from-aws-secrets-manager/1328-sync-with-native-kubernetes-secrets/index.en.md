@@ -134,7 +134,7 @@ ls -l   #--- List mounted secrets
 
 cat dbusername; echo  
 cat dbpassword; echo
-cat DBSecret_eksworkshop; echo
+cat dbsecret_eksid; echo
 
 env | grep DB    #-- Display two ENV variables set from the secret values
 sleep 2
