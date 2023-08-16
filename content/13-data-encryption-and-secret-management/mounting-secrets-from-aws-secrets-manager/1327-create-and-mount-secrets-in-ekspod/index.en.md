@@ -3,7 +3,7 @@ title : "Create and mount an AWS Secrets Manager secret in an Amazon EKS Pod"
 weight : 27
 ---
 
-## **Create SecretProviderClass**
+## **Create SecretProviderClass to specify which secret to mount in the pod**
 
 Create SecretProviderClass custom resource with provider\:aws. The SecretProviderClass must be in the same namespace as the pod using it later.
 
@@ -87,7 +87,7 @@ sleep 5
 kubectl get pods -l app=nginx -o wide
 ```
 
-::::expand{header=The successful deployment will look like below,"}
+::::expand{header="The successful deployment will look like below,"}
 
 ```text
 NAME                                READY   STATUS    RESTARTS   AGE
