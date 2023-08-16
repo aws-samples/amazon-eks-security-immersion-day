@@ -148,24 +148,22 @@ exit
 # cd /mnt/secrets
 # ls -l   #--- List mounted secrets
 total 12
--rw-r--r-- 1 root root 12 Aug 11 04:14 dbpassword
--rw-r--r-- 1 root root 53 Aug 11 04:14 dbsecret_eksid
--rw-r--r-- 1 root root 11 Aug 11 04:14 dbusername
+-rw-r--r-- 1 root root 12 Aug 16 23:08 dbpassword
+-rw-r--r-- 1 root root 53 Aug 16 23:08 dbsecret_eksid
+-rw-r--r-- 1 root root 11 Aug 16 23:08 dbusername
 # 
 # cat dbusername; echo  
 testdb_user
 # cat dbpassword; echo
 super-sekret
-# cat DBSecret_eksworkshop; echo
-cat: DBSecret_eksworkshop: No such file or directory
-
+# cat dbsecret_eksid; echo
+{"username":"testdb_user", "password":"super-sekret"}
 # 
 # env | grep DB    #-- Display two ENV variables set from the secret values
 DB_USERNAME_01=testdb_user
 DB_PASSWORD_01=super-sekret
 # sleep 2
 # exit
-exit
 
 ```
 

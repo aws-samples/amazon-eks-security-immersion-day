@@ -3,9 +3,9 @@ title : "Secrets Store CSI Driver and ASCP"
 weight : 25
 ---
 
-## ***Install CSI drivers***
+## **Install CSI drivers**
 
-Prepare your cluster by installing Secrets Store CSI Secret driver and AWS Secrets and Configuration Provider (ASCP).
+Let's prepare your cluster by installing Secrets Store CSI Secret driver and AWS Secrets and Configuration Provider (ASCP).
 
 ### **Secrets Store CSI Driver**
 

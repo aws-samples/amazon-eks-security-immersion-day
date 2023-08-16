@@ -6,15 +6,15 @@ weight : 29
 Confirm the environment variable setup correctly.
 
 ```bash
-test -n "$EKS_CLUSTERNAME" && echo EKS_CLUSTERNAME is "$EKS_CLUSTERNAME" \
- || echo EKS_CLUSTERNAME is not set
+test -n "$EKS_CLUSTER" && echo EKS_CLUSTER is "$EKS_CLUSTER" \
+ || echo EKS_CLUSTER is not set
 test -n "$AWS_REGION" && echo AWS_REGION is "$AWS_REGION" || echo AWS_REGION is not set
 ```
 
 ::::expand{header="Output" defaultExpanded=true}
 
 ```text
-EKS_CLUSTERNAME is eksworkshop-eksctl
+EKS_CLUSTER is eksworkshop-eksctl
 AWS_REGION is us-west-2
 ```
 
@@ -55,7 +55,7 @@ rm nginx-deployment-spc.yaml
 
 eksctl delete iamserviceaccount \
     --region="$AWS_REGION" --name "nginx-deployment-sa"  \
-    --cluster "$EKS_CLUSTERNAME" 
+    --cluster "$EKS_CLUSTER" 
 
 sleep 5
 

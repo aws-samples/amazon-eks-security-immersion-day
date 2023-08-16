@@ -11,7 +11,13 @@ Lets verify if AWS_REGION variable is set.
 test -n "$AWS_REGION" && echo AWS_REGION is "$AWS_REGION" || echo AWS_REGION is not set
 ```
 
-If AWS_REGION is not set, follow the [Cloud9 setup steps](https://catalog.workshops.aws/eks-security-immersionday/en-US/1-create-workspace-environment/awsevent/setup-cloud9#d.-confirm-amazon-eks-setup).
+::::expand{header="If AWS_REGION is not set,"}
+
+```bash
+export AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
+```
+
+::::
 
 Lets verify if EKS_CLUSTER variable is set
 
@@ -132,7 +138,7 @@ aws iam get-role --role-name $ROLE_NAME --query Role.AssumeRolePolicyDocument
 
 ::::
 
-Confirm that the policy that you attached to your role in a previous step is attached to the role.
+Confirm that the IAM policy is attached correctly to IAM role,
 
 ```bash
 aws iam list-attached-role-policies --role-name $ROLE_NAME --query AttachedPolicies[].PolicyArn --output text
