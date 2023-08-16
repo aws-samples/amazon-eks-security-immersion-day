@@ -95,7 +95,7 @@ spec:
 EOF
 kubectl apply -f kubebench.yaml
 ```
-3. Wait for a few seconds for the job to complete
+3. Verify the job
 ```shell
 kubectl get jobs
 ```
@@ -105,7 +105,7 @@ NAME              COMPLETIONS   DURATION   AGE
 kube-bench        1/1           5s         18s
 ```
 ::::
-4. View the Logs
+4. View Logs
 ```shell
 kubectl logs jobs/kube-bench
 ```

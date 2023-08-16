@@ -113,7 +113,7 @@ EOF
 kubectl apply -f kubebench-asff.yaml
 ```
 
-7. Verify the jobs
+7. Verify the job
 ```shell
 kubectl get jobs
 ```
