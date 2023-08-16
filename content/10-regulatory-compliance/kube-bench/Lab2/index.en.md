@@ -97,7 +97,7 @@ kubectl apply -f kubebench.yaml
 ```
 3. Wait for a few seconds for the job to complete
 ```shell
-kubectl get pods
+kubectl get jobs
 ```
 ::::expand{header="Check Output"}
 ```shell

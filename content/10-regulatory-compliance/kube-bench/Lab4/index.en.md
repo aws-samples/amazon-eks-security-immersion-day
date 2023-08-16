@@ -57,12 +57,13 @@ kubectl apply -f kubebench-debug.yaml
 ```
 3. View kube-bench job Logs
 ```shell
-kubectl logs jobs/kube-bench-debug 
+kubectl get jobs
 ```
 ::::expand{header="Check Output"}
 ```shell
-NAME               READY   STATUS      RESTARTS   AGE
-kube-bench-87h5h   0/1     Completed   0          4s
+WSParticipantRole:~/environment $ kubectl get jobs
+NAME               COMPLETIONS   DURATION   AGE
+kube-bench-debug   1/1           5s         34h
 ```
 ::::
 4. View the Logs
