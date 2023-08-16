@@ -17,7 +17,7 @@ This workshop is catered towards use cases, requirement and ask that most of our
 
 
 Click on any of the topics to get more details and see relevant best practices as per 
-[Amazon EKS Best Practices Guide for Security](https://aws.github.io/caws-eks-best-practices/security/docs/) :
+[Amazon EKS Best Practices Guide for Security](https://aws.github.io/aws-eks-best-practices/security/docs/) :
 
 
 * [Identity and Access Management](https://aws.github.io/aws-eks-best-practices/security/docs/iam/)

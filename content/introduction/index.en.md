@@ -26,18 +26,19 @@ Background in Amazon EKS, Kubernetes, Docker, and container workflows are highly
 
 As part of this workshop we will cover the following modules:
 
-| Chapters | Time taken to complete | Dependency |
-| --- | --- | --- |
-| [Create Workspace Environment at an AWS Event](/1-create-workspace-environment/awsevent) | 15 mins | N/A |
-| [Create Workspace Environment on Your Own](/1-create-workspace-environment/onown) | 30 mins | N/A |
-| [Using AWS IAM Groups and Roles to Manage Kubernetes Cluster Access](/2-identity-and-access-management/iam-groups-roles-to-manage-eks-access) | 60 mins | N/A |
-| [IAM Role for service account (IRSA)](/2-identity-and-access-management/irsa) | 45 mins | N/A |
-| [Pod Security Standards](/3-pod-security/psa-pss) | 45 mins | N/A |
-| [Amazon GuardDuty Protection for EKS - Audit Log Monitoring](/5-detective-controls/guardDuty-protection-for-eks/eks-audit-logs) | 45 mins | N/A |
-| [Amazon GuardDuty Protection for EKS - Runtime Monitoring](/5-detective-controls/guardDuty-protection-for-eks/eks-runtime) | 45 mins | N/A |
-| [Validating Amazon EKS optimized Bottlerocket AMI against the CIS Benchmark](/10-regulatory-compliance/cis-bottlerocket-eks/) | 60 mins | N/A |
-| [Container Image CVE Management with Amazon Inspector](/12-image-security/manage-image-cve-with-inspector/) | 30 mins | N/A |
-| [Container Image Signing and Verification with AWS Signer](/12-image-security/image-signing-with-aws-signer/) | 90 mins | N/A |
+| Section | Modules | Time taken to complete | Dependency |
+| --- | --- | --- | --- |
+| **Workshop Environment Setup**| [Create Workspace Environment at an AWS Event](/1-create-workspace-environment/awsevent) | 15 mins | N/A |
+| | [Create Workspace Environment on Your Own](/1-create-workspace-environment/onown) | 30 mins | N/A |
+| **Identity and Access Management**| [Using AWS IAM Groups and Roles to Manage Kubernetes Cluster Access](/2-identity-and-access-management/iam-groups-roles-to-manage-eks-access) | 60 mins | N/A |
+| | [IAM Role for service account (IRSA)](/2-identity-and-access-management/irsa) | 45 mins | N/A |
+| **Pod Security**| [Pod Security Standards](/3-pod-security/psa-pss) | 45 mins | N/A |
+| | [Using Open Policy Agent (OPA) and Gatekeeper for policy-based control in Amazon EKS](/3-pod-security/opa) | 45 mins | N/A |
+| **Detective Controls** | [Amazon GuardDuty Protection for EKS - Audit Log Monitoring](/5-detective-controls/guardDuty-protection-for-eks/eks-audit-logs) | 45 mins | N/A |
+| | [Amazon GuardDuty Protection for EKS - Runtime Monitoring](/5-detective-controls/guardDuty-protection-for-eks/eks-runtime) | 45 mins | N/A |
+| **Regulatory Compliance**| [Validating Amazon EKS optimized Bottlerocket AMI against the CIS Benchmark](/10-regulatory-compliance/cis-bottlerocket-eks/) | 60 mins | N/A |
+| **Image Security** | [Container Image CVE Management with Amazon Inspector](/12-image-security/manage-image-cve-with-inspector/) | 30 mins | N/A |
+| | [Container Image Signing and Verification with AWS Signer](/12-image-security/image-signing-with-aws-signer/) | 90 mins | N/A |
 
 #### Cost
 

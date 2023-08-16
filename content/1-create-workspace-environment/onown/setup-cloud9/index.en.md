@@ -106,6 +106,13 @@ Run below commands to set few environment variables.
 
 ::alert[If you are [at an AWS event](/1-create-workspace-environment/awsevent), ask your instructor which **AWS region** to use.]{header="Note"}
 
+Install the `jq` utility.
+
+```bash
+sudo yum -y install jq
+```
+
+Run below commands to set few environment variables.
 
 ```bash
 export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)

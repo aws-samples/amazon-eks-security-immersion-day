@@ -49,7 +49,7 @@ EKS_VPC_ID=$(eksctl get cluster $EKS_CLUSTER_NAME -ojson | jq -r '.[0]["Resource
 echo $EKS_VPC_ID
 export VPC_CIDR=$(aws ec2 describe-vpcs --vpc-ids $EKS_VPC_ID | jq -r '.Vpcs[0].CidrBlock')
 echo $VPC_CIDR
-SUBNET_ID=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$EKS_VPC_ID" | jq -r '.Subnets[0].SubnetId')
+SUBNET_ID=$(eksctl get cluster $EKS_CLUSTER_NAME -ojson | jq -r '.[0]["ResourcesVpcConfig"]["SubnetIds"][0]')
 echo $SUBNET_ID
 export DEFAULT_SECURITY_GROUP_ID=$(aws ec2 describe-security-groups     --filters Name=vpc-id,Values=$EKS_VPC_ID Name=group-name,Values="default"  | jq -r '.SecurityGroups[0].GroupId')
 echo $DEFAULT_SECURITY_GROUP_ID
@@ -79,6 +79,23 @@ sg-0aea8cf2ace665f72
     ]
 }
 
+{
+    "Return": true,
+    "SecurityGroupRules": [
+        {
+            "SecurityGroupRuleId": "sgr-0ddf3bfaceaf20580",
+            "GroupId": "sg-08d1eb1800cc4f28b",
+            "GroupOwnerId": "391032116252",
+            "IsEgress": true,
+            "IpProtocol": "tcp",
+            "FromPort": 443,
+            "ToPort": 443,
+            "CidrIpv4": "0.0.0.0/0"
+        }
+    ]
+}
+
+
 ```
 ::::
 
@@ -92,6 +109,7 @@ AL2023_EC2_INSTANCE_ID=$(aws ec2 run-instances \
     --security-group-ids $DEFAULT_SECURITY_GROUP_ID \
     --subnet-id $SUBNET_ID \
     --iam-instance-profile Arn=$C9_EC2_INSTANCE_PROFILE_ARN \
+    --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=AL2023}]' \
     --count 1 | jq -r '.Instances[0].InstanceId')
 echo  $AL2023_EC2_INSTANCE_ID
 ```

@@ -296,6 +296,7 @@ metadata:
   name: trustpolicy-sample
 spec:
   version: '1.0'
+  trustPolicyName: tp-test-notation
   trustPolicies:
   - name: aws-signer-tp
     registryScopes:
@@ -605,9 +606,8 @@ kubectl -n kyverno-notation-aws get pod
 
 ::::expand{header="Check Output"}
 ```bash
-NAME                                    READY   STATUS              RESTARTS   AGE
-kyverno-notation-aws-6545d654cd-wjtpd   0/2     ContainerCreating   0          5s
-kyverno-notation-aws-6545d654cd-wjtpd   2/2     Running             0 
+NAME                                   READY   STATUS    RESTARTS   AGE
+kyverno-notation-aws-6d477b86b-fxgcn   1/1     Running   0          49s
 ```
 ::::
 

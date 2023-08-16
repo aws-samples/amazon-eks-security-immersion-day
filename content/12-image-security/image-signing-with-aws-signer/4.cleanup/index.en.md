@@ -22,6 +22,15 @@ kubectl delete -f configs/install.yaml
 kubectl delete -f https://raw.githubusercontent.com/kyverno/kyverno/main/config/install-latest-testing.yaml
 kubectl delete -f https://github.com/cert-manager/cert-manager/releases/download/v1.11.0/cert-manager.yaml
 
+aws signer cancel-signing-profile  --profile-name notation_test
+
+eksctl delete iamserviceaccount --name $NAME --cluster $CLUSTER
+
+aws ecr delete-repository \
+    --repository-name ${IMAGE_NAME} \
+    --force
+
+aws iam delete-policy --policy-arn $SIGNER_POLICY
 
 aws ec2 terminate-instances --instance-ids $AL2023_EC2_INSTANCE_ID
 
@@ -165,5 +174,20 @@ deployment.apps "cert-manager" deleted
 deployment.apps "cert-manager-webhook" deleted
 mutatingwebhookconfiguration.admissionregistration.k8s.io "cert-manager-webhook" deleted
 validatingwebhookconfiguration.admissionregistration.k8s.io "cert-manager-webhook" deleted
+
+
+{
+    "repository": {
+        "repositoryArn": "arn:aws:ecr:us-west-2:XXXXXXXXXX:repository/pause",
+        "registryId": "XXXXXXXXXX",
+        "repositoryName": "pause",
+        "repositoryUri": "XXXXXXXXXX.dkr.ecr.us-west-2.amazonaws.com/pause",
+        "createdAt": "2023-08-16T09:00:28+00:00",
+        "imageTagMutability": "MUTABLE"
+    }
+}
+
+
+
 ```
 ::::

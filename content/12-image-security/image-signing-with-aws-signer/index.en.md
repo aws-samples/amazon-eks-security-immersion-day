@@ -11,7 +11,7 @@ You can use container image signing to help ensure the use of approved images in
 
 AWS Signer now supports signing and verifying container images, and is integrated with [Notation](https://github.com/notaryproject/notation), an open source Notary project within the [Cloud Native Computing Foundation (CNCF)](https://www.cncf.io/). Notary is an open standard and client implementation that allows for vendor-specific plugins for key management and other integrations.
 
-Notation uses new [Open Containers Initiative (OCI)}(https://opencontainers.org/) distribution features built into Amazon ECR that enable you to store signatures and other artifacts in the registry right alongside the images they refer to. This allows you to sign your container images with a simple command that handles the interaction with Amazon ECR transparently for you, while AWS Signer manages signing material and simplifies lifecycle management and revocation operations.
+Notation uses new [Open Containers Initiative (OCI)](https://opencontainers.org/) distribution features built into Amazon ECR that enable you to store signatures and other artifacts in the registry right alongside the images they refer to. This allows you to sign your container images with a simple command that handles the interaction with Amazon ECR transparently for you, while AWS Signer manages signing material and simplifies lifecycle management and revocation operations.
 
 ## What is a cryptographic signature?
 
