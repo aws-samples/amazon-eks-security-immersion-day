@@ -3,13 +3,14 @@ title : "Sync with Native Kubernetes Secrets"
 weight : 28
 ---
 
-## **Create SecretProviderClass to extract key-value pairs**
+### **Create SecretProviderClass to extract key-value pairs**
 
 Let’s create a SecretProviderClass custom resource and use [jmesPath](https://jmespath.org/) field in the spec file. Use of jmesPath allows extracting specific key-value from a JSON-formatted secret. It is a provider-specific feature from [ASCP](https://github.com/aws/secrets-store-csi-driver-provider-aws).
 
 secretObjects spec section allows specifying the Kubernetes native secret structure synced from the objects: extracted from the JSON formatted secret using jmesPath. The feature is provided by the standard [Secret Store CSI Driver](https://secrets-store-csi-driver.sigs.k8s.io/topics/sync-as-kubernetes-secret.html).
 
 ```bash
+cd ~/environment
 cat << EOF > nginx-deployment-spc-k8s-secrets.yaml
 apiVersion: secrets-store.csi.x-k8s.io/v1
 kind: SecretProviderClass
@@ -54,7 +55,7 @@ nginx-deployment-spc-k8s-secrets   9s
 
 ::::
 
-## **Mount Secret Volumes in POD and setup secrets as Environment Variables**
+### **Mount Secret Volumes in POD and setup secrets as Environment Variables**
 
 We will configure a POD to mount volumes for individually extracted key-value pairs from secret. Once the pod is created with secrets volume mounts, the Secrets Store CSI Driver then creates and syncs with Kubernetes secret object my-secret-01. POD can then populate Environment variables from the Kubernetes secret.
 
@@ -116,7 +117,7 @@ kubectl get pods -l "app=nginx-k8s-secrets"
 
 ```
 
-## **Verify the result**
+### **Verify the result**
 
 Get a shell prompt within the pod by running the following commands. Verify the secret mounted as separate files for each extracted key-value pair and corresponding environment variables set as well.
 
@@ -170,10 +171,13 @@ DB_PASSWORD_01=super-sekret
 ::::
 
 Observe the following:
-    - *"/mnt/secrets"* key-values pairs extracted in separate files based on jmesPath specification.
-    - Files *"dbusername"* and *"dbpassword"* contains extracted values from the JSON formatted secret DBSecret_eksworkshop.
 
-Environment variables *"DB_USERNAME_01"* and *"DB_PASSWORD_01"* are mapped from Kubernetes secrets object *"my-secret-01"* which was created automatically by the CSI driver during POD deployment.
+```text
+- "/mnt/secrets" key-values pairs extracted in separate files based on jmesPath specification.
+- Files "dbusername" and "dbpassword" contains extracted values from the JSON formatted secret dbsecret_eksid.
+- Environment variables "DB_USERNAME_01" and "DB_PASSWORD_01" are mapped from Kubernetes secrets object "my-secret-01"
+  which was created automatically by the CSI driver during POD deployment.
+```
 
 Lets check the Kubernetes secret created by CSI driver during POD creation.
 

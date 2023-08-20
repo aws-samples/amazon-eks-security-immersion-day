@@ -43,6 +43,10 @@ aws --region "$AWS_REGION" secretsmanager \
   --secret-string '{"username":"testdb_user", "password":"super-sekret"}'
 ```
 
+If you go to [AWS Secrets Manager console](https://console.aws.amazon.com/secretsmanager/listsecrets), select a region and click on ***Secrets***, you can see the newly created secret.
+
+![AWS Secret Manager Secret](/static/images/mounting-secrets-from-aws-secrets-manager/ds2-prepare-secret-and-iam-img1.png)
+
 In Next step, We will store the newly created secret's ARN as environment variable.
 
 ```bash
@@ -58,6 +62,7 @@ echo $SECRET_ARN
 We will create an IAM Policy that will provide permissions to access the secret when attached to [IAM principal](https://docs.aws.amazon.com/IAM/latest/UserGuide/intro-structure.html#intro-structure-principal).
 
 ```bash
+cd ~/environment
 IAM_POLICY_NAME_SECRET="dbsecret_eksid_secrets_policy_$RANDOM"
 IAM_POLICY_ARN_SECRET=$(aws --region "$AWS_REGION" iam \
 	create-policy --query Policy.Arn \
@@ -74,7 +79,7 @@ IAM_POLICY_ARN_SECRET=$(aws --region "$AWS_REGION" iam \
 echo $IAM_POLICY_ARN_SECRET | tee -a 00_iam_policy_arn_dbsecret
 ```
 
-## **Create an IAM OIDC identity provider**
+### **Create an IAM OIDC identity provider**
 
 Determine whether you have an existing IAM OIDC provider for your cluster. Lets retrieve your cluster's OIDC provider ID and store it in a variable
 
@@ -90,7 +95,7 @@ If output is returned, then you already have an IAM OIDC provider for your clust
 eksctl utils associate-iam-oidc-provider --cluster $EKS_CLUSTER --approve
 ```
 
-## **Configure Kubernetes Service Account to assume IAM Role**
+### **Configure Kubernetes Service Account to assume IAM Role**
 
 We will now configure a Kubernetes service account to assume an AWS Identity and Access Management (IAM) role. Any Pods that are configured to use the service account can then access any AWS service that the role has permissions to access.
 
@@ -104,7 +109,7 @@ eksctl create iamserviceaccount \
     --override-existing-serviceaccounts
 ```
 
-## **Confirm that the role and service account are configured correctly**
+### **Confirm that the role and service account are configured correctly**
 
 Confirm that the IAM role's trust policy is configured correctly.
 

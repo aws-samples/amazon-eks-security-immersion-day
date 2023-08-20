@@ -1,13 +1,14 @@
 ---
-title : "Create and mount an AWS Secrets Manager secret in an Amazon EKS Pod"
+title : "Create and mount an AWS Secrets Manager Secret in an Amazon EKS Pod"
 weight : 27
 ---
 
-## **Create SecretProviderClass to specify which secret to mount in the pod**
+### **Create SecretProviderClass to specify which secret to mount in the pod**
 
 Create SecretProviderClass custom resource with provider\:aws. The SecretProviderClass must be in the same namespace as the pod using it later.
 
 ```text
+cd ~/environment
 cat << EOF > nginx-deployment-spc.yaml
 ---
 apiVersion: secrets-store.csi.x-k8s.io/v1
@@ -36,11 +37,12 @@ nginx-deployment-spc   3s
 
 ::::
 
-## **Deploy POD and Mount secret in the POD**
+### **Deploy POD and Mount secret in the POD**
 
 We will create a deployment that will deploy a POD that uses existing serviceaccount *"nginx-deployment-sa"*.  This POD is configured to mount secrets at path *"/mnt/secrets"* based on the SecretProviderClass *"nginx-deployment-spc"* to retrieve secrets from the AWS Secrets Manager.
 
 ```bash
+cd ~/environment
 cat << EOF > nginx-deployment.yaml
 ---
 apiVersion: apps/v1
@@ -83,7 +85,7 @@ Create a deployment and verify creation of PODs
 
 ```bash
 kubectl apply -f nginx-deployment.yaml
-sleep 5
+sleep 8
 kubectl get pods -l app=nginx -o wide
 ```
 
@@ -96,7 +98,7 @@ nginx-deployment-7f7ddc8488-c8thb   1/1     Running   0          7m55s
 
 ::::
 
-## **Verify the mounted secret**
+### **Verify the mounted secret**
 
 To verify the secret has been mounted properly, use the following command and confirm that your secret value appears.
 
