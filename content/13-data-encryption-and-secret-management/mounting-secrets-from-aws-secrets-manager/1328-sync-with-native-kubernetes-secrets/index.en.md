@@ -172,12 +172,10 @@ DB_PASSWORD_01=super-sekret
 
 Observe the following:
 
-```text
-- "/mnt/secrets" key-values pairs extracted in separate files based on jmesPath specification.
-- Files "dbusername" and "dbpassword" contains extracted values from the JSON formatted secret dbsecret_eksid.
-- Environment variables "DB_USERNAME_01" and "DB_PASSWORD_01" are mapped from Kubernetes secrets object "my-secret-01"
+- Files *"dbusername"* and *"dbpassword"* contains extracted values from the JSON formatted secret *dbsecret_eksid*.
+- *"/mnt/secrets"* key-values pairs extracted in separate files based on jmesPath specification.
+- Environment variables *"DB_USERNAME_01"* and *"DB_PASSWORD_01"* are mapped from Kubernetes secrets object *"my-secret-01"*
   which was created automatically by the CSI driver during POD deployment.
-```
 
 Lets check the Kubernetes secret created by CSI driver during POD creation.
 

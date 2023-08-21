@@ -93,14 +93,12 @@ DB_PASSWORD_01=super-sekret
 
 Observe the following:
 
-```text
-- Files "dbusername" and "dbpassword" contains new secret data from the JSON formatted secret dbsecret_eksid.
-- "/mnt/secrets" key-values pairs extracted in separate files based on jmesPath specification.
-- Environment variables "DB_USERNAME_01" and "DB_PASSWORD_01" are mapped from Kubernetes secrets object "my-secret-01" 
-  which was created automatically by the CSI driver during POD deployment and still returning old secret data.
-```
+- Files *"dbusername"* and *"dbpassword"* contains new secret data from the JSON formatted secret *dbsecret_eksid*.
+- *"/mnt/secrets"* key-values pairs extracted in separate files based on jmesPath specification.
+- Environment variables *"DB_USERNAME_01"* and *"DB_PASSWORD_01"* are mapped from Kubernetes secrets object *"my-secret-01"* 
+  which was created automatically by the CSI driver during POD deployment and **still returning old secret data**.
 
-When using Kubernetes secret for environment variable, the POD needs to be restarted to get the latest secret as environment variable. Let's restart POD using following command,
+When using Kubernetes secret as environment variable, the POD needs to be restarted to get the latest secret as environment variable. Let's restart POD using following command,
 
 ```bash
 kubectl rollout restart deployment/nginx-deployment-k8s-secrets
