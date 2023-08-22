@@ -328,6 +328,7 @@ Next, we need to create a **Kyverno cluster policy** `check-images`. This cluste
 
 Run below command to create the Kyverno cluster policy configuration.
 
+
 ```yaml
 cat << EOF > kyverno-policy.yaml
 apiVersion: kyverno.io/v1
@@ -336,7 +337,9 @@ metadata:
   name: check-images     
 spec:
   validationFailureAction: Enforce
+  failurePolicy: Fail
   webhookTimeoutSeconds: 30
+  schemaValidation: false  
   rules:
   - name: call-aws-signer-extension
     match:
@@ -346,13 +349,22 @@ spec:
           - test-notation
           kinds:
           - Pod
+          operations:
+            - CREATE
+            - UPDATE 
     context:
+    - name: ca-bundle
+      configMap:
+        name: ca-bundle
+        namespace: kyverno-notation-aws    
     - name: result
       apiCall:
         method: POST
         data:
         - key: images
-          value: "{{ request.object.spec.[ephemeralContainers, initContainers, containers][].image }}"
+          value: "{{images}}"
+        - key: trustPolicy
+          value: "tp-{{request.namespace}}" 
         service:
           url: https://svc.kyverno-notation-aws/checkimages
           caBundle: |-

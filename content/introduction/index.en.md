@@ -40,7 +40,7 @@ As part of this workshop we will cover the following modules:
 |  | [CIS EKS Benchmark Assessment Using Kube-bench](/10-regulatory-compliance/kube-bench/) | 45 mins | N/A |
 | **Image Security** | [Container Image CVE Management with Amazon Inspector](/12-image-security/manage-image-cve-with-inspector/) | 30 mins | N/A |
 | | [Container Image Signing and Verification with AWS Signer](/12-image-security/image-signing-with-aws-signer/) | 90 mins | N/A |
-
+| **Data Encryption and Secrets Management** | [Mounting Secrets from AWS Secrets Manager](/13-data-encryption-and-secret-management/mounting-secrets-from-aws-secrets-manager/) | 60 mins | N/A |
 
 
 #### Cost
