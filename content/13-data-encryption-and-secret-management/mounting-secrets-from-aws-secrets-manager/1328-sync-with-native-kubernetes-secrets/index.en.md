@@ -48,7 +48,9 @@ kubectl get SecretProviderClass nginx-deployment-spc-k8s-secrets
 
 ::::expand{header="The output indicates the resource nginx-deployment-spc-k8s-secrets created successfully."}
 
-```text
+```bash
+secretproviderclass.secrets-store.csi.x-k8s.io/nginx-deployment-spc-k8s-secrets created
+
 NAME                               AGE
 nginx-deployment-spc-k8s-secrets   9s
 ```
@@ -117,6 +119,15 @@ kubectl get pods -l "app=nginx-k8s-secrets"
 
 ```
 
+::::expand{header="Check Output"}
+```bash
+deployment.apps/nginx-deployment-k8s-secrets created
+
+NAME                                           READY   STATUS    RESTARTS   AGE
+nginx-deployment-k8s-secrets-9969576b6-r47jw   1/1     Running   0          80s
+```
+::::
+
 ### **Verify the result**
 
 Get a shell prompt within the pod by running the following commands. Verify the secret mounted as separate files for each extracted key-value pair and corresponding environment variables set as well.
@@ -125,6 +136,12 @@ Get a shell prompt within the pod by running the following commands. Verify the 
 export POD_NAME=$(kubectl get pods -l app=nginx-k8s-secrets -o jsonpath='{.items[].metadata.name}')
 kubectl exec -it ${POD_NAME} -- /bin/bash
 ```
+
+::::expand{header="Check Output"}
+```bash
+root@nginx-deployment-k8s-secrets-9969576b6-r47jw:/#
+```
+::::
 
 At the shell prompt of POD, run the following set of commands and watch the output.
 

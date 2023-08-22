@@ -30,7 +30,9 @@ kubectl get SecretProviderClass
 
 ::::expand{header="For successful resource creation, the final output looks like below,"}
 
-```text
+```bash
+secretproviderclass.secrets-store.csi.x-k8s.io/nginx-deployment-spc created
+
 NAME                   AGE
 nginx-deployment-spc   3s
 ```
@@ -89,11 +91,13 @@ sleep 8
 kubectl get pods -l app=nginx -o wide
 ```
 
-::::expand{header="The successful deployment will look like below,"}
+::::expand{header="Check Output"}
 
-```text
-NAME                                READY   STATUS    RESTARTS   AGE
-nginx-deployment-7f7ddc8488-c8thb   1/1     Running   0          7m55s
+```bash
+deployment.apps/nginx-deployment created
+
+NAME                                READY   STATUS    RESTARTS   AGE   IP              NODE                                          NOMINATED NODE   READINESS GATES
+nginx-deployment-7f7ddc8488-djk2f   1/1     Running   0          15s   10.254.189.41   ip-10-254-162-47.us-west-2.compute.internal   <none>           <none>
 ```
 
 ::::
@@ -108,7 +112,7 @@ kubectl exec $(kubectl get pods | awk '/nginx-deployment/{print $1}' | head -1) 
 
 ::::expand{header="The mounted secret value appears as," defaultExpanded=true}
 
-```text
+```json
 {"username":"testdb_user", "password":"super-sekret"}
 ```
 

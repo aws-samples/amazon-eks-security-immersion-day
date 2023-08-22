@@ -5,7 +5,8 @@ weight : 29
 
 If you use Secrets Manager automatic rotation for your secrets, you can also use the Secrets Store CSI Driver rotation reconciler feature to ensure you are retrieving the latest secret from Secrets Manager.
 
-When the secret/key is updated in AWS Secrets manager after the initial pod deployment, the updated secret will be periodically updated in the pod mount and the Kubernetes Secret. 
+When the secret/key is updated in AWS Secrets manager after the initial pod deployment, the updated secret will be periodically updated in the pod mount (**without restarting the pod**) and the Kubernetes Secret. 
+
 <!---
 Based on how your application is consuming secret data, you have to consider following:
 
@@ -24,7 +25,7 @@ aws secretsmanager put-secret-value \
 
 ::::expand{header="Sample Output"}
 
-```text
+```json
 {
     "ARN": "arn:aws:secretsmanager:us-west-2:111122223333:secret:dbsecret_eksid-aOZejK",
     "Name": "dbsecret_eksid",
@@ -104,6 +105,12 @@ When using Kubernetes secret as environment variable, the POD needs to be restar
 kubectl rollout restart deployment/nginx-deployment-k8s-secrets
 ```
 
+::::expand{header="Check Output"}
+```bash
+deployment.apps/nginx-deployment-k8s-secrets restarted
+```
+::::
+
 We can verify the updated value of environment variables *DB_USERNAME_01* and *DB_PASSWORD_01* using following command,
 
 ```bash
@@ -122,7 +129,7 @@ exit
 
 ::::expand{header="The output shows the information as displayed here. The last exit command in the shell window exits from the pod’s shell." defaultExpanded=true}
 
-```text
+```bash
 export PS1='# '
 # env | grep DB    #-- Display two ENV variables set from the secret values
 DB_USERNAME_01=newdb_user
