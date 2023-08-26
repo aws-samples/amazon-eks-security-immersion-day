@@ -1,0 +1,1442 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: This template deploys a solution to support building, approving, and deploying a container image.  Included resouces include CodePipeline, CodeBuild, ECS, Lambda, and DynamoDb.
+
+# aws cloudformation deploy --stack-name blog-base-setup --template-file inspector-container-scan-blog-template.yaml --parameter-overrides CodeBucket=<bucketname> CodeKey=<Zipfilename> --capabilities CAPABILITY_NAMED_IAM
+
+Parameters:
+
+  # These parameters are supplied by the Quests API when this template is deployed
+  gdQuestsAPIBase:
+    # Default: https://t85uaaidx0.execute-api.us-east-1.amazonaws.com/LATEST
+    Description: GameDay Quests API Base URL (https://hostname:port/api)
+    Type: String
+  gdQuestsAPITokenSecretName:
+    Default: 'QuestsApiToken'
+    Description: Secrets Manager secret with API Token to use for authentication
+    Type: String
+  gdQuestsSnsTopicArn:
+    # Default: arn:aws:sns:us-east-1:026257810738:gdQuestsApi-SnsQuestsApiTopic-6ELQWDWNOYAO
+    Description: ARN of the GameDay Quests API SNS topic
+    Type: String
+  DeployAssetsBucket:
+    # Default: ee-assets-prod-us-east-1
+    Description: The name of the S3 bucket where assets are stored
+    Type: String
+  DeployAssetsKeyPrefix:
+    # Default: modules/9c0e89820b864addaed45ec2f5440379/v5/2ae514a9-a6dc-4fc0-a797-3f4a7bbd1d63
+    Description: S3 key prefix where assets are stored
+    Type: String
+  StaticAssetsBucket:
+    Type: String
+    Description: (Optional) Bucket for static assets that live outside of the pipeline (e.g. data for seeding)
+    Default: ''
+  StaticAssetsKeyPrefix:
+    Type: String
+    Description: (Optional) Bucket prefix for static assets that live outside of the pipeline (e.g. data for seeding)
+    Default: ''
+
+  # Additional parameters required by this template - These parameters MUST contain default values that will be used when the Quests API deploys this Quest.
+  QuestId:
+    Default: 2ae514a9-a6dc-4fc0-a797-3f4a7bbd1d63
+    Description: The ID assigned to this Quest
+    Type: String
+  QuestLambdaSourceKey:
+    Default: gdQuests-lambda-source.zip
+    Description: S3 key for the Quest Lambda source code in Central account
+    Type: String
+
+  # Additional parameters specific to this Quest
+  ChaosTimerMinutes:
+    Default: 10
+    Description: The minute that are to elapse for the chaos event to start
+    Type: Number
+
+  # Quest 2 parameters
+  EKSClusterName:
+    Type: String
+    Description: Name of k8s cluster
+    Default: eks-cluster
+  NumOfMinWorkerNodes:
+    Type: Number
+    Description: Number of worker nodes to create
+    Default: 1
+  NumOfMaxWorkerNodes:
+    Type: Number
+    Description: Number of worker nodes to create
+    Default: 2
+  WorkerNodesInstanceType:
+    Type: String
+    Description: EC2 instance type for the worker nodes
+    Default: t3.medium
+  KeyPairName:
+    Type: String
+    Description: Name of an existing EC2 key pair (for SSH-access to the worker node instances)
+    Default: eks-test
+
+  CodeBucket:
+    Type: String
+    Description: S3 bucket with code zip file
+
+  CodeKey:
+    Type: String
+    Description: path and zip file with code
+
+  VpcCIDR:
+    Description: Please enter the IP range (CIDR notation) for this VPC
+    Type: String
+    Default: 10.192.0.0/27
+
+  PublicSubnet1CIDR:
+    Description: Please enter the IP range (CIDR notation) for the public subnet in the first Availability Zone
+    Type: String
+    Default: 10.192.0.16/28
+
+Mappings:
+  VpcIpRanges:
+    Option1:
+      VPC: 10.100.0.0/16
+      PublicSubnet1: 10.100.0.0/20
+      PublicSubnet2: 10.100.16.0/20
+      PrivateSubnet1: 10.100.32.0/20
+      PrivateSubnet2: 10.100.48.0/20
+      PersistenceSubnet1: 10.100.64.0/20
+      PersistenceSubnet2: 10.100.80.0/20
+    # IDs of the "EKS-optimised AMIs" for the worker nodes:
+    # https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html
+    # IMPORTANT NOTE: Choose AWS EKS compatible ami IDs only
+  EksAmiIds:
+    eu-west-2:
+      Standard: ami-0f3589a95ffd274bf
+
+Resources:
+
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !FindInMap [ VpcIpRanges, Option1, VPC ]
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Ref AWS::StackName
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !FindInMap [ VpcIpRanges, Option1, PublicSubnet1 ]
+      # AvailabilityZone: !Select
+      #   - 0
+      #   - !GetAZs ""
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-PublicSubnet1"
+        - Key: kubernetes.io/role/elb
+          Value: 1
+        - Key: !Sub "kubernetes.io/cluster/${AWS::StackName}"
+          Value: shared
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !FindInMap [ VpcIpRanges, Option1, PublicSubnet2 ]
+      # AvailabilityZone: !Select
+      #   - 1
+      #   - !GetAZs ""
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-PublicSubnet2"
+        - Key: kubernetes.io/role/elb
+          Value: 1
+        - Key: !Sub "kubernetes.io/cluster/${AWS::StackName}"
+          Value: shared
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !FindInMap [ VpcIpRanges, Option1, PrivateSubnet1 ]
+      # AvailabilityZone: !Select
+      #   - 1
+      #   - !GetAZs ""
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-PrivateSubnet1"
+        - Key: kubernetes.io/role/internal-elb
+          Value: 1
+        - Key: !Sub "kubernetes.io/cluster/${AWS::StackName}"
+          Value: shared
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !FindInMap [ VpcIpRanges, Option1, PrivateSubnet2 ]
+      # AvailabilityZone: !Select
+      #   - 1
+      #   - !GetAZs ""
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-PrivateSubnet2"
+        - Key: kubernetes.io/role/internal-elb
+          Value: 1
+        - Key: !Sub "kubernetes.io/cluster/${AWS::StackName}"
+          Value: shared
+  PersistenceSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !FindInMap [ VpcIpRanges, Option1, PersistenceSubnet1 ]
+      # AvailabilityZone: !Select
+      #   - 1
+      #   - !GetAZs ""
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-PersistenceSubnet1"
+  PersistenceSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !FindInMap [ VpcIpRanges, Option1, PersistenceSubnet2 ]
+      # AvailabilityZone: !Select
+      #   - 1
+      #   - !GetAZs ""
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-PersistenceSubnet2"
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Ref AWS::StackName
+  VPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-PublicSubnets"
+  InternetGatewayRoute:
+    Type: AWS::EC2::Route
+    # DependsOn is mandatory because route targets InternetGateway
+    # See here: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-dependson.html#gatewayattachment
+    DependsOn: VPCGatewayAttachment
+    Properties:
+      RouteTableId: !Ref RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+  NatGateway1EIP:
+    Type: AWS::EC2::EIP
+    DependsOn: VPCGatewayAttachment
+    Properties:
+      Domain: vpc
+  NatGateway2EIP:
+    Type: AWS::EC2::EIP
+    DependsOn: VPCGatewayAttachment
+    Properties:
+      Domain: vpc
+  NatGateway1:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGateway1EIP.AllocationId
+      SubnetId: !Ref PublicSubnet1
+  NatGateway2:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGateway2EIP.AllocationId
+      SubnetId: !Ref PublicSubnet2
+  PrivateRouteTable1:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName} Private Routes (AZ1)
+  DefaultPrivateRoute1:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable1
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway1
+  PrivateRouteTable2:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName} Private Routes (AZ1)
+  DefaultPrivateRoute2:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable2
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway2
+
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet1
+      RouteTableId: !Ref RouteTable
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet2
+      RouteTableId: !Ref RouteTable
+  PrivateSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet1
+      RouteTableId: !Ref PrivateRouteTable1
+  PrivateSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet2
+      RouteTableId: !Ref PrivateRouteTable2
+  PersistenceSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PersistenceSubnet1
+      RouteTableId: !Ref RouteTable
+  PersistenceSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PersistenceSubnet2
+      RouteTableId: !Ref RouteTable
+
+
+
+
+  ContainerComponentsRepo:
+    Type: AWS::CodeCommit::Repository
+    Properties:
+      RepositoryName: ContainerComponentsRepo
+      Code:
+        BranchName: main
+        S3:
+          Bucket: !Ref CodeBucket
+          Key: !Ref CodeKey
+
+  CodeCommitEventRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - events.amazonaws.com
+            Action: "sts:AssumeRole"
+      Path: /
+
+  CodeCommitEventPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: "codepipeline:StartPipelineExecution"
+            Resource: !Join
+              - ""
+              - - "arn:aws:codepipeline:"
+                - !Ref "AWS::Region"
+                - ":"
+                - !Ref "AWS::AccountId"
+                - ":"
+                - !Ref ContainerPipeline
+      Roles:
+        - !Ref CodeCommitEventRole
+
+  ContainerRepoChangeRule:
+    Type: AWS::Events::Rule
+    Properties:
+      EventPattern:
+        source:
+          - aws.codecommit
+        detail-type:
+          - CodeCommit Repository State Change
+        resources:
+          - !Join
+            - ""
+            - - "arn:aws:codecommit:"
+              - !Ref "AWS::Region"
+              - ":"
+              - !Ref "AWS::AccountId"
+              - ":"
+              - !GetAtt
+                - ContainerComponentsRepo
+                - Name
+        detail:
+          event:
+            - referenceCreated
+            - referenceUpdated
+          referenceType:
+            - branch
+          referenceName:
+            - main
+      Targets:
+        - Arn: !Join
+            - ""
+            - - "arn:aws:codepipeline:"
+              - !Ref "AWS::Region"
+              - ":"
+              - !Ref "AWS::AccountId"
+              - ":"
+              - !Ref ContainerPipeline
+          RoleArn: !GetAtt
+            - CodeCommitEventRole
+            - Arn
+          Id: codepipeline-ContainerPipeline
+
+  ContainerRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: security-immersion-day-images
+
+  CodePipelineArtifactStoreBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
+  CodePipelineArtifactStoreBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref CodePipelineArtifactStoreBucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: DenyUnEncryptedObjectUploads
+            Effect: Deny
+            Principal: "*"
+            Action: s3:PutObject
+            Resource:
+              !Join ["", [!GetAtt CodePipelineArtifactStoreBucket.Arn, "/*"]]
+            Condition:
+              StringNotEquals:
+                s3:x-amz-server-side-encryption: aws:kms
+          - Sid: DenyInsecureConnections
+            Effect: Deny
+            Principal: "*"
+            Action: s3:*
+            Resource:
+              !Join ["", [!GetAtt CodePipelineArtifactStoreBucket.Arn, "/*"]]
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+
+  BuildApprovalSNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: ContainerApprovalTopic
+      Subscription:
+        - Endpoint: !GetAtt ProcessPipelineApprovalMsg.Arn
+          Protocol: Lambda
+
+  CodeBuildServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
+
+  CodeBuildServicePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Resource: "*"
+            Effect: Allow
+            Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+          - Resource: !Join
+              - ":"
+              - - "arn:aws:codebuild"
+                - !Ref AWS::Region
+                - !Ref AWS::AccountId
+                - "report-group/container-build-blog-*"
+            Effect: Allow
+            Action:
+              - codebuild:CreateReportGroup
+              - codebuild:CreateReport
+              - codebuild:UpdateReport
+              - codebuild:BatchPutTestCases
+              - codebuild:BatchPutCodeCoverages
+          - Resource: "*"
+            Effect: Allow
+            Action:
+              - ecr:BatchCheckLayerAvailability
+              - ecr:CompleteLayerUpload
+              - ecr:GetAuthorizationToken
+              - ecr:InitiateLayerUpload
+              - ecr:PutImage
+              - ecr:UploadLayerPart
+              - ecr:BatchGetImage
+              - ecr:GetDownloadUrlForLayer
+              - ecr:DescribeImages
+          - Resource: !Sub arn:aws:s3:::${CodePipelineArtifactStoreBucket}/*
+            Effect: Allow
+            Action:
+              - s3:GetObject
+              - s3:PutObject
+              - s3:GetObjectVersion
+      Roles:
+        - !Ref CodeBuildServiceRole
+
+  CodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: buildspec.yml
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:5.0
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: AWS_DEFAULT_REGION
+            Value: !Ref AWS::Region
+          - Name: AWS_ACCOUNT_ID
+            Value: !Ref AWS::AccountId
+          - Name: IMAGE_REPO_NAME
+            Value: inspector-blog-images
+          - Name: IMAGE_TAG
+            Value: latest
+        PrivilegedMode: true
+      Name: container-build-blog
+      ServiceRole: !Ref CodeBuildServiceRole
+
+  PipelineServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codepipeline.amazonaws.com
+            Action: "sts:AssumeRole"
+      Path: /
+
+  PipelineServicePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - iam:PassRole
+            Condition:
+              StringEqualsIfExists:
+                iam:PassedToService:
+                  - cloudformation.amazonaws.com
+                  - elasticbeanstalk.amazonaws.com
+                  - ec2.amazonaws.com
+                  - ecs-tasks.amazonaws.com
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - codecommit:CancelUploadArchive
+              - codecommit:GetBranch
+              - codecommit:GetCommit
+              - codecommit:GetRepository
+              - codecommit:GetUploadArchiveStatus
+              - codecommit:UploadArchive
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - elasticbeanstalk:*
+              - ec2:*
+              - elasticloadbalancing:*
+              - autoscaling:*
+              - cloudwatch:*
+              - s3:*
+              - sns:*
+              - cloudformation:*
+              - rds:*
+              - sqs:*
+              - ecs:*
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - lambda:InvokeFunction
+              - lambda:ListFunctions
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - cloudformation:CreateStack
+              - cloudformation:DeleteStack
+              - cloudformation:DescribeStacks
+              - cloudformation:UpdateStack
+              - cloudformation:CreateChangeSet
+              - cloudformation:DeleteChangeSet
+              - cloudformation:DescribeChangeSet
+              - cloudformation:ExecuteChangeSet
+              - cloudformation:SetStackPolicy
+              - cloudformation:ValidateTemplate
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - codebuild:BatchGetBuilds
+              - codebuild:StartBuild
+              - codebuild:BatchGetBuildBatches
+              - codebuild:StartBuildBatch
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - cloudformation:ValidateTemplate
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - ecr:DescribeImages
+            Effect: Allow
+            Resource: "*"
+      Roles:
+        - !Ref PipelineServiceRole
+
+  ContainerPipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      Name: ContainerBuildDeployPipeline
+      RoleArn: !GetAtt
+        - PipelineServiceRole
+        - Arn
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: SourceAction
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Version: 1
+                Provider: CodeCommit
+              OutputArtifacts:
+                - Name: SourceOutput
+              Configuration:
+                RepositoryName: !GetAtt ContainerComponentsRepo.Name
+                BranchName: main
+                PollForSourceChanges: false
+              RunOrder: 1
+        - Name: Build
+          Actions:
+            - Name: ContainerBuild
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Version: "1"
+                Provider: CodeBuild
+              Configuration:
+                ProjectName: !Ref CodeBuildProject
+              Namespace: BuildVariables
+              InputArtifacts:
+                - Name: SourceOutput
+              OutputArtifacts:
+                - Name: BuildOutput
+              RunOrder: 2
+        - Name: ContainerVulnerabilityAssessment
+          Actions:
+            - Name: ContainerImageApproval
+              ActionTypeId:
+                Category: Approval
+                Owner: AWS
+                Version: "1"
+                Provider: Manual
+              Configuration:
+                NotificationArn: !Ref BuildApprovalSNSTopic
+                CustomData: Image_Digest=#{BuildVariables.IMAGE_DIGEST}
+              RunOrder: 3
+        - Name: Deploy
+          Actions:
+            - Name: ImageDeployment
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: "1"
+                Provider: EKS
+              Configuration:
+                ClusterName: !Ref ControlPlane
+                FileName: imagedefinitions.json
+              InputArtifacts:
+                - Name: BuildOutput
+              RunOrder: 4
+      ArtifactStore:
+        Type: S3
+        Location: !Ref CodePipelineArtifactStoreBucket
+
+  InspectorPipelineApprovalTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ContainerImageApprovals
+      AttributeDefinitions:
+        - AttributeName: "ImageDigest"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "ImageDigest"
+          KeyType: "HASH"
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  ContainerScanResultsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: "/"
+
+  ContainerScanResultsPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: logs:CreateLogGroup
+            Resource: !Join
+              - ":"
+              - - "arn:aws:logs"
+                - !Ref AWS::Region
+                - !Ref AWS::AccountId
+                - "*"
+          - Effect: Allow
+            Action:
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Resource: !Join
+              - ":"
+              - - "arn:aws:logs"
+                - !Ref AWS::Region
+                - !Ref AWS::AccountId
+                - "log-group:/aws/lambda/eval-container-scan-results"
+                - "*"
+          - Effect: Allow
+            Action:
+              - codepipeline:PutApprovalResult
+              - codepipeline:GetPipelineState
+            Resource: "*"
+          - Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:DeleteItem
+              - dynamodb:PutItem
+            Resource: !Join
+              - ":"
+              - - "arn:aws:dynamodb"
+                - !Ref AWS::Region
+                - !Ref AWS::AccountId
+                - !Join
+                  - "/"
+                  - - "table"
+                    - !Ref InspectorPipelineApprovalTable
+      Roles:
+        - !Ref ContainerScanResultsRole
+
+  InspectorScanEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: InspectorContainerScanStatus
+      Description: "Event looking for messages from Inspector related to container scan status"
+      EventPattern:
+        source:
+          - "aws.inspector2"
+        detail-type:
+          - "Inspector2 Scan"
+      Targets:
+        - Arn: !GetAtt EvalContainerScanResults.Arn
+          Id: "InspectorScanLambda"
+
+  EvalContainerScanResultsPerms:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref EvalContainerScanResults
+      Action: lambda:InvokeFunction
+      SourceArn: !GetAtt InspectorScanEventRule.Arn
+      Principal: events.amazonaws.com
+
+  ProcessBuildApprovalMsgPerms:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref ProcessPipelineApprovalMsg
+      Action: lambda:InvokeFunction
+      SourceArn: !Ref BuildApprovalSNSTopic
+      Principal: sns.amazonaws.com
+
+  PipelineApprovalMsgRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: "/"
+
+  PipelineApprovalMsgPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: logs:CreateLogGroup
+            Resource: !Join
+              - ":"
+              - - "arn:aws:logs"
+                - !Ref AWS::Region
+                - !Ref AWS::AccountId
+                - "*"
+          - Effect: Allow
+            Action:
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Resource: !Join
+              - ":"
+              - - "arn:aws:logs"
+                - !Ref AWS::Region
+                - !Ref AWS::AccountId
+                - "log-group:/aws/lambda/process-build-approval-msg"
+                - "*"
+          - Effect: Allow
+            Action: dynamodb:PutItem
+            Resource: !Join
+              - ":"
+              - - "arn:aws:dynamodb"
+                - !Ref AWS::Region
+                - !Ref AWS::AccountId
+                - !Join
+                  - "/"
+                  - - "table"
+                    - !Ref InspectorPipelineApprovalTable
+      Roles:
+        - !Ref PipelineApprovalMsgRole
+
+  ProcessPipelineApprovalMsg:
+    Type: AWS::Lambda::Function
+    DependsOn: PipelineApprovalMsgRole
+    Properties:
+      FunctionName: "process-build-approval-msg"
+      Handler: index.lambda_handler
+      Role: !GetAtt PipelineApprovalMsgRole.Arn
+      Runtime: python3.7
+      Timeout: 30
+      Code:
+        ZipFile: |
+          # Function that will process the SNS message sent about a pipeline approval
+          # request for a container build pipeline.  Information from the message
+          # will be stored in a DynamoDB table for further reference
+
+          import json
+          import re
+          import boto3
+          import logging
+          from datetime import datetime
+
+          logger = logging.getLogger()
+          logger.setLevel(logging.INFO)
+
+          dynamo_client = boto3.resource('dynamodb')
+
+          def lambda_handler(event, context):
+              logger.info('Function Event')
+              logger.info(event)
+          
+              sns_message = json.loads(event['Records'][0]['Sns']['Message'])
+
+              token = sns_message['approval']['token']
+              pipeline = sns_message['approval']['pipelineName']
+              stage = sns_message['approval']['stageName']
+              approval_action = sns_message['approval']['actionName']
+              custom_data=sns_message['approval']['customData']
+
+              image_digest = custom_data.split("=")[1]
+
+              table=dynamo_client.Table('ContainerImageApprovals')
+              response = table.put_item(
+                  Item={
+                      'ImageDigest': image_digest,
+                      'ApprovalToken': token,
+                      'PipelineName': pipeline,
+                      'Stage': stage,
+                      'ActionName': approval_action,
+                      'InsertDate': datetime.utcnow().isoformat()
+                      }
+              )
+          
+              logger.info('Table put_item response')
+              logger.info(response)
+
+              return {
+                  'statusCode': 200
+              }
+
+  EvalContainerScanResults:
+    Type: AWS::Lambda::Function
+    DependsOn: ContainerScanResultsRole
+    Properties:
+      FunctionName: "eval-container-scan-results"
+      Handler: index.lambda_handler
+      Role: !GetAtt ContainerScanResultsRole.Arn
+      Runtime: python3.7
+      Timeout: 30
+      Environment:
+        Variables:
+          Critical_Finding_Threshold: 0
+          High_Finding_Threshold: 0
+          Medium_Finding_Threshold: 10
+          Low_Finding_Threshold: 15
+      Code:
+        ZipFile: |
+          '''Function that will take in final scan results from the Inspector2 Scan event bridge message \
+          and evaluate the results to determine if the image can be deployed'''
+
+          import os
+          import logging
+          from datetime import datetime
+          import boto3
+
+          logger = logging.getLogger()
+          logger.setLevel(logging.INFO)
+
+          pipeline_client = boto3.client('codepipeline')
+          dynamo_client = boto3.resource('dynamodb')
+
+
+          def update_staging_entry(search_digest, status):
+            '''Takes in a container image digest and approval status and puts into DynamoDB'''
+
+            logger.info('Updating Image Approval Stage entry')
+
+            table=dynamo_client.Table('ContainerImageApprovals')
+            table.put_item(
+              Item={
+                'ImageDigest': search_digest + '##' + status,
+                'InsertDate': datetime.utcnow().isoformat()
+              }
+            )
+
+          def retrieve_image_approval_details(search_digest):
+            '''Takes in a container image digest and looks it up in a DynamoDB table'''
+
+            logger.info('Retrieving image approval stage details.')
+
+            # Get the info from dynamo table based on the digest value
+            table=dynamo_client.Table('ContainerImageApprovals')
+            response = table.get_item(
+              Key={
+                'ImageDigest': search_digest
+              }
+            )
+
+            logger.info(response)
+
+            action_name = response['Item']['ActionName']
+            stage = response['Item']['Stage']
+            approval_token = response['Item']['ApprovalToken']
+            pipeline_name = response['Item']['PipelineName']
+
+            return action_name, stage, approval_token, pipeline_name
+
+
+
+          def update_pipeline_approval(pipeline_info, approval_msg, status):
+            '''sends approval results to appropriate pipeline stage'''
+
+            logger.info('Starting pipeline approval')
+
+
+            #put approval result
+            pipeline_client.put_approval_result(
+                pipelineName=pipeline_info[3],
+                stageName=pipeline_info[1],
+                actionName=pipeline_info[0],
+                result={
+                    'summary': approval_msg,
+                    'status': status
+                },
+                token=pipeline_info[2]
+          )
+
+            logger.info('Pipeline Approval Complete')
+
+          def log_final_results(approval,image_digest, repository_arn, image_tags, reason, sev_list):
+            '''Writes the final results of the image vulnerability assessment'''
+
+            logger.info('***********************************')
+            logger.info('Final container vulnerability assessment details')
+            logger.info('------------------------')
+            logger.info('Approval Status: %s', approval)
+            logger.info('Approval Reason: %s', reason)
+            logger.info('ImageDigest: %s', image_digest)
+            logger.info('ImageARN: %s', repository_arn)
+            logger.info('Image Tags: %s', image_tags)
+            logger.info('Critical Vulnerabilities: %s', sev_list.get('CRITICAL',0))
+            logger.info('High Vulnerabilities: %s', sev_list.get('HIGH',0))
+            logger.info('Medium Vulnerabilities: %s', sev_list.get('MEDIUM',0))
+            logger.info('***********************************')
+
+          ## Main ##
+          def lambda_handler(event, context):
+            '''Main lambda handler'''
+
+            logger.info('Event Data')
+            logger.info(event)
+
+            scan_status = event["detail"]["scan-status"]
+            logger.info('Event scan status: %s', scan_status)
+
+            # We only want to move forward if the scan status is SUCCESSFUL
+            if scan_status != 'INITIAL_SCAN_COMPLETE':
+              logger.info('Scan status is not successful.  Not processing further.')
+              #we can use this status to fail the pipeline if needed
+              return 'Scan status is not successful.  Not processing further.'
+
+
+            repository_arn = event["detail"]["repository-name"]
+            logger.info('Repository ARN: %s', repository_arn)
+            resource_type = repository_arn.split(":")[2]
+            logger.info('Resource type: %s', resource_type)
+
+            # Only move forward if the resource type in the message is ecr
+            if resource_type != 'ecr':
+              logger.info('Resource Type: %s', resource_type)
+              logger.info('Resource type is not ECR.  Exiting.')
+              return 'Resource type is not ECR.  Exiting.'
+
+            image_digest = event["detail"]["image-digest"]
+            image_tags = event["detail"]["image-tags"]
+            logger.info('Image digest: %s', image_digest)
+            logger.info('Image tags: %s', image_tags)
+
+
+            # Compare finding severity counts against thresholds
+
+            critical_max = int(os.environ['Critical_Finding_Threshold'])
+            high_max = int(os.environ['High_Finding_Threshold'])
+            medium_max = int(os.environ['Medium_Finding_Threshold'])
+            threshold_breach = False
+
+            if event["detail"]["finding-severity-counts"]["CRITICAL"] !=0 \
+                and event["detail"]["finding-severity-counts"]["CRITICAL"] >= critical_max:
+
+              threshold_breach = True
+              logger.info("*******************************")
+              logger.info("We have a CRITICAL vulnerability")
+              logger.info("*******************************")
+
+              deploy_approved='Rejected'
+              reason=f'Critical vulnerability threshold of {critical_max} exceeded'
+
+              logger.info('Deployment is NOT approved')
+              logger.info('Writing final results')
+
+              log_final_results(deploy_approved, image_digest, repository_arn, image_tags, \
+                        reason, event["detail"]["finding-severity-counts"])
+
+              #Reject the pipeline
+              pipeline_info = retrieve_image_approval_details(image_digest)
+              update_pipeline_approval(pipeline_info, reason, deploy_approved)
+
+              #Record status in pipeline staging table
+              update_staging_entry(image_digest, deploy_approved)
+
+              return reason
+
+            if event["detail"]["finding-severity-counts"]["HIGH"] != 0 \
+                and event["detail"]["finding-severity-counts"]["HIGH"] >= high_max:
+
+              threshold_breach = True
+              logger.info ("*******************************")
+              logger.info ("We have a HIGH vulnerability")
+              logger.info ("*******************************")
+
+              deploy_approved='Rejected'
+              reason=f'High vulnerability threshold of {high_max} exceeded'
+
+              logger.info('Deployment is NOT approved')
+              logger.info('Writing final results')
+
+              log_final_results(deploy_approved, image_digest, repository_arn, image_tags, \
+                        reason, event["detail"]["finding-severity-counts"])
+
+              #Reject the pipeline
+              pipeline_info = retrieve_image_approval_details(image_digest)
+              update_pipeline_approval(pipeline_info, reason, deploy_approved)
+
+              #Record status in pipeline staging table
+              update_staging_entry(image_digest, deploy_approved)
+
+              return reason
+
+            if event["detail"]["finding-severity-counts"]["MEDIUM"] != 0 \
+                and event["detail"]["finding-severity-counts"]["MEDIUM"] >= medium_max:
+
+              threshold_breach = True
+              logger.info ("*******************************")
+              logger.info ("We have a MEDUIM vulnerability")
+              logger.info ("*******************************")
+
+              deploy_approved='Rejected'
+              reason=f'Medium vulnerability threshold of {medium_max} exceeded'
+
+              logger.info('Deployment is NOT approved')
+              logger.info('Writing final results')
+
+              log_final_results(deploy_approved, image_digest, repository_arn, image_tags,\
+                        reason, event["detail"]["finding-severity-counts"])
+
+              #Reject the pipeline
+              pipeline_info = retrieve_image_approval_details(image_digest)
+              update_pipeline_approval(pipeline_info, reason, deploy_approved)
+
+              #Record status in pipeline staging table
+              update_staging_entry(image_digest, deploy_approved)
+
+              return reason
+
+            if threshold_breach is False:
+              #None of the other threshold statements triggered so we are assuming good to go
+
+              deploy_approved = 'Approved'
+              reason='All vulnerabilities below thresholds'
+
+              logger.info('Deployment IS approved')
+              logger.info('Writing final results')
+
+              log_final_results(deploy_approved, image_digest, repository_arn, image_tags,\
+                        reason, event["detail"]["finding-severity-counts"])
+
+              #Approve the pipeline
+              pipeline_info = retrieve_image_approval_details(image_digest)
+              update_pipeline_approval(pipeline_info, reason, deploy_approved)
+
+              #Record status in pipeline staging table
+              update_staging_entry(image_digest, deploy_approved)
+
+            return {
+                  'statusCode': 200,
+              }
+
+  CloudwatchLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: InspectorBlogCluster
+      RetentionInDays: 30
+
+#  ECSCluster:
+#    Type: AWS::ECS::Cluster
+#    Properties:
+#      ClusterName: InspectorBlogCluster
+#
+#  TaskExecutionRole:
+#    Type: AWS::IAM::Role
+#    Properties:
+#      AssumeRolePolicyDocument:
+#        Version: "2012-10-17"
+#        Statement:
+#          - Action: "sts:AssumeRole"
+#            Effect: "Allow"
+#            Principal:
+#              Service: "ecs-tasks.amazonaws.com"
+#      ManagedPolicyArns:
+#        - "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
+#        - "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+#
+#  TaskDefinition:
+#    Type: AWS::ECS::TaskDefinition
+#    Properties:
+#      Family: blog-sample-app
+#      Cpu: 256
+#      Memory: 512
+#      NetworkMode: awsvpc
+#      ExecutionRoleArn: !Ref TaskExecutionRole
+#      ContainerDefinitions:
+#        - Name: blog-sample-app
+#          Image: image-placeholder
+#          PortMappings:
+#            - ContainerPort: 80
+#          LogConfiguration:
+#            LogDriver: awslogs
+#            Options:
+#              awslogs-region: !Ref AWS::Region
+#              awslogs-group: !Ref CloudwatchLogGroup
+#              awslogs-stream-prefix: ecs
+#      RequiresCompatibilities:
+#        - EC2
+#        - FARGATE
+#
+#  ECSService:
+#    Type: AWS::ECS::Service
+#    Properties:
+#      Cluster:
+#        Ref: ECSCluster
+#      DeploymentConfiguration:
+#        DeploymentCircuitBreaker:
+#          Enable: true
+#          Rollback: false
+#      DesiredCount: 0
+#      TaskDefinition:
+#        Ref: TaskDefinition
+#      LaunchType: FARGATE
+#      NetworkConfiguration:
+#        AwsvpcConfiguration:
+#          AssignPublicIp: ENABLED
+#          Subnets:
+#            - !Ref PublicSubnet1
+#      ServiceName: InspectorBlogService
+      #============================================================================#
+      # Control plane
+      #============================================================================#
+
+  ControlPlane:
+    Type: AWS::EKS::Cluster
+    Properties:
+      Name: !Ref AWS::StackName
+      Version: "1.27"
+      RoleArn: !GetAtt ControlPlaneRole.Arn
+      ResourcesVpcConfig:
+        SecurityGroupIds:
+          - !Ref ControlPlaneSecurityGroup
+        SubnetIds:
+          - !Ref PrivateSubnet1
+          - !Ref PrivateSubnet2
+  ControlPlaneRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          Effect: Allow
+          Principal:
+            Service:
+              - eks.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+          - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+          - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
+
+      #============================================================================#
+      # Control plane security group
+      #============================================================================#
+
+  ControlPlaneSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for the elastic network interfaces between the control plane and the worker nodes
+      VpcId: !Ref VPC
+      Tags:
+         - Key: Name
+           Value: !Sub "${AWS::StackName}-ControlPlaneSecurityGroup"
+
+  ControlPlaneIngressFromWorkerNodesHttps:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Allow incoming HTTPS traffic (TCP/443) from worker nodes (for API server)
+      GroupId: !Ref ControlPlaneSecurityGroup
+      SourceSecurityGroupId: !Ref WorkerNodesSecurityGroup
+      IpProtocol: tcp
+      ToPort: 443
+      FromPort: 443
+  ControlPlaneEgressToWorkerNodesKubelet:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      Description: Allow outgoing kubelet traffic (TCP/10250) to worker nodes
+      GroupId: !Ref ControlPlaneSecurityGroup
+      DestinationSecurityGroupId: !Ref WorkerNodesSecurityGroup
+      IpProtocol: tcp
+      FromPort: 10250
+      ToPort: 10250
+  ControlPlaneEgressToWorkerNodesHttps:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      Description: Allow outgoing HTTPS traffic (TCP/442) to worker nodes (for pods running extension API servers)
+      GroupId: !Ref ControlPlaneSecurityGroup
+      DestinationSecurityGroupId: !Ref WorkerNodesSecurityGroup
+      IpProtocol: tcp
+      FromPort: 443
+      ToPort: 443
+
+      #============================================================================#
+      # Worker nodes security group
+      # Note: default egress rule (allow all traffic to all destinations) applies
+      #============================================================================#
+
+  WorkerNodesSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for all the worker nodes
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-WorkerNodesSecurityGroup"
+        - Key: !Sub "kubernetes.io/cluster/${ControlPlane}"
+          Value: "owned"
+  WorkerNodesIngressFromWorkerNodes:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Allow all incoming traffic from other worker nodes
+      GroupId: !Ref WorkerNodesSecurityGroup
+      SourceSecurityGroupId: !Ref WorkerNodesSecurityGroup
+      IpProtocol: "-1"
+
+  WorkerNodesIngressFromControlPlaneKubelet:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Allow incoming kubelet traffic (TCP/10250) from control plane
+      GroupId: !Ref WorkerNodesSecurityGroup
+      SourceSecurityGroupId: !Ref ControlPlaneSecurityGroup
+      IpProtocol: tcp
+      FromPort: 10250
+      ToPort: 10250
+
+  WorkerNodesIngressFromControlPlaneHttps:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Allow incoming HTTPS traffic (TCP/443) from control plane (for pods running extension API servers)
+      GroupId: !Ref WorkerNodesSecurityGroup
+      SourceSecurityGroupId: !Ref ControlPlaneSecurityGroup
+      IpProtocol: tcp
+      FromPort: 443
+      ToPort: 443
+
+      #============================================================================#
+      # Worker nodes (auto-scaling group)
+      #============================================================================#
+  WorkerNodesLaunchConfiguration:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    # Wait until cluster is ready before launching worker nodes
+    DependsOn: ControlPlane
+    Properties:
+      AssociatePublicIpAddress: false
+      IamInstanceProfile: !Ref WorkerNodesInstanceProfile
+      ImageId: !FindInMap
+        - EksAmiIds
+        - !Ref AWS::Region
+        - Standard
+      InstanceType: !Ref WorkerNodesInstanceType
+      #        KeyName: !Ref KeyPairName
+      SecurityGroups:
+        - !Ref WorkerNodesSecurityGroup
+
+      # IMPORTANT NOTE: This code bootstrap some cfn settings on our ec2 machine, it require some parameters like
+      # --stack <AWS::StackName>, --resource <NodeGroupName>, --region <AWS::region>
+      # /usr/bin/ping -c 5 google.com ( To ensure that our node have internet connectivity via NATGateway )
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          set -o xtrace
+          /etc/eks/bootstrap.sh ${ControlPlane}
+          /opt/aws/bin/cfn-signal \
+                          --exit-code $? \
+                          --stack  ${AWS::StackName} \
+                          --resource WorkerNodeGroup \
+                          --region ${AWS::Region}
+          /usr/bin/ping -c 5 google.com
+  WorkerNodesInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref WorkerNodesRole
+  WorkerNodesAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    UpdatePolicy:
+      AutoScalingRollingUpdate:
+        MinInstancesInService: 1
+        MaxBatchSize: 1
+    Properties:
+      LaunchConfigurationName: !Ref WorkerNodesLaunchConfiguration
+      MinSize: !Ref NumOfMinWorkerNodes
+      MaxSize: !Ref NumOfMaxWorkerNodes
+      VPCZoneIdentifier:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-WorkerNodesAutoScalingGroup"
+          PropagateAtLaunch: true
+          # Without this tag, worker nodes are unable to join the cluster:
+        - Key: !Sub "kubernetes.io/cluster/${ControlPlane}"
+          Value: "owned"
+          PropagateAtLaunch: true
+
+  WorkerNodesRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          Effect: Allow
+          Principal:
+            Service:
+              - ec2.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+
+      # IMPORTANT NOTE: We have to define NodeGroup (type: AWS::EKS::Nodegroup), without this no woker nodes will be attach to cluster
+  WorkerNodegroup:
+    Type: AWS::EKS::Nodegroup
+    DependsOn: ControlPlane
+    Properties:
+      ClusterName: !Sub "${AWS::StackName}"
+      NodeRole: !GetAtt WorkerNodesRole.Arn
+      ScalingConfig:
+        MinSize:
+          Ref: NumOfMinWorkerNodes
+        DesiredSize:
+          Ref: NumOfMinWorkerNodes
+        MaxSize:
+          Ref: NumOfMaxWorkerNodes
+      Subnets:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+
+
+
+
+
+
+
+
+
+Outputs:
+  ECSClusterARN:
+    Description: ARN of the ECS cluster
+    Value: !GetAtt ControlPlane.Arn
