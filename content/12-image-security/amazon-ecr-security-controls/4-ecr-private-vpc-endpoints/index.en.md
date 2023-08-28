@@ -37,6 +37,7 @@ VPCE_SG_ID=$(aws ec2 create-security-group \
 	--vpc-id $VPC_ID \
 	--region $AWS_REGION | jq -r .GroupId)
 echo $VPCE_SG_ID
+echo "export VPCE_SG_ID=$VPCE_SG_ID" >> ~/.ecr_security
 ```
 
 3. Add port 443 ingress rule to the new security group, with Cloud9 workspace's security group as source.
@@ -50,12 +51,13 @@ SG_RULE_ID=$(aws ec2 authorize-security-group-ingress \
     --region $AWS_REGION \
     | jq -r .SecurityGroupRules[0].SecurityGroupRuleId)
 echo $SG_RULE_ID
+echo "export SG_RULE_ID=$SG_RULE_ID" >> ~/.ecr_security
 ```
 
 4. Prepare VPC Endpoint policy document, allowing all actions and denying `PutImage` action on `team-a/alpine` repository. We [recommend](https://docs.aws.amazon.com/AmazonECR/latest/userguide/vpc-endpoints.html#ecr-vpc-endpoint-policy) creating a single IAM resource policy and attaching it to both of the Amazon ECR VPC endpoints.
 
 ```bash
-DKR_VPCE_POLICY=$(echo -n '{"Statement":[{"Action":"*","Effect":"Allow","Principal":"*","Resource":"*"},{"Sid":"DenyPutImage","Principal":"*","Action":"ecr:PutImage","Effect":"Deny","Resource":"arn:aws:ecr:'$AWS_REGION':'$ACCOUNT_ID':repository/team-a/alpine"}]}')
+DKR_VPCE_POLICY=$(echo -n '{"Statement":[{"Action":"*","Effect":"Allow","Principal":"*","Resource":"*"},{"Sid":"DenyPutImage","Principal":"*","Action":"ecr:PutImage","Effect":"Deny","Resource":"arn:aws:ecr:'$AWS_REGION':'$ACCOUNT_ID':repository/'$ECR_REPO_A'"}]}')
 ```
 
 5. Create `com.amazonaws._region_.ecr.dkr` interface type VPC endpoint and apply the endpoint policy document.
@@ -71,6 +73,7 @@ DKR_VPCE_ID=$(aws ec2 create-vpc-endpoint \
     --region $AWS_REGION \
     | jq -r .VpcEndpoint.VpcEndpointId)
 echo $DKR_VPCE_ID
+echo "export DKR_VPCE_ID=$DKR_VPCE_ID" >> ~/.ecr_security
 ```
 
 6. Create `com.amazonaws._region_.ecr.api` interface type VPC endpoint and apply the endpoint policy document.
@@ -86,6 +89,7 @@ API_VPCE_ID=$(aws ec2 create-vpc-endpoint \
     --region $AWS_REGION \
     | jq -r .VpcEndpoint.VpcEndpointId)
 echo $API_VPCE_ID
+echo "export API_VPCE_ID=$API_VPCE_ID" >> ~/.ecr_security
 ```
 
 7. Create `com.amazonaws._region_.s3` gateway type S3 endpoint
@@ -99,6 +103,7 @@ S3_VPCE_ID=$(aws ec2 create-vpc-endpoint \
     --region $AWS_REGION \
     | jq -r .VpcEndpoint.VpcEndpointId)
 echo $S3_VPCE_ID
+echo "export S3_VPCE_ID=$S3_VPCE_ID" >> ~/.ecr_security
 ```
 
 Wait until all 3 VPC endpoints show status as 'Available', in the AWS Console:
@@ -117,8 +122,8 @@ host api.ecr.$AWS_REGION.amazonaws.com | grep "has address"; echo -e ""
 9. Create a new version of a docker image and push to `team-a/alpine` repository. VPC endpoint policy on `dkr.ecr.<region>.amazonaws.com` endpoint denies `PutImage` access to `team-a/alpine` repository.
 
 ```bash
-docker tag alpine:latest $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/team-a/alpine:v2
-docker push $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/team-a/alpine:v2
+docker tag alpine:latest $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_A:v2
+docker push $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_A:v2
 ```
 
 The output will look like below:
@@ -136,7 +141,7 @@ with an explicit deny in a VPC endpoint policy <--
 
 ```bash
 aws ecr list-images \
-  --repository-name "team-a/alpine" \
+  --repository-name $ECR_REPO_A \
   --region $AWS_REGION
 ```
 

@@ -8,15 +8,16 @@ You created a few resources for this workshop. If you are participating in an AW
 If are running this workshop in your own account, you would need to follow the below steps to cleanup the environment you set up for the workshop.
 
 ```bash
+source ~/.ecr_security
 rm -f ~/.aws/credentials
 rm -f /tmp/ecrTester.json
 aws iam detach-role-policy \
-  --role-name ecr_access_testing \
+  --role-name ecr_access_teama_role \
   --policy-arn "arn:aws:iam::$ACCOUNT_ID:policy/ecr_access_testing"
 aws iam delete-policy \
   --policy-arn "arn:aws:iam::$ACCOUNT_ID:policy/ecr_access_testing"
 aws iam delete-role \
-  --role-name ecr_access_testing
+  --role-name ecr_access_teama_role
 aws ecr delete-repository \
   --repository-name team-a/alpine \
   --region $AWS_REGION \
