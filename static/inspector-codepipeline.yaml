@@ -1,0 +1,968 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: This template deploys a solution to support building, approving, and deploying a container image.  Included resouces include CodePipeline, CodeBuild, ECS, Lambda, and DynamoDb.
+
+# aws cloudformation deploy --stack-name blog-base-setup --template-file inspector-container-scan-blog-template.yaml --parameter-overrides CodeBucket=<bucketname> CodeKey=<Zipfilename> --capabilities CAPABILITY_NAMED_IAM
+
+Parameters:
+  CodeBucket:
+    Type: String
+    Description: S3 bucket with code zip file
+
+  CodeKey:
+    Type: String
+    Description: path and zip file with code
+
+  VpcCIDR:
+    Description: Please enter the IP range (CIDR notation) for this VPC
+    Type: String
+    Default: 10.254.0.0/16
+
+  PublicSubnet1CIDR:
+    Description: Please enter the IP range (CIDR notation) for the public subnet in the first Availability Zone
+    Type: String
+    Default: 10.254.0.0/24
+
+Resources:
+  ContainerComponentsRepo:
+    Type: AWS::CodeCommit::Repository
+    Properties:
+      RepositoryName: ContainerComponentsRepo
+      Code:
+        BranchName: main
+        S3:
+          Bucket: !Ref CodeBucket
+          Key: !Ref CodeKey
+
+  CodeCommitEventRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - events.amazonaws.com
+            Action: "sts:AssumeRole"
+      Path: /
+
+  CodeCommitEventPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: "codepipeline:StartPipelineExecution"
+            Resource: !Join
+              - ""
+              - - "arn:aws:codepipeline:"
+                - !Ref "AWS::Region"
+                - ":"
+                - !Ref "AWS::AccountId"
+                - ":"
+                - !Ref ContainerPipeline
+      Roles:
+        - !Ref CodeCommitEventRole
+
+  ContainerRepoChangeRule:
+    Type: AWS::Events::Rule
+    Properties:
+      EventPattern:
+        source:
+          - aws.codecommit
+        detail-type:
+          - CodeCommit Repository State Change
+        resources:
+          - !Join
+            - ""
+            - - "arn:aws:codecommit:"
+              - !Ref "AWS::Region"
+              - ":"
+              - !Ref "AWS::AccountId"
+              - ":"
+              - !GetAtt
+                - ContainerComponentsRepo
+                - Name
+        detail:
+          event:
+            - referenceCreated
+            - referenceUpdated
+          referenceType:
+            - branch
+          referenceName:
+            - main
+      Targets:
+        - Arn: !Join
+            - ""
+            - - "arn:aws:codepipeline:"
+              - !Ref "AWS::Region"
+              - ":"
+              - !Ref "AWS::AccountId"
+              - ":"
+              - !Ref ContainerPipeline
+          RoleArn: !GetAtt
+            - CodeCommitEventRole
+            - Arn
+          Id: codepipeline-ContainerPipeline
+
+  ContainerRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: inspector-blog-images
+
+  CodePipelineArtifactStoreBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
+  CodePipelineArtifactStoreBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref CodePipelineArtifactStoreBucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: DenyUnEncryptedObjectUploads
+            Effect: Deny
+            Principal: "*"
+            Action: s3:PutObject
+            Resource:
+              !Join ["", [!GetAtt CodePipelineArtifactStoreBucket.Arn, "/*"]]
+            Condition:
+              StringNotEquals:
+                s3:x-amz-server-side-encryption: aws:kms
+          - Sid: DenyInsecureConnections
+            Effect: Deny
+            Principal: "*"
+            Action: s3:*
+            Resource:
+              !Join ["", [!GetAtt CodePipelineArtifactStoreBucket.Arn, "/*"]]
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+
+  BuildApprovalSNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: ContainerApprovalTopic
+      Subscription:
+        - Endpoint: !GetAtt ProcessPipelineApprovalMsg.Arn
+          Protocol: Lambda
+
+  CodeBuildServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
+
+  CodeBuildDeployServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
+
+  CodeBuildServicePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Resource: "*"
+            Effect: Allow
+            Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+          - Resource: !Join
+              - ":"
+              - - "arn:aws:codebuild"
+                - !Ref AWS::Region
+                - !Ref AWS::AccountId
+                - "report-group/container-build-blog-*"
+            Effect: Allow
+            Action:
+              - codebuild:CreateReportGroup
+              - codebuild:CreateReport
+              - codebuild:UpdateReport
+              - codebuild:BatchPutTestCases
+              - codebuild:BatchPutCodeCoverages
+          - Resource: "*"
+            Effect: Allow
+            Action:
+              - ecr:BatchCheckLayerAvailability
+              - ecr:CompleteLayerUpload
+              - ecr:GetAuthorizationToken
+              - ecr:InitiateLayerUpload
+              - ecr:PutImage
+              - ecr:UploadLayerPart
+              - ecr:BatchGetImage
+              - ecr:GetDownloadUrlForLayer
+              - ecr:DescribeImages
+          - Resource: !Sub arn:aws:s3:::${CodePipelineArtifactStoreBucket}/*
+            Effect: Allow
+            Action:
+              - s3:GetObject
+              - s3:PutObject
+              - s3:GetObjectVersion
+      Roles:
+        - !Ref CodeBuildServiceRole
+
+  CodeBuildDeployServicePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Resource: "*"
+            Effect: Allow
+            Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+          - Resource: !Join
+              - ":"
+              - - "arn:aws:codebuild"
+                - !Ref AWS::Region
+                - !Ref AWS::AccountId
+                - "report-group/container-build-blog-*"
+            Effect: Allow
+            Action:
+              - codebuild:CreateReportGroup
+              - codebuild:CreateReport
+              - codebuild:UpdateReport
+              - codebuild:BatchPutTestCases
+              - codebuild:BatchPutCodeCoverages
+          - Resource: "*"
+            Effect: Allow
+            Action:
+              - ecr:BatchCheckLayerAvailability
+              - ecr:CompleteLayerUpload
+              - ecr:GetAuthorizationToken
+              - ecr:InitiateLayerUpload
+              - ecr:PutImage
+              - ecr:UploadLayerPart
+              - ecr:BatchGetImage
+              - ecr:GetDownloadUrlForLayer
+              - ecr:DescribeImages
+              - eks:Describe*
+          - Resource: !Sub arn:aws:s3:::${CodePipelineArtifactStoreBucket}/*
+            Effect: Allow
+            Action:
+              - s3:GetObject
+              - s3:PutObject
+              - s3:GetObjectVersion
+      Roles:
+        - !Ref CodeBuildDeployServiceRole
+
+  CodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: buildspec.yml
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:5.0
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: AWS_DEFAULT_REGION
+            Value: !Ref AWS::Region
+          - Name: AWS_ACCOUNT_ID
+            Value: !Ref AWS::AccountId
+          - Name: IMAGE_REPO_NAME
+            Value: inspector-blog-images
+          - Name: IMAGE_TAG
+            Value: latest
+        PrivilegedMode: true
+      Name: container-build
+      ServiceRole: !Ref CodeBuildServiceRole
+  CodeDeployProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: deployspec.yml
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:5.0
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: AWS_DEFAULT_REGION
+            Value: !Ref AWS::Region
+          - Name: AWS_ACCOUNT_ID
+            Value: !Ref AWS::AccountId
+          - Name: IMAGE_REPO_NAME
+            Value: inspector-blog-images
+          - Name: IMAGE_TAG
+            Value: latest
+        PrivilegedMode: true
+      Name: container-deploy
+      ServiceRole: !Ref CodeBuildServiceRole
+
+  PipelineServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codepipeline.amazonaws.com
+            Action: "sts:AssumeRole"
+      Path: /
+
+  PipelineServicePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - iam:PassRole
+            Condition:
+              StringEqualsIfExists:
+                iam:PassedToService:
+                  - cloudformation.amazonaws.com
+                  - elasticbeanstalk.amazonaws.com
+                  - ec2.amazonaws.com
+                  - ecs-tasks.amazonaws.com
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - codecommit:CancelUploadArchive
+              - codecommit:GetBranch
+              - codecommit:GetCommit
+              - codecommit:GetRepository
+              - codecommit:GetUploadArchiveStatus
+              - codecommit:UploadArchive
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - elasticbeanstalk:*
+              - ec2:*
+              - elasticloadbalancing:*
+              - autoscaling:*
+              - cloudwatch:*
+              - s3:*
+              - sns:*
+              - cloudformation:*
+              - rds:*
+              - sqs:*
+              - ecs:*
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - lambda:InvokeFunction
+              - lambda:ListFunctions
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - cloudformation:CreateStack
+              - cloudformation:DeleteStack
+              - cloudformation:DescribeStacks
+              - cloudformation:UpdateStack
+              - cloudformation:CreateChangeSet
+              - cloudformation:DeleteChangeSet
+              - cloudformation:DescribeChangeSet
+              - cloudformation:ExecuteChangeSet
+              - cloudformation:SetStackPolicy
+              - cloudformation:ValidateTemplate
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - codebuild:BatchGetBuilds
+              - codebuild:StartBuild
+              - codebuild:BatchGetBuildBatches
+              - codebuild:StartBuildBatch
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - cloudformation:ValidateTemplate
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - ecr:DescribeImages
+            Effect: Allow
+            Resource: "*"
+      Roles:
+        - !Ref PipelineServiceRole
+
+  ContainerPipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      Name: ContainerBuildDeployPipeline
+      RoleArn: !GetAtt
+        - PipelineServiceRole
+        - Arn
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: SourceAction
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Version: 1
+                Provider: CodeCommit
+              OutputArtifacts:
+                - Name: SourceOutput
+              Configuration:
+                RepositoryName: !GetAtt ContainerComponentsRepo.Name
+                BranchName: main
+                PollForSourceChanges: false
+              RunOrder: 1
+        - Name: Build
+          Actions:
+            - Name: ContainerBuild
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Version: "1"
+                Provider: CodeBuild
+              Configuration:
+                ProjectName: !Ref CodeBuildProject
+              Namespace: BuildVariables
+              InputArtifacts:
+                - Name: SourceOutput
+              OutputArtifacts:
+                - Name: BuildOutput
+              RunOrder: 2
+        - Name: ContainerVulnerabilityAssessment
+          Actions:
+            - Name: ContainerImageApproval
+              ActionTypeId:
+                Category: Approval
+                Owner: AWS
+                Version: "1"
+                Provider: Manual
+              Configuration:
+                NotificationArn: !Ref BuildApprovalSNSTopic
+                CustomData: Image_Digest=#{BuildVariables.IMAGE_DIGEST}
+              RunOrder: 3
+        # - Name: Deploy
+        #   Actions:
+        #     - Name: ImageDeployment
+        #       ActionTypeId:
+        #         Category: Deploy
+        #         Owner: AWS
+        #         Version: '1'
+        #         Provider: ECS
+        #       Configuration:
+        #         ClusterName: !Ref ECSCluster
+        #         ServiceName: !GetAtt ECSService.Name
+        #         FileName: imagedefinitions.json
+        #       InputArtifacts:
+        #         - Name: BuildOutput
+        #       RunOrder: 4
+        - Name: Deploy
+          Actions:
+            - Name: ImageDeployment
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Version: "1"
+                Provider: CodeBuild
+              Configuration:
+                ProjectName: !Ref CodeDeployProject
+              Namespace: BuildVariables1
+              InputArtifacts:
+                - Name: SourceOutput
+              OutputArtifacts:
+                - Name: BuildOutput1
+              RunOrder: 4
+      ArtifactStore:
+        Type: S3
+        Location: !Ref CodePipelineArtifactStoreBucket
+
+  InspectorPipelineApprovalTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ContainerImageApprovals
+      AttributeDefinitions:
+        - AttributeName: "ImageDigest"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "ImageDigest"
+          KeyType: "HASH"
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  ContainerScanResultsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: "/"
+
+  ContainerScanResultsPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: logs:CreateLogGroup
+            Resource: !Join
+              - ":"
+              - - "arn:aws:logs"
+                - !Ref AWS::Region
+                - !Ref AWS::AccountId
+                - "*"
+          - Effect: Allow
+            Action:
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Resource: !Join
+              - ":"
+              - - "arn:aws:logs"
+                - !Ref AWS::Region
+                - !Ref AWS::AccountId
+                - "log-group:/aws/lambda/eval-container-scan-results"
+                - "*"
+          - Effect: Allow
+            Action:
+              - codepipeline:PutApprovalResult
+              - codepipeline:GetPipelineState
+            Resource: "*"
+          - Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:DeleteItem
+              - dynamodb:PutItem
+            Resource: !Join
+              - ":"
+              - - "arn:aws:dynamodb"
+                - !Ref AWS::Region
+                - !Ref AWS::AccountId
+                - !Join
+                  - "/"
+                  - - "table"
+                    - !Ref InspectorPipelineApprovalTable
+      Roles:
+        - !Ref ContainerScanResultsRole
+
+  InspectorScanEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: InspectorContainerScanStatus
+      Description: "Event looking for messages from Inspector related to container scan status"
+      EventPattern:
+        source:
+          - "aws.inspector2"
+        detail-type:
+          - "Inspector2 Scan"
+      Targets:
+        - Arn: !GetAtt EvalContainerScanResults.Arn
+          Id: "InspectorScanLambda"
+
+  EvalContainerScanResultsPerms:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref EvalContainerScanResults
+      Action: lambda:InvokeFunction
+      SourceArn: !GetAtt InspectorScanEventRule.Arn
+      Principal: events.amazonaws.com
+
+  ProcessBuildApprovalMsgPerms:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref ProcessPipelineApprovalMsg
+      Action: lambda:InvokeFunction
+      SourceArn: !Ref BuildApprovalSNSTopic
+      Principal: sns.amazonaws.com
+
+  PipelineApprovalMsgRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: "/"
+
+  PipelineApprovalMsgPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: logs:CreateLogGroup
+            Resource: !Join
+              - ":"
+              - - "arn:aws:logs"
+                - !Ref AWS::Region
+                - !Ref AWS::AccountId
+                - "*"
+          - Effect: Allow
+            Action:
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Resource: !Join
+              - ":"
+              - - "arn:aws:logs"
+                - !Ref AWS::Region
+                - !Ref AWS::AccountId
+                - "log-group:/aws/lambda/process-build-approval-msg"
+                - "*"
+          - Effect: Allow
+            Action: dynamodb:PutItem
+            Resource: !Join
+              - ":"
+              - - "arn:aws:dynamodb"
+                - !Ref AWS::Region
+                - !Ref AWS::AccountId
+                - !Join
+                  - "/"
+                  - - "table"
+                    - !Ref InspectorPipelineApprovalTable
+      Roles:
+        - !Ref PipelineApprovalMsgRole
+
+  ProcessPipelineApprovalMsg:
+    Type: AWS::Lambda::Function
+    DependsOn: PipelineApprovalMsgRole
+    Properties:
+      FunctionName: "process-build-approval-msg"
+      Handler: index.lambda_handler
+      Role: !GetAtt PipelineApprovalMsgRole.Arn
+      Runtime: python3.7
+      Timeout: 30
+      Code:
+        ZipFile: |
+          # Function that will process the SNS message sent about a pipeline approval
+          # request for a container build pipeline.  Information from the message
+          # will be stored in a DynamoDB table for further reference
+
+          import json
+          import re
+          import boto3
+          import logging
+          from datetime import datetime
+
+          logger = logging.getLogger()
+          logger.setLevel(logging.INFO)
+
+          dynamo_client = boto3.resource('dynamodb')
+
+          def lambda_handler(event, context):
+              logger.info('Function Event')
+              logger.info(event)
+          
+              sns_message = json.loads(event['Records'][0]['Sns']['Message'])
+
+              token = sns_message['approval']['token']
+              pipeline = sns_message['approval']['pipelineName']
+              stage = sns_message['approval']['stageName']
+              approval_action = sns_message['approval']['actionName']
+              custom_data=sns_message['approval']['customData']
+
+              image_digest = custom_data.split("=")[1]
+
+              table=dynamo_client.Table('ContainerImageApprovals')
+              response = table.put_item(
+                  Item={
+                      'ImageDigest': image_digest,
+                      'ApprovalToken': token,
+                      'PipelineName': pipeline,
+                      'Stage': stage,
+                      'ActionName': approval_action,
+                      'InsertDate': datetime.utcnow().isoformat()
+                      }
+              )
+          
+              logger.info('Table put_item response')
+              logger.info(response)
+
+              return {
+                  'statusCode': 200
+              }
+
+  EvalContainerScanResults:
+    Type: AWS::Lambda::Function
+    DependsOn: ContainerScanResultsRole
+    Properties:
+      FunctionName: "eval-container-scan-results"
+      Handler: index.lambda_handler
+      Role: !GetAtt ContainerScanResultsRole.Arn
+      Runtime: python3.7
+      Timeout: 30
+      Environment:
+        Variables:
+          Critical_Finding_Threshold: 0
+          High_Finding_Threshold: 0
+          Medium_Finding_Threshold: 10
+          Low_Finding_Threshold: 15
+      Code:
+        ZipFile: |
+          '''Function that will take in final scan results from the Inspector2 Scan event bridge message \
+          and evaluate the results to determine if the image can be deployed'''
+
+          import os
+          import logging
+          from datetime import datetime
+          import boto3
+
+          logger = logging.getLogger()
+          logger.setLevel(logging.INFO)
+
+          pipeline_client = boto3.client('codepipeline')
+          dynamo_client = boto3.resource('dynamodb')
+
+
+          def update_staging_entry(search_digest, status):
+            '''Takes in a container image digest and approval status and puts into DynamoDB'''
+
+            logger.info('Updating Image Approval Stage entry')
+
+            table=dynamo_client.Table('ContainerImageApprovals')
+            table.put_item(
+              Item={
+                'ImageDigest': search_digest + '##' + status,
+                'InsertDate': datetime.utcnow().isoformat()
+              }
+            )
+
+          def retrieve_image_approval_details(search_digest):
+            '''Takes in a container image digest and looks it up in a DynamoDB table'''
+
+            logger.info('Retrieving image approval stage details.')
+
+            # Get the info from dynamo table based on the digest value
+            table=dynamo_client.Table('ContainerImageApprovals')
+            response = table.get_item(
+              Key={
+                'ImageDigest': search_digest
+              }
+            )
+
+            logger.info(response)
+
+            action_name = response['Item']['ActionName']
+            stage = response['Item']['Stage']
+            approval_token = response['Item']['ApprovalToken']
+            pipeline_name = response['Item']['PipelineName']
+
+            return action_name, stage, approval_token, pipeline_name
+
+
+
+          def update_pipeline_approval(pipeline_info, approval_msg, status):
+            '''sends approval results to appropriate pipeline stage'''
+
+            logger.info('Starting pipeline approval')
+
+
+            #put approval result
+            pipeline_client.put_approval_result(
+                pipelineName=pipeline_info[3],
+                stageName=pipeline_info[1],
+                actionName=pipeline_info[0],
+                result={
+                    'summary': approval_msg,
+                    'status': status
+                },
+                token=pipeline_info[2]
+          )
+
+            logger.info('Pipeline Approval Complete')
+
+          def log_final_results(approval,image_digest, repository_arn, image_tags, reason, sev_list):
+            '''Writes the final results of the image vulnerability assessment'''
+
+            logger.info('***********************************')
+            logger.info('Final container vulnerability assessment details')
+            logger.info('------------------------')
+            logger.info('Approval Status: %s', approval)
+            logger.info('Approval Reason: %s', reason)
+            logger.info('ImageDigest: %s', image_digest)
+            logger.info('ImageARN: %s', repository_arn)
+            logger.info('Image Tags: %s', image_tags)
+            logger.info('Critical Vulnerabilities: %s', sev_list.get('CRITICAL',0))
+            logger.info('High Vulnerabilities: %s', sev_list.get('HIGH',0))
+            logger.info('Medium Vulnerabilities: %s', sev_list.get('MEDIUM',0))
+            logger.info('***********************************')
+
+          ## Main ##
+          def lambda_handler(event, context):
+            '''Main lambda handler'''
+
+            logger.info('Event Data')
+            logger.info(event)
+
+            scan_status = event["detail"]["scan-status"]
+            logger.info('Event scan status: %s', scan_status)
+
+            # We only want to move forward if the scan status is SUCCESSFUL
+            if scan_status != 'INITIAL_SCAN_COMPLETE':
+              logger.info('Scan status is not successful.  Not processing further.')
+              #we can use this status to fail the pipeline if needed
+              return 'Scan status is not successful.  Not processing further.'
+
+
+            repository_arn = event["detail"]["repository-name"]
+            logger.info('Repository ARN: %s', repository_arn)
+            resource_type = repository_arn.split(":")[2]
+            logger.info('Resource type: %s', resource_type)
+
+            # Only move forward if the resource type in the message is ecr
+            if resource_type != 'ecr':
+              logger.info('Resource Type: %s', resource_type)
+              logger.info('Resource type is not ECR.  Exiting.')
+              return 'Resource type is not ECR.  Exiting.'
+
+            image_digest = event["detail"]["image-digest"]
+            image_tags = event["detail"]["image-tags"]
+            logger.info('Image digest: %s', image_digest)
+            logger.info('Image tags: %s', image_tags)
+
+
+            # Compare finding severity counts against thresholds
+
+            critical_max = int(os.environ['Critical_Finding_Threshold'])
+            high_max = int(os.environ['High_Finding_Threshold'])
+            medium_max = int(os.environ['Medium_Finding_Threshold'])
+            threshold_breach = False
+
+            if event["detail"]["finding-severity-counts"]["CRITICAL"] !=0 \
+                and event["detail"]["finding-severity-counts"]["CRITICAL"] >= critical_max:
+
+              threshold_breach = True
+              logger.info("*******************************")
+              logger.info("We have a CRITICAL vulnerability")
+              logger.info("*******************************")
+
+              deploy_approved='Rejected'
+              reason=f'Critical vulnerability threshold of {critical_max} exceeded'
+
+              logger.info('Deployment is NOT approved')
+              logger.info('Writing final results')
+
+              log_final_results(deploy_approved, image_digest, repository_arn, image_tags, \
+                        reason, event["detail"]["finding-severity-counts"])
+
+              #Reject the pipeline
+              pipeline_info = retrieve_image_approval_details(image_digest)
+              update_pipeline_approval(pipeline_info, reason, deploy_approved)
+
+              #Record status in pipeline staging table
+              update_staging_entry(image_digest, deploy_approved)
+
+              return reason
+
+            if event["detail"]["finding-severity-counts"]["HIGH"] != 0 \
+                and event["detail"]["finding-severity-counts"]["HIGH"] >= high_max:
+
+              threshold_breach = True
+              logger.info ("*******************************")
+              logger.info ("We have a HIGH vulnerability")
+              logger.info ("*******************************")
+
+              deploy_approved='Rejected'
+              reason=f'High vulnerability threshold of {high_max} exceeded'
+
+              logger.info('Deployment is NOT approved')
+              logger.info('Writing final results')
+
+              log_final_results(deploy_approved, image_digest, repository_arn, image_tags, \
+                        reason, event["detail"]["finding-severity-counts"])
+
+              #Reject the pipeline
+              pipeline_info = retrieve_image_approval_details(image_digest)
+              update_pipeline_approval(pipeline_info, reason, deploy_approved)
+
+              #Record status in pipeline staging table
+              update_staging_entry(image_digest, deploy_approved)
+
+              return reason
+
+            if event["detail"]["finding-severity-counts"]["MEDIUM"] != 0 \
+                and event["detail"]["finding-severity-counts"]["MEDIUM"] >= medium_max:
+
+              threshold_breach = True
+              logger.info ("*******************************")
+              logger.info ("We have a MEDUIM vulnerability")
+              logger.info ("*******************************")
+
+              deploy_approved='Rejected'
+              reason=f'Medium vulnerability threshold of {medium_max} exceeded'
+
+              logger.info('Deployment is NOT approved')
+              logger.info('Writing final results')
+
+              log_final_results(deploy_approved, image_digest, repository_arn, image_tags,\
+                        reason, event["detail"]["finding-severity-counts"])
+
+              #Reject the pipeline
+              pipeline_info = retrieve_image_approval_details(image_digest)
+              update_pipeline_approval(pipeline_info, reason, deploy_approved)
+
+              #Record status in pipeline staging table
+              update_staging_entry(image_digest, deploy_approved)
+
+              return reason
+
+            if threshold_breach is False:
+              #None of the other threshold statements triggered so we are assuming good to go
+
+              deploy_approved = 'Approved'
+              reason='All vulnerabilities below thresholds'
+
+              logger.info('Deployment IS approved')
+              logger.info('Writing final results')
+
+              log_final_results(deploy_approved, image_digest, repository_arn, image_tags,\
+                        reason, event["detail"]["finding-severity-counts"])
+
+              #Approve the pipeline
+              pipeline_info = retrieve_image_approval_details(image_digest)
+              update_pipeline_approval(pipeline_info, reason, deploy_approved)
+
+              #Record status in pipeline staging table
+              update_staging_entry(image_digest, deploy_approved)
+
+            return {
+                  'statusCode': 200,
+              }
+
+  CloudwatchLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: InspectorBlogCluster
+      RetentionInDays: 30
+
