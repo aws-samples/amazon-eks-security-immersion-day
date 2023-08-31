@@ -12,15 +12,12 @@ params:
 infrastructure:
   cloudformationTemplates:
     - templateLocation: static/eks-bootstrap-template-ws.yaml
-    - templateLocation: static/inspector-codepipeline.yaml
+    #- templateLocation: static/eks-spot-workshop-quickstart-cnf.yaml
       label: Amazon EKS Security Immersion Day
       parameters:
         - templateParameter: EETeamRoleArn
           defaultValue: "{{.ParticipantRoleArn}}"
-        - templateParameter: MyAssetsBucketName
-          defaultValue: "{{.AssetsBucketName}}"
-        - templateParameter: MyAssetsBucketPrefix
-          defaultValue: "{{.AssetsBucketPrefix}}"
+
  
 # END Infrastructure
 
