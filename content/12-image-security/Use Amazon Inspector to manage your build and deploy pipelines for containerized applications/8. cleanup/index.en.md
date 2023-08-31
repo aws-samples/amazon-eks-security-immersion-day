@@ -9,5 +9,14 @@ If are running this workshop in your own account, you would need to follow the b
 
 1. Amazon Inspector:
     Navigate to the Amazon Inspector console, select **Settings**, then **General**. For **Deactivate Amazon Inspector**, select **Deactivate Inspector**. In the confirmation prompt, type **deactivate** then select **Deactivate Inspector**.
-2. Amazon ECR container repository:
-    Navigate to the Amazon ECR console, select **Repositories**, and then select the **monolith-service**. Select **Delete**. In the confirmation prompt, type **delete** then select **Delete**.
+2. Amazon Security Hub:
+    Navigate to the Amazon Security Hub, select **Settings**, and then disable the **Security Hub**
+3. Delete cloudformation stack:
+   Navigate to the Amazon Security Hub, select **Settings**, and then disable the **Security Hub**
+```bash
+cd ~/environment
+
+aws cloudformation delete-stack --stack-name inspector-container-scan
+
+```
+

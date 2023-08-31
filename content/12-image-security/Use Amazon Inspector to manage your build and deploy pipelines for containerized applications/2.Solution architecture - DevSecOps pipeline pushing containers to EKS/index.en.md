@@ -1,5 +1,5 @@
 ---
-title : "Solution Architecture - DevSecOps piepline pushing containers to EKS"
+title : "Solution Architecture - DevSecOps pipeline pushing containers to EKS"
 weight : 21
 ---
 

@@ -1,5 +1,5 @@
 ---
-title : "Solution Architecture - DevSecOps piepline pushing containers to EKS"
+title : "Run cloudformation to create DevSecOps piepline"
 weight : 21
 ---
 
@@ -15,7 +15,7 @@ This section will focus on building code commit repository and codepipeline for 
 export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
 export AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
 ```
-2.  Clone the sample application github repository.
+2.  Run cloudformation to create code repository codepipeline.
 ```bash
 cd ~/environment
  aws cloudformation deploy --stack-name inspector-container-scan --template-file inspector-container-scan.yaml --parameter-overrides CodeBucket=inspectpr-pipeline CodeKey=InspectorRepo/SourceOutput/code.zip --capabilities CAPABILITY_NAMED_IAM
@@ -23,3 +23,5 @@ cd ~/environment
 
 
 The deployment of this CloudFormation stack will take 3–5 minutes.
+
+Cloudformation script will create the following
