@@ -12,7 +12,7 @@ params:
 infrastructure:
   cloudformationTemplates:
     - templateLocation: static/eks-bootstrap-template-ws.yaml
-    #- templateLocation: static/eks-spot-workshop-quickstart-cnf.yaml
+    - templateLocation: static/inspector-codepipeline.yaml
       label: Amazon EKS Security Immersion Day
       parameters:
         - templateParameter: EETeamRoleArn
