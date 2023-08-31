@@ -9,9 +9,8 @@ For the purpose of this workshop, you will use Amazon Elastic Container Registry
 This section will focus on building code commit repository and codepipeline for continous integration/deployment .
 
 Click [here](https://ws-assets-prod-iad-r-pdx-f3b3f9f1a7d6a3d0.s3.us-west-2.amazonaws.com/165b0729-2791-4452-8920-53b734419050/inspector-codepipeline.yaml) to download cloudformation template to create code commit repository and codepipeline
-Click [here](https://ws-assets-prod-iad-r-pdx-f3b3f9f1a7d6a3d0.s3.us-west-2.amazonaws.com/165b0729-2791-4452-8920-53b734419050/inspector-pipeline/SourceOutput/code.zip) to download code to be checked in for the exercise
 
-Upload the files downloaded to cloud9 environment
+Upload the Cloudformation template downloaded to cloud9 environment
 ![Enable Inspector!](/static/images/image-security/devsecops-inspector/cloud9-uploadfile.png)
 
 1. Set below environment variables
@@ -22,7 +21,7 @@ export AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/doc
 2.  Run cloudformation to create code repository codepipeline.
 ```bash
 cd ~/environment
- aws cloudformation deploy --stack-name inspector-container-scan --template-file inspector-codepipeline.yaml --parameter-overrides CodeBucket=ws-assets-prod-iad-r-pdx-f3b3f9f1a7d6a3d0.s3.us-west-2.amazonaws.com CodeKey=165b0729-2791-4452-8920-53b734419050/inspector-pipeline/SourceOutput/code.zip --capabilities CAPABILITY_NAMED_IAM
+ aws cloudformation deploy --stack-name inspector-container-scan --template-file inspector-codepipeline.yaml --parameter-overrides CodeBucket=ws-assets-prod-iad-r-pdx-f3b3f9f1a7d6a3d0 CodeKey=165b0729-2791-4452-8920-53b734419050/inspector-pipeline/SourceOutput/code.zip --capabilities CAPABILITY_NAMED_IAM
 ```
 
 
