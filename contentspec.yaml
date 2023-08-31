@@ -17,6 +17,10 @@ infrastructure:
       parameters:
         - templateParameter: EETeamRoleArn
           defaultValue: "{{.ParticipantRoleArn}}"
+        - templateParameter: MyAssetsBucketName
+          defaultValue: "{{.AssetsBucketName}}"
+        - templateParameter: MyAssetsBucketPrefix
+          defaultValue: "{{.AssetsBucketPrefix}}"
  
 # END Infrastructure
 
