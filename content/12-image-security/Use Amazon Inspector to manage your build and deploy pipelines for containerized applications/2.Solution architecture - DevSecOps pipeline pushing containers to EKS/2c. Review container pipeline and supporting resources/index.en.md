@@ -14,11 +14,11 @@ Below is a screenshot of CodePipeline once all CloudFormation templates are comp
 
 Here is further explanation for each stages of Code Pipeline.
 
-Source stage
+### Source stage
 
 1. The pipeline is connected to repository.Any pushes to the repository,the pipeline will start
 
-Build stage
+### Build stage
 
 1. buildspec.yaml is used for compiling and creating a container.
 2. Container is pushed into [Elastic container repository](https://console.aws.amazon.com/ecr/repositories?)
@@ -31,7 +31,7 @@ Build stage
 3. The image is tagged as `latest` and stored in ECR.
 
 
-Container Vulnerability Assessment
+### Container Vulnerability Assessment
 
 1. Request for approval is sent by using [Amazon simple notification service (SNS)](https://console.aws.amazon.com/sns)
 2. Lambda associated to the SNS topic stores details about the container image and active pipeline.This is needed to send the response back to pipeline stage
@@ -41,6 +41,6 @@ Container Vulnerability Assessment
 6. Lambda retrieves pipeline details and sends approval/rejection message to pipeline stage
 
 
-Deploy stage
+### Deploy stage
 
-1. Once the ContainerVulnerabilityAssessment stage is approved, the container is deployed into the EKS cluster
+1. Once the ContainerVulnerabilityAssessment stage is approved, the container is deployed into the EKS cluster using kubectl

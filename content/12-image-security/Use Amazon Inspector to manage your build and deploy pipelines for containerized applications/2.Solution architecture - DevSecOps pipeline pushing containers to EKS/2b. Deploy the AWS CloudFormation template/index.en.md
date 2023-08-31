@@ -25,3 +25,8 @@ cd ~/environment
 The deployment of this CloudFormation stack will take 3–5 minutes.
 
 Cloudformation script will create the following
+1. Code commit Repository
+2. Code pipeline
+3. SNS topic to request approval messages
+3. Lambda to auto approve/reject pipeline based on inspector scan summary
+4. DynamoDb table to store pipeline stage and container details
