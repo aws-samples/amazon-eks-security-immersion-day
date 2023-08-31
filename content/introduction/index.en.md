@@ -36,6 +36,7 @@ As part of this workshop we will cover the following modules:
 | | [Using Open Policy Agent (OPA) and Gatekeeper for policy-based control in Amazon EKS](/3-pod-security/opa) | 45 mins | N/A |
 | **Detective Controls** | [Amazon GuardDuty Protection for EKS - Audit Log Monitoring](/5-detective-controls/guardDuty-protection-for-eks/eks-audit-logs) | 45 mins | N/A |
 | | [Amazon GuardDuty Protection for EKS - Runtime Monitoring](/5-detective-controls/guardDuty-protection-for-eks/eks-runtime) | 45 mins | N/A |
+| | [Analyze Amazon EKS Control Plane logs and Audit CloudTrail logs](/5-detective-controls/analyze-controlplane-cloudtrail-logs) | 60 mins | N/A |
 | **Regulatory Compliance**| [Validating Amazon EKS optimized Bottlerocket AMI against the CIS Benchmark](/10-regulatory-compliance/cis-bottlerocket-eks/) | 60 mins | N/A |
 |  | [CIS EKS Benchmark Assessment Using Kube-bench](/10-regulatory-compliance/kube-bench/) | 45 mins | N/A |
 | **Image Security** | [Container Image CVE Management with Amazon Inspector](/12-image-security/manage-image-cve-with-inspector/) | 30 mins | N/A |
