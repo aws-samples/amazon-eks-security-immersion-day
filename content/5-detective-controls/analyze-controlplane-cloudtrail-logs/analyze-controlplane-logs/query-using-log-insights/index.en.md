@@ -57,7 +57,7 @@ First navigate to CloudWatch Logs Insights in the console:
 
 https://console.aws.amazon.com/cloudwatch/home#logsV2:logs-insights
 
-Select the "Log Group" /aws/eks/eksworkshop-eksctl/cluster and click "Run Query". Keep the default query for now.
+Select the "Log Group" **/aws/eks/eksworkshop-eksctl/cluster** and click **Run Query**. Keep the default query for now.
 
 ![EKS Control Plane Logging View](/static/images/detective-controls/log-insights/log-insights-1.png)
 
@@ -88,7 +88,7 @@ First navigate to CloudWatch Logs Insights in the console:
 
 https://console.aws.amazon.com/cloudwatch/home#logsV2:logs-insights
 
-Select the "Log Group" /aws/eks/eksworkshop-eksctl/cluster  
+Select the "Log Group" **/aws/eks/eksworkshop-eksctl/cluster**
 
 ::alert[If your initial search didn't find any results, try extending the search time in Logs Insights and perform the query again.]{type="error"}
 

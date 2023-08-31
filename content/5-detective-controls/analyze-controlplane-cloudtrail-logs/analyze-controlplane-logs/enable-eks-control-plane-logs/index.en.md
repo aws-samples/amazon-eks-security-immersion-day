@@ -18,7 +18,7 @@ aws eks describe-cluster --name eksworkshop-eksctl --query 'cluster.logging'
 ```
 
 :::expand{header="Check Output"}
-```
+```json
 {
     "clusterLogging": [
         {
@@ -48,7 +48,7 @@ You will see one of these messages, depending on the status of options prior run
 ```
 An error occurred (InvalidParameterException) when calling the UpdateClusterConfig operation: No changes needed for the logging config provided
 ```
-```
+```json
 {
     "update": {
         "id": "7b8c0e2f-0eed-4979-bf7a-e5c354013ce9",
@@ -108,7 +108,7 @@ aws logs describe-log-streams --log-group-name /aws/eks/eksworkshop-eksctl/clust
 ```
 :::expand{header="Check Output"}
 The output contained 10 log streams for log group /aws/eks/eksworkshop-eksctl/cluster
-```
+```json
 [
     "kube-controller-manager-9ac68952bbfa494eb1625e2ff3f07bf7",
     "kube-controller-manager-96624a2fbc193d5ccd64f9f1ddbebbe3",
