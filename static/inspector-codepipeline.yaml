@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: This template deploys a solution to support building, approving, and deploying a container image.  Included resouces include CodePipeline, CodeBuild, ECS, Lambda, and DynamoDb.
+Description: This template deploys a solution to support building, approving, and deploying a container image.  Included resouces include CodePipeline, CodeBuild, EKS, Lambda, and DynamoDb.
 
 # aws cloudformation deploy --stack-name blog-base-setup --template-file inspector-container-scan-blog-template.yaml --parameter-overrides CodeBucket=<bucketname> CodeKey=<Zipfilename> --capabilities CAPABILITY_NAMED_IAM
 
@@ -346,7 +346,6 @@ Resources:
                   - cloudformation.amazonaws.com
                   - elasticbeanstalk.amazonaws.com
                   - ec2.amazonaws.com
-                  - ecs-tasks.amazonaws.com
             Effect: Allow
             Resource: "*"
           - Action:
@@ -369,7 +368,6 @@ Resources:
               - cloudformation:*
               - rds:*
               - sqs:*
-              - ecs:*
             Effect: Allow
             Resource: "*"
           - Action:
@@ -459,21 +457,7 @@ Resources:
                 NotificationArn: !Ref BuildApprovalSNSTopic
                 CustomData: Image_Digest=#{BuildVariables.IMAGE_DIGEST}
               RunOrder: 3
-        # - Name: Deploy
-        #   Actions:
-        #     - Name: ImageDeployment
-        #       ActionTypeId:
-        #         Category: Deploy
-        #         Owner: AWS
-        #         Version: '1'
-        #         Provider: ECS
-        #       Configuration:
-        #         ClusterName: !Ref ECSCluster
-        #         ServiceName: !GetAtt ECSService.Name
-        #         FileName: imagedefinitions.json
-        #       InputArtifacts:
-        #         - Name: BuildOutput
-        #       RunOrder: 4
+
         - Name: Deploy
           Actions:
             - Name: ImageDeployment
