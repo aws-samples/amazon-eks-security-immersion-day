@@ -872,6 +872,6 @@ Outputs:
 
   CodeBuildSecurityGroup:
     Description: 'Security group for codebuild'
-    Value: !Ref CodeBuildSecurityGroup
+    Value: !GetAtt Cloud9RoleAttacherCustomResource.SecurityGroupId
     Export:
       Name: CodeBuildSecurityGroup

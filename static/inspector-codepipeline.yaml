@@ -259,6 +259,17 @@ Resources:
             Effect: Allow
             Action:
               - sts:AssumeRole
+          - Resource: !Sub arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/${ContainerRepository}
+            Effect: Allow
+            Action:
+              - ecr:GetDownloadUrlForLayer
+              - ecr:BatchGetImage
+              - ecr:BatchCheckLayerAvailability
+              - ecr:PutImage
+              - ecr:InitiateLayerUpload
+              - ecr:UploadLayerPart
+              - ecr:CompleteLayerUpload
+
       Roles:
         - !Ref CodeBuildServiceRole
 
@@ -308,7 +319,7 @@ Resources:
                   - ec2:DescribeSecurityGroups
                   - ec2:DescribeVpcs
                   - ec2:CreateNetworkInterfacePermission
-              - Resource: !Sub arn:aws:s3:::${CodePipelineArtifactBucket}/*
+              - Resource: !Sub arn:aws:s3:::${CodePipelineArtifactStoreBucket}/*
                 Effect: Allow
                 Action:
                   - s3:GetObject
@@ -379,11 +390,13 @@ Resources:
             Value: !Sub arn:aws:iam::${AWS::AccountId}:role/${KubectlRoleName}
         PrivilegedMode: true
       VpcConfig:
-        SecurityGroupIds:
-          -  ${!ImportValue CodeBuildSecurityGroup}
+        VpcId: !ImportValue vpcId
         Subnets:
-          - ${!ImportValue SubnetAPrivate}
-        VpcId: ${!ImportValue vpcId}
+          - !ImportValue SubnetAPrivate
+        SecurityGroupIds:
+          -  !ImportValue CodeBuildSecurityGroup
+
+
       Name: container-deploy
       ServiceRole: !Ref CodeBuildServiceRole
 
