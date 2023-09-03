@@ -49,6 +49,11 @@ Parameters:
 
 Resources:
 
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow http to client host
+      VpcId: !ImportValue vpcId
 
   CodePipelineArtifactBucket:
     Type: AWS::S3::Bucket
@@ -236,6 +241,17 @@ Resources:
           - Resource: '*'
             Effect: Allow
             Action:
+              - ec2:CreateNetworkInterface
+              - ec2:DescribeDhcpOptions
+              - ec2:DescribeNetworkInterfaces
+              - ec2:DeleteNetworkInterface
+              - ec2:DescribeSubnets
+              - ec2:DescribeSecurityGroups
+              - ec2:DescribeVpcs
+              - ec2:CreateNetworkInterfacePermission
+          - Resource: '*'
+            Effect: Allow
+            Action:
               - eks:Describe*
           - Resource: !Sub arn:aws:s3:::${CodePipelineArtifactStoreBucket}/*
             Effect: Allow
@@ -368,11 +384,10 @@ Resources:
         PrivilegedMode: true
       VpcConfig:
         SecurityGroupIds:
-          - !ImportValue vpcId
+          - !Ref InstanceSecurityGroup
         Subnets:
-          - !ImportValue SubnetAPrivate
-        VpcId:
-          - !ImportValue vpcId
+          - '${!ImportValue SubnetAPrivate}'
+        VpcId: ${!ImportValue vpcId}
       Name: container-deploy
       ServiceRole: !Ref CodeBuildServiceRole
 
@@ -1008,8 +1023,3 @@ Resources:
       RetentionInDays: 30
 
 
-  InstanceSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: Allow http to client host
-      VpcId: !ImportValue vpcId

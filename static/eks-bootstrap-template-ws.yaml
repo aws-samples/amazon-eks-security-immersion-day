@@ -858,3 +858,9 @@ Outputs:
     Value: !Ref PrivateSubnetA
     Export:
       Name: SubnetAPrivate
+
+  InstSecurityGroup:
+    Description: 'Subnet A private'
+    Value: !GetAtt Cloud9RoleAttacherCustomResource.SecurityGroupId
+    Export:
+      Name: SecurityGrp
