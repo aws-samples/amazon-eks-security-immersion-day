@@ -49,11 +49,7 @@ Parameters:
 
 Resources:
 
-  InstanceSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: Allow http to client host
-      VpcId: !ImportValue vpcId
+
 
   CodePipelineArtifactBucket:
     Type: AWS::S3::Bucket
@@ -384,9 +380,9 @@ Resources:
         PrivilegedMode: true
       VpcConfig:
         SecurityGroupIds:
-          - !Ref InstanceSecurityGroup
+          -  ${!ImportValue CodeBuildSecurityGroup}
         Subnets:
-          - '${!ImportValue SubnetAPrivate}'
+          - ${!ImportValue SubnetAPrivate}
         VpcId: ${!ImportValue vpcId}
       Name: container-deploy
       ServiceRole: !Ref CodeBuildServiceRole
