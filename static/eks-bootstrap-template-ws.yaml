@@ -843,3 +843,18 @@ Resources:
       Region: !Sub "${AWS::Region}"
       InstanceRoleArn: !GetAtt Cloud9InstanceRole.Arn
       KeyMaterial: !GetAtt SSHKeyPairCustomResource.KeyMaterial
+
+Outputs:
+
+  VPC:
+    Description: 'VPC'
+    Value: !Ref VPC
+    Export:
+      Name: vpcId
+
+
+  SubnetAPrivate:
+    Description: 'Subnet A private'
+    Value: !Ref PrivateSubnetA
+    Export:
+      Name: SubnetAPrivate

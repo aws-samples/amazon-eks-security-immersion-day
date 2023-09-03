@@ -22,7 +22,37 @@ Parameters:
     Type: String
     Default: 10.254.0.0/24
 
+  CodeBuildDockerImage:
+    Type: String
+    Default: aws/codebuild/standard:4.0
+    Description: Default AWS CodeBuild image for Ubuntu 18.04
+    MinLength: 3
+    MaxLength: 100
+    ConstraintDescription: You must enter a CodeBuild Docker image
+
+  KubectlRoleName:
+    Type: String
+    Default: EksWorkshopCodeBuildKubectlRole
+    Description: IAM role used by kubectl to interact with EKS cluster
+    MinLength: 3
+    MaxLength: 100
+    ConstraintDescription: You must enter a kubectl IAM role
+
+  EksClusterName:
+    Type: String
+    Description: The name of the EKS cluster created
+    Default: eksworkshop-eksctl
+    MinLength: 1
+    MaxLength: 100
+    ConstraintDescription: You must enter the EKS cluster name
+
+
 Resources:
+
+
+  CodePipelineArtifactBucket:
+    Type: AWS::S3::Bucket
+
   ContainerComponentsRepo:
     Type: AWS::CodeCommit::Repository
     Properties:
@@ -109,7 +139,7 @@ Resources:
   ContainerRepository:
     Type: AWS::ECR::Repository
     Properties:
-      RepositoryName: inspector-blog-images
+      RepositoryName: inspector-workshop
 
   CodePipelineArtifactStoreBucket:
     Type: AWS::S3::Bucket
@@ -165,17 +195,6 @@ Resources:
               Service: codebuild.amazonaws.com
             Action: sts:AssumeRole
 
-  CodeBuildDeployServiceRole:
-    Type: AWS::IAM::Role
-    Properties:
-      Path: /
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: codebuild.amazonaws.com
-            Action: sts:AssumeRole
 
   CodeBuildServicePolicy:
     Type: AWS::IAM::ManagedPolicy
@@ -214,52 +233,9 @@ Resources:
               - ecr:BatchGetImage
               - ecr:GetDownloadUrlForLayer
               - ecr:DescribeImages
-          - Resource: !Sub arn:aws:s3:::${CodePipelineArtifactStoreBucket}/*
+          - Resource: '*'
             Effect: Allow
             Action:
-              - s3:GetObject
-              - s3:PutObject
-              - s3:GetObjectVersion
-      Roles:
-        - !Ref CodeBuildServiceRole
-
-  CodeBuildDeployServicePolicy:
-    Type: AWS::IAM::ManagedPolicy
-    Properties:
-      PolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Resource: "*"
-            Effect: Allow
-            Action:
-              - logs:CreateLogGroup
-              - logs:CreateLogStream
-              - logs:PutLogEvents
-          - Resource: !Join
-              - ":"
-              - - "arn:aws:codebuild"
-                - !Ref AWS::Region
-                - !Ref AWS::AccountId
-                - "report-group/container-build-blog-*"
-            Effect: Allow
-            Action:
-              - codebuild:CreateReportGroup
-              - codebuild:CreateReport
-              - codebuild:UpdateReport
-              - codebuild:BatchPutTestCases
-              - codebuild:BatchPutCodeCoverages
-          - Resource: "*"
-            Effect: Allow
-            Action:
-              - ecr:BatchCheckLayerAvailability
-              - ecr:CompleteLayerUpload
-              - ecr:GetAuthorizationToken
-              - ecr:InitiateLayerUpload
-              - ecr:PutImage
-              - ecr:UploadLayerPart
-              - ecr:BatchGetImage
-              - ecr:GetDownloadUrlForLayer
-              - ecr:DescribeImages
               - eks:Describe*
           - Resource: !Sub arn:aws:s3:::${CodePipelineArtifactStoreBucket}/*
             Effect: Allow
@@ -267,8 +243,77 @@ Resources:
               - s3:GetObject
               - s3:PutObject
               - s3:GetObjectVersion
+          - Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/${KubectlRoleName}
+            Effect: Allow
+            Action:
+              - sts:AssumeRole
       Roles:
-        - !Ref CodeBuildDeployServiceRole
+        - !Ref CodeBuildServiceRole
+
+
+  CodeBuildDeployServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/${KubectlRoleName}
+                Effect: Allow
+                Action:
+                  - sts:AssumeRole
+              - Resource: '*'
+                Effect: Allow
+                Action:
+                  - eks:Describe*
+              - Resource: '*'
+                Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+              - Resource: '*'
+                Effect: Allow
+                Action:
+                  - ecr:GetAuthorizationToken
+              - Resource: '*'
+                Effect: Allow
+                Action:
+                  - ec2:CreateNetworkInterface
+                  - ec2:DescribeDhcpOptions
+                  - ec2:DescribeNetworkInterfaces
+                  - ec2:DeleteNetworkInterface
+                  - ec2:DescribeSubnets
+                  - ec2:DescribeSecurityGroups
+                  - ec2:DescribeVpcs
+                  - ec2:CreateNetworkInterfacePermission
+              - Resource: !Sub arn:aws:s3:::${CodePipelineArtifactBucket}/*
+                Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:GetObjectVersion
+              - Resource: !Sub arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/${ContainerRepository}
+                Effect: Allow
+                Action:
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:BatchGetImage
+                  - ecr:BatchCheckLayerAvailability
+                  - ecr:PutImage
+                  - ecr:InitiateLayerUpload
+                  - ecr:UploadLayerPart
+                  - ecr:CompleteLayerUpload
+
+
 
   CodeBuildProject:
     Type: AWS::CodeBuild::Project
@@ -288,12 +333,13 @@ Resources:
           - Name: AWS_ACCOUNT_ID
             Value: !Ref AWS::AccountId
           - Name: IMAGE_REPO_NAME
-            Value: inspector-blog-images
+            Value: inspector-workshop
           - Name: IMAGE_TAG
             Value: latest
         PrivilegedMode: true
       Name: container-build
       ServiceRole: !Ref CodeBuildServiceRole
+
   CodeDeployProject:
     Type: AWS::CodeBuild::Project
     Properties:
@@ -304,7 +350,7 @@ Resources:
         BuildSpec: deployspec.yml
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
-        Image: aws/codebuild/standard:5.0
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:5.0
         Type: LINUX_CONTAINER
         EnvironmentVariables:
           - Name: AWS_DEFAULT_REGION
@@ -312,10 +358,21 @@ Resources:
           - Name: AWS_ACCOUNT_ID
             Value: !Ref AWS::AccountId
           - Name: IMAGE_REPO_NAME
-            Value: inspector-blog-images
+            Value: inspector-workshop
           - Name: IMAGE_TAG
             Value: latest
+          - Name: EKSCLUSTER
+            Value: !Ref EksClusterName
+          - Name: EKS_KUBECTL_ROLE_ARN
+            Value: !Sub arn:aws:iam::${AWS::AccountId}:role/${KubectlRoleName}
         PrivilegedMode: true
+      VpcConfig:
+        SecurityGroupIds:
+          - !ImportValue vpcId
+        Subnets:
+          - !ImportValue SubnetAPrivate
+        VpcId:
+          - !ImportValue vpcId
       Name: container-deploy
       ServiceRole: !Ref CodeBuildServiceRole
 
@@ -947,6 +1004,12 @@ Resources:
   CloudwatchLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: InspectorBlogCluster
+      LogGroupName: InspectorScanCluster
       RetentionInDays: 30
 
+
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow http to client host
+      VpcId: !ImportValue vpcId
