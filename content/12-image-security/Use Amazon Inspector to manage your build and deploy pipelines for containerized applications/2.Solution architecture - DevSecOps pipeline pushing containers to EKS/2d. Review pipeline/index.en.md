@@ -14,31 +14,29 @@ Below is a screenshot of CodePipeline once all CloudFormation templates are comp
 
 Here is further explanation for each stages of Code Pipeline.
 
-### Source stage
+## Source stage
 
-1. The pipeline is connected to repository.Any pushes to the repository,the pipeline will start
-
-### Build stage
-
-1. buildspec.yaml is used for compiling and creating a container.
-2. Container is pushed into [Elastic container repository](https://console.aws.amazon.com/ecr/repositories?)
-
-   a) An Amazon ECR private registry hosts your container images in a highly available and scalable architecture. You can use your private registry to manage private image repositories consisting of Docker and Open Container Initiative (OCI) images and artifacts.
-   ECR also integrates with the Docker CLI, so that you push and pull images from your development environments to your repositories.
-
-   b) ECR provides enhanced scanning in tandem with Amazon inspector.Enhanced scanning is a capability offered with Amazon Inspector which provides automated continuous scanning.
-   Inspector identifies vulnerabilities in both operating system and programming language (such as Python, Java, Ruby etc.) packages in real time.
-3. The image is tagged as `latest` and stored in ECR.
+1. When a new commit is made to the CodeCommit repository, an EventBridge rule, which is configured to look for updates to the CodeCommit repository, initiates the CodePipeline source action.
+2. The source action then collects files from the source repository and makes them available to the rest of the pipeline stages.
+3. The pipeline then moves to the build stage.
 
 
-### Container Vulnerability Assessment
+## Build stage
+
+1. In the build stage, CodeBuild extracts the Dockerfile that holds the container definition and the buildspec.yaml file that contains the overall build instructions
+2. CodeBuild creates the final container image and then pushes the container image to the designated Amazon ECR repository. 
+3. Amazon Inspector scanning begins to check the image for vulnerabilities.
+4. As part of the build, the image digest of the container image is stored as a variable in the build stage so that it can be used by later stages in the pipeline.
+
+## Container Vulnerability Assessment
 
 1. Request for approval is sent by using [Amazon simple notification service (SNS)](https://console.aws.amazon.com/sns)
 2. Lambda associated to the SNS topic stores details about the container image and active pipeline.This is needed to send the response back to pipeline stage
 3. Since Scan on push ie enabled during the ECR repository creation, the image will be automatically scanned by Amazon inspector for vulnerabilities.
 4. On completion of scan,Lambda function receives the Amazon inspector scan summary ,through [Amazon EventBridge ](https://console.aws.amazon.com/events).
 5. Lambda makes a decision on allowing image to be deployed
-6. Lambda retrieves pipeline details and sends approval/rejection message to pipeline stage
+6. Lambda retrieves pipeline details and sends auto rejection message if there are critical vulnerabilities found
+7. Users can also manually approve container vulnerability assessment in the pipeline
 
 
 ### Deploy stage

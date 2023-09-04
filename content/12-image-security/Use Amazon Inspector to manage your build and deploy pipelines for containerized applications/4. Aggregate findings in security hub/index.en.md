@@ -22,5 +22,5 @@ Amazon Inspector is integrated with Security Hub.This allows all findings from A
 Security Hub will include those findings in its analysis of your security posture.
 
 
-![Security hub](/static/images/image-security/devsecops-inspector/securityhub-summary.png)
+![Security hub](/static/images/image-security/devsecops-inspector/SecurityHub-summary.png)
 
