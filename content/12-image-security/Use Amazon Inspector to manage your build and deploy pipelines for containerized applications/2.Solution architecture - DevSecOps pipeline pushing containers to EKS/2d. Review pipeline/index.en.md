@@ -8,7 +8,7 @@ weight : 21
 
 Select Services and go to CodePipeline under Developer Tools. Identify the Pipeline created for ContainerBuildDeployPipeline. Review the stages in the pipeline and notice the approval stage.
 
-Below is a screenshot of CodePipeline once all CloudFormation templates are completed. You may check that by selecting Services -> CodePipeline -> Select the latest created pipeline.
+CodePipeline should look like as shown once all CloudFormation templates are completed and pipeline is done. You may check that by selecting Services -> CodePipeline -> Select the latest created pipeline.
 
 ![Inspector pipeline](/static/images/image-security/devsecops-inspector/Inspector-pipeline.png)
 

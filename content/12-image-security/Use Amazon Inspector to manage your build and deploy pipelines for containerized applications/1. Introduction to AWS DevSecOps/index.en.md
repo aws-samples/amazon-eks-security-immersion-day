@@ -22,6 +22,6 @@ Relevant AWS services include:
 3. [CodePipeline](https://aws.amazon.com/codepipeline/): CodePipeline can be used to automate continuous delivery pipelines for fast and reliable updates.
 4. [CloudFormation](https://aws.amazon.com/cloudformation/): Cloudformation helps model,provision and manage AWS and third-party resources by treating infrastructure-as-code
 3. [Amazon Inspector](https://aws.amazon.com/inspector/): Amazon inspector will be used for automated and continual vulnerability management at scale.
-4. [Amazon Security Hub](https://aws.amazon.com/inspector/): AWS Security hub is a cloud security posture management (CSPM) service that performs security best practice checks, aggregates alerts, and enables automated remediation.
+4. [Amazon Security Hub](https://aws.amazon.com/securityhub/): AWS Security hub is a cloud security posture management (CSPM) service that performs security best practice checks, aggregates alerts, and enables automated remediation.
 
 

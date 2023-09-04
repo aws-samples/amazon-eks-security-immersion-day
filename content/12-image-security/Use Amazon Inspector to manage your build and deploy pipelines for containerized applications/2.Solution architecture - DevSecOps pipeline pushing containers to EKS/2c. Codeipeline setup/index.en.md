@@ -6,12 +6,8 @@ weight : 21
 This section will focus on building code commit repository and codepipeline for continous integration/deployment .
 
 
-1. Set below environment variables
-```bash
-export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
-export AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
-```
-2.  Run cloudformation to create code repository codepipeline.
+
+ Run cloudformation to create code repository codepipeline.
 ```bash
 cd ~/environment
 aws cloudformation create-stack --stack-name inspector-container-scan --template-url https://ws-assets-prod-iad-r-pdx-f3b3f9f1a7d6a3d0.s3.us-west-2.amazonaws.com/165b0729-2791-4452-8920-53b734419050/inspector-codepipeline.yaml --parameter ParameterKey=CodeBucket,ParameterValue=ws-assets-prod-iad-r-pdx-f3b3f9f1a7d6a3d0 ParameterKey=CodeKey,ParameterValue=165b0729-2791-4452-8920-53b734419050/inspector-pipeline/SourceOutput/code.zip --capabilities CAPABILITY_NAMED_IAM
