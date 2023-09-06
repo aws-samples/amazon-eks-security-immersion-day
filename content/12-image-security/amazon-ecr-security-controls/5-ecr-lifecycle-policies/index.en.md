@@ -5,11 +5,11 @@ weight : 25
 
 Over time, old images with vulnerable and out-of-date software packages should be removed to prevent accidental deployment and exposure. [Amazon ECR lifecycle policies](https://docs.aws.amazon.com/AmazonECR/latest/userguide/LifecyclePolicies.html) help with lifecycle management of images. A lifecycle policy sets rules for when images expire, based on age or count of images in the repository.
 
-In this section, you will create and review a [lifecycle policy](https://docs.aws.amazon.com/AmazonECR/latest/userguide/LifecyclePolicies.html#lifecycle-policy-howitworks) on the team-b/alpine repository.
+In this section, you will create and review a [lifecycle policy](https://docs.aws.amazon.com/AmazonECR/latest/userguide/LifecyclePolicies.html#lifecycle-policy-howitworks) on the `team-b/alpine` repository.
 
 ::alert[Once a lifecycle policy is applied to a repository, you should expect that images become expired within 24 hours after they meet the expiration criteria.]{header=""}
 
-1. Create and push a new version of the image to team-b/alpine repository
+1. Create and push a new version of the image to `team-b/alpine` repository
 
 ```bash
 cat << EoF > Dockerfile
@@ -46,7 +46,7 @@ v2: digest: sha256:b4b98faa7b1efd41553497879f92c62b04f475cb81fac37f02cb472ed6589
 ```
 ::::
 
-2. List two images in the ECR repository team-b/alpine
+2. List two images in the ECR repository `team-b/alpine`
 
 ```bash
 aws ecr list-images \
@@ -71,13 +71,13 @@ aws ecr list-images \
 ```
 ::::
 
-3. Prepare a lifecycle policy for ECR repository team-b/alpine
+3. Prepare a lifecycle policy for ECR repository `team-b/alpine`
 
 ```bash
 ECR_LIFECYCLE_POLICY=$(echo -n '{"rules":[{"rulePriority":1,"description":"Keep most recently uploaded image only","selection":{"tagStatus":"any","countType":"imageCountMoreThan","countNumber":1},"action":{"type":"expire"}}]}')
 ```
 
-4. Create a test rule with the lifecycle policy and run a preview of the test rule on ECR repository team-b/alpine
+4. Create a test rule with the lifecycle policy and run a preview of the test rule on ECR repository `team-b/alpine`
 
 ```bash
 aws ecr start-lifecycle-policy-preview \
@@ -137,7 +137,7 @@ Amazon ECR lifecycle policy test rule's preview output can be reviewed as shown 
 
 ![ecrlifecyclepolicy4](/static/images/image-security/ecr-security-controls/ecr-lifecycle-policy4.png)
 
-6. Apply the test rule as a lifecycle policy to the team-b/alpine repository. Test rule preview showed the image with v1 tag will expire and you should expect the v1 image will expire within 24 hours.
+6. Apply the test rule as a lifecycle policy to the `team-b/alpine` repository. Test rule preview showed the image with v1 tag will expire and you should expect the v1 image will expire within 24 hours.
 
 ```bash
 aws ecr put-lifecycle-policy \
