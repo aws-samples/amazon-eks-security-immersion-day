@@ -1,5 +1,5 @@
 ---
-title : "Managing access to ECR repos using IAM Identity-based policies"
+title : "Managing access to ECR repos using IAM identity-based policies"
 weight : 22
 ---
 
@@ -8,17 +8,19 @@ In this section, you will use AWS Identity and Access Management (AWS IAM) to cr
 1. Add environment variables for this section into the source file
 
 ```bash
-echo "export ECR_ACCESS_ROLE=ecr_access_teama_role" >> ~/.ecr_security
-echo "export ECR_ACCESS_POLICY=ecr_access_testing" >> ~/.ecr_security
-source ~/.ecr_security
+export ECR_ACCESS_ROLE="ecr_access_teama_role"
+export ECR_ACCESS_POLICY="ecr_access_testing"
+echo "export ECR_ACCESS_ROLE=$ECR_ACCESS_ROLE" >> ~/.ecr_security
+echo "export ECR_ACCESS_POLICY=$ECR_ACCESS_POLICY" >> ~/.ecr_security
 ```
+
 2. Prepare an IAM trust policy document, to allow IAM identities within this AWS account assume a new IAM role
 
 ```bash
 TRUST_POLICY=$(echo -n '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"AWS":"arn:aws:iam::'$ACCOUNT_ID':root"},"Action":"sts:AssumeRole","Condition":{}}]}')
 ```
 
-3. Prepare an IAM identity policy document, to create a **customer managed** IAM policy and attach it to a new IAM role. The IAM policy allows ListImages action on repositories in `team-a/` namespace.
+3. Prepare an IAM identity policy document, to create a **customer managed** IAM policy and attach it to a new IAM role. The IAM policy **allows** ListImages action on repositories in `team-a/` namespace.
 
 ```bash
 IDENTITY_POLICY=$(echo -n '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":["ecr:ListImages"],"Resource":["arn:aws:ecr:'$AWS_REGION':'$ACCOUNT_ID':repository/team-a/*"]}]}')
@@ -35,6 +37,12 @@ aws iam create-role \
   --query 'Role.Arn'
 ```
 
+::::expand{header="Check Output"}
+```
+arn:aws:iam::ACCOUNT_ID:role/ecr_access_teama_role
+```
+::::
+
 5. Create a new IAM **customer managed** policy
 
 ```bash
@@ -45,6 +53,12 @@ aws iam create-policy \
   --query 'Policy.Arn'
 ```
 
+::::expand{header="Check Output"}
+```
+arn:aws:iam::ACCOUNT_ID:policy/ecr_access_testing
+```
+::::
+
 6. Attach the new IAM **customer managed** policy to the **ecr_access_teama_role** IAM role
 
 ```bash
@@ -53,29 +67,31 @@ aws iam attach-role-policy \
   --policy-arn "arn:aws:iam::$ACCOUNT_ID:policy/$ECR_ACCESS_POLICY"
 ```
 
-7. Generate temporary credentials for the **ecr_access_teama_role** role and temporarily store in a text file
+7. Create AWS CLI profile for the **ecr_access_teama_role** role
 
 ```bash
-aws sts assume-role \
-  --role-arn arn:aws:iam::${ACCOUNT_ID}:role/$ECR_ACCESS_ROLE \
-  --role-session-name ECR-Access-Testing | jq -r .Credentials \
-  > /tmp/ecrTester.json
-```
+cat << EoF > ~/.aws/config
 
-8. Populate ~/.aws/credentials file with the temporary credentials
-
-```bash
-cat << EoF > ~/.aws/credentials
-
-[ecrTester]
-aws_access_key_id=$(jq -r .AccessKeyId /tmp/ecrTester.json)
-aws_secret_access_key=$(jq -r .SecretAccessKey /tmp/ecrTester.json)
-aws_session_token=$(jq -r .SessionToken /tmp/ecrTester.json)
+[profile ecrTester]
+role_arn = arn:aws:iam::$ACCOUNT_ID:role/$ECR_ACCESS_ROLE
+credential_source = Ec2InstanceMetadata
 
 EoF
 ```
 
-9. List images in the ECR repository `team-a/alpine` using **ecr_access_teama_role** role permissions
+8. Check the role name assigned to the profile `ecrTester`
+
+```bash
+TEST_ROLE=$(aws sts get-caller-identity --profile ecrTester --output text --query Arn | cut -d'/' -f2)
+echo -e "\nAWS CLI requests with 'ecrTester' profile use the identity of $TEST_ROLE role"
+```
+
+::::expand{header="Check Output"}
+```
+AWS CLI requests with 'ecrTester' profile use the identity of ecr_access_teama_role role
+```
+::::
+9. List images in the ECR repository `team-a/alpine` using **ecr_access_teama_role** role permissions. This action is explicitly allowed by the IAM policy attached to the role.
 
 ```bash
 aws ecr list-images \
@@ -97,7 +113,7 @@ The output will look like below:
 }
 ```
 
-10. List images in the ECR repository `team-b/alpine` using **ecr_access_teama_role** role permissions
+10. List images in the ECR repository `team-b/alpine` using **ecr_access_teama_role** role permissions. The role doesn't give any permissions on the ECR repo, the request is implicitly denied.
 
 ```bash
 aws ecr list-images \

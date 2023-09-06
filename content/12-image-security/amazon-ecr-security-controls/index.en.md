@@ -3,7 +3,9 @@ title : "Amazon ECR Security Controls"
 weight : 36
 ---
 
+<!---
 ::alert[**Please note that this Module is WIP for now and will be available soon**]{header="WARNING" type="warning"}
+-->
 
 In this workshop you will implement security controls for Amazon ECR repositories. This workshop takes a deep dive into user, network, and endpoint access controls for ECR repositories.
 
