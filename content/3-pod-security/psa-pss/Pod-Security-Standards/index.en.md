@@ -11,9 +11,8 @@ In Kubernetes, PSPs are replaced with [Pod Security Admission (PSA)](https://kub
 
 The below *kubectl* snippet can be used to identify pods in clusters that are annotated to use PSP.
 
-```
+```bash
 kubectl get pod -A \
-
 -o jsonpath='{range .items[?(@.metadata.annotations.kubernetes\.io/psp)]}{.metadata.name}{“\t”}{.metadata.annotations.kubernetes\.io/psp}{“\t”}{.metadata.namespace}{“\n”}’
 ```
 

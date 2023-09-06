@@ -50,7 +50,7 @@ The output looks like below
 }
 ```
 
-Check your email you have specified above and confirm the subscription to the SNS topic.
+::alert[**Check your email you have specified above and confirm the subscription to the SNS topic.**]{header="Note"}
 
 #### Create an Amazon EventBridge rule
 

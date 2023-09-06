@@ -77,7 +77,7 @@ Under the **Configuration** tab,  Click on the **EDIT** button.  In the **Edit c
 
 :::::
 
-After EKS Protection in Amazon GuardDuty is enabled, it looks like below in the AWS Console.
+After EKS Protection in Amazon GuardDuty is enabled, it looks like below in the [AWS GuardDuty Console](https://us-west-2.console.aws.amazon.com/guardduty/home?region=us-west-2#/k8s-protection).
 
 ![GDEnabledNew](/static/images/detective-controls/GDEnabledNew.png)
 
@@ -85,5 +85,18 @@ Go to Findings. You should see there are no findings available yet.
 
 ![GDNofindings](/static/images/detective-controls/GDNofindings.png)
 
+
+GuardDuty Findings are automatically sent to EventBridge. You can also export findings to an S3 bucket. New findings are exported within 5 minutes. You can modify the frequency for updated findings below. Update to EventBridge and S3 occurs every 6 hours by default.  Let us change it to 15 mins.
+
+Go to the **Settings** --> **Findings export options** and Click on the Edit.
+
+![GD_settings](/static/images/detective-controls/GD_settings.png)
+
+Select **15 minutes** and Click on **Save Changes**.
+
+![change_settings](/static/images/detective-controls/change_settings.png)
+
+
+Findings export options
 
 With Amazon GuardDuty already turned on with protection for your EKS clusters, you are now ready to see it in action. GuardDuty for EKS does not require you to turn on or store EKS Control Plane logs. GuardDuty can look at the EKS cluster audit logs through direct integration. It will look at the audit log activity and report on the new GuardDuty finding types that are specific to your Kubernetes resources.

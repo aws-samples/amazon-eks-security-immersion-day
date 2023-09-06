@@ -423,5 +423,101 @@ fields @timestamp, @message, @logStream
 | limit 10
 ```
 
+### Scenario-18 : How to detect when etcd is out of space?
 
+Replace query with the following and click "Run Query"
+
+```bash
+fields @timestamp, @message, @logStream
+| filter @logStream like /kube-apiserver-audit/
+| filter @message like /mvcc: database space exceeded/
+| limit 10
+```
+
+>::::expand{header="Check Output"}
+![EKS Control Plane Logging Edit](/static/images/detective-controls/log-insights/custom-query-sc10.png)
+::::
+
+---
+
+### Scenario-19 : Analyze the request volume to API server by User Agent?
+
+Replace query with the following and click "Run Query"
+
+```bash
+fields userAgent, requestURI, @timestamp, @message
+| filter @logStream like /kube-apiserver-audit/
+| stats count(*) as count by userAgent
+| sort count desc
+```
+
+>::::expand{header="Check Output"}
+![EKS Control Plane Logging Edit](/static/images/detective-controls/log-insights/custom-query-sc11.png)
+::::
+
+
+### Scenario-20 : Analyze the request volume to API server by Universal Resource Identifier (URI)/Verb?
+
+Replace query with the following and click "Run Query"
+
+```bash
+filter @logStream like /kube-apiserver-audit/
+# Uncomment the below statements to fine tune the query as needed
+# Exact match:
+# | filter requestURI = "/api/v1/namespaces/batch/pods"
+# Substring match:
+# | filter requestURI like "/api/v1/namespaces/batch/pods"
+# | filter strcontains(requestURI, "/api/v1/namespaces/batch/pods")
+# Substring regexp match:
+# | filter requestURI like /\/api\/v1\/namespaces\/.*\/pods/
+# Set inclusion match:
+# | filter verb in ["get", "watch", "list"]
+| stats count(*) as count by requestURI, verb, user.username
+| sort count desc
+```
+
+>::::expand{header="Check Output"}
+![EKS Control Plane Logging Edit](/static/images/detective-controls/log-insights/custom-query-sc12.png)
+::::
+
+---
+
+### Scenario-21 : Analyze the number of Object revision updates for a resource (pod) ?
+
+Replace query with the following and click "Run Query"
+
+```bash
+fields requestURI
+| filter @logStream like /kube-apiserver-audit/
+| filter requestURI like /pods/
+| filter verb like /patch/
+| filter count > 8
+| stats count(*) as count by requestURI, responseStatus.code
+| filter responseStatus.code not like /500/
+| sort count desc
+```
+
+>::::expand{header="Check Output"}
+![EKS Control Plane Logging Edit](/static/images/detective-controls/log-insights/custom-query-sc14.png)
+::::
+
+---
+
+### Scenario-22 : inspect the contents of the patch that is being applied?
+
+Replace query with the following and click "Run Query"
+
+```bash
+fields @timestamp, userAgent, responseStatus.code, requestURI
+| filter @logStream like /kube-apiserver-audit/
+| filter requestURI like /pods/
+| filter verb like /patch/
+| filter requestURI like /name_of_the_pod_that_is_updating_fast/
+| sort @timestamp
+```
+
+>::::expand{header="Check Output"}
+::::
+
+---
 This concludes, various scenarios and how we can query the cloudwatch logs using Logs Insights queries.
