@@ -18,6 +18,7 @@ weight : 200
 * Karthikeyan Shanmugam
 * Lijo Antony
 * Venkateswara Podugu
+* Ravi Yalamanchili
 
 
 If anyone (Only AWS Employees) is interested to contribute, please contact us at [amazon-eks-security-immersion-day@amazon.com](mailto:amazon-eks-security-immersion-day@amazon.com)
