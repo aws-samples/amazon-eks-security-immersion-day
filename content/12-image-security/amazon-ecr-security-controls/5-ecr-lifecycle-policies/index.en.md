@@ -55,7 +55,7 @@ aws ecr list-images \
 ```
 
 ::::expand{header="Check Output"}
-```
+```json
 {
     "imageIds": [
         {

@@ -5,7 +5,7 @@ weight : 24
 
 You can improve the security posture of your VPC by configuring Amazon ECR to use [VPC endpoints](https://docs.aws.amazon.com/AmazonECR/latest/userguide/vpc-endpoints.html).
 
-In this section, you will create [3 VPC endpoints](https://docs.aws.amazon.com/AmazonECR/latest/userguide/vpc-endpoints.html#ecr-setting-up-vpc-create) - two VPC interface endpoints for ECR and one VPC gateway endpoint for S3. You will control access to VPC interface endpoints using [endpoint policies](https://docs.aws.amazon.com/vpc/latest/privatelink/vpc-endpoints-access.html). You will no longer use the ecrTester profile for AWS CLI and will operate with the original _AdministratorAccess_ IAM permissions.
+In this section, you will create **3** [VPC endpoints](https://docs.aws.amazon.com/AmazonECR/latest/userguide/vpc-endpoints.html#ecr-setting-up-vpc-create) - two VPC interface endpoints for ECR and one VPC gateway endpoint for S3. You will control access to VPC interface endpoints using [endpoint policies](https://docs.aws.amazon.com/vpc/latest/privatelink/vpc-endpoints-access.html). You will no longer use the **ecrTester** profile for AWS CLI and will operate with the original _AdministratorAccess_ IAM permissions attached to the Cloud9 EC2 Instance IAM Role.
 
 * **com.amazonaws._region_.ecr.dkr** - client commands such as `docker push` and `docker pull` use this endpoint. This endpoint must have [private DNS enabled](https://docs.aws.amazon.com/AmazonECR/latest/userguide/vpc-endpoints.html#ecr-setting-up-vpc-create) and it might take [few minutes](https://docs.aws.amazon.com/vpc/latest/privatelink/interface-endpoints.html#enable-private-dns-names) for the private IP addresses to become available.
 
@@ -19,14 +19,29 @@ In this section, you will create [3 VPC endpoints](https://docs.aws.amazon.com/A
 
 ```bash
 INTERFACE_ID=$(curl --silent http://169.254.169.254/latest/meta-data/network/interfaces/macs/ | head -n 1)
+echo $INTERFACE_ID
 WORKSPACE_SG_ID=$(curl --silent http://169.254.169.254/latest/meta-data/network/interfaces/macs/${INTERFACE_ID}/security-group-ids | head -n 1)
+echo $WORKSPACE_SG_ID
 SUBNET_ID=$(curl --silent http://169.254.169.254/latest/meta-data/network/interfaces/macs/${INTERFACE_ID}/subnet-id)
+echo $SUBNET_ID
 ROUTE_TABLE_ID=$(aws ec2 describe-route-tables \
         --query "RouteTables[*].Associations[?SubnetId=='$SUBNET_ID'].RouteTableId" \
         --region $AWS_REGION \
         --output text)
+echo $ROUTE_TABLE_ID
 VPC_ID=$(curl --silent http://169.254.169.254/latest/meta-data/network/interfaces/macs/${INTERFACE_ID}/vpc-id)
+echo $VPC_ID
 ```
+
+::::expand{header="Check Output"}
+```
+02:c6:d3:01:ed:85/
+sg-0aa27bb31fbb9c11f
+subnet-07a8def3897add985
+rtb-0960716696daed2f0
+vpc-067fe2e1e7856cbc2
+```
+::::
 
 2. Create a new security group to use with VPC endpoints
 
@@ -140,6 +155,41 @@ Wait until all 3 VPC endpoints show status as 'Available', in the [AWS Console](
 
 ![vpcendpoints](/static/images/image-security/ecr-security-controls/vpc-endpoints.png)
 
+
+The VPC Endpoint policy document on the above 2 Interface type VPC endpoints looks like belwow in the AWS Console.
+
+```json
+{
+	"Statement": [
+		{
+			"Action": "ecr:GetAuthorizationToken",
+			"Effect": "Allow",
+			"Principal": "*",
+			"Resource": "*"
+		},
+		{
+			"Action": "*",
+			"Effect": "Allow",
+			"Principal": "*",
+			"Resource": "arn:aws:ecr:us-west-2:ACOOUNT_ID:repository/*",
+			"Condition": {
+				"StringEquals": {
+					"aws:PrincipalAccount": [
+						"ACOOUNT_ID"
+					]
+				}
+			}
+		},
+		{
+			"Sid": "DenyPutImage",
+			"Principal": "*",
+			"Action": "ecr:PutImage",
+			"Effect": "Deny",
+			"Resource": "arn:aws:ecr:us-west-2:ACOOUNT_ID:repository/team-a/alpine"
+		}
+	]
+}
+```
 ::alert[VPC Interface Endpoints have private DNS enabled. After you create the VPC interface endpoints, it might take a few minutes for the private IP addresses to become available. If the following commands show public IP addresses or timeout, please try again after 2-3 minutes.]{header="Note"}
 
 8. Check the IP addresses of the ECR URLs. You will see **private** IP addresses from your VPC/subnet assigned to the VPC endpoint ENIs. If you see public IP addresses, please wait and retry the commands.
@@ -148,6 +198,13 @@ Wait until all 3 VPC endpoints show status as 'Available', in the [AWS Console](
 host $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com | grep "has address"; echo -e ""
 host api.ecr.$AWS_REGION.amazonaws.com | grep "has address"; echo -e ""
 ```
+
+::::expand{header="Check Output"}
+```
+ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com has address 10.254.0.54
+api.ecr.us-west-2.amazonaws.com has address 10.254.0.226
+```
+::::
 
 9. Create a new version of a container image and push to `team-a/alpine` repository. IAM policy _AdminstratorAccess_ gives full access to ECR. VPC endpoint policy on `dkr.ecr.<region>.amazonaws.com` endpoint allows all actions and denies `PutImage` access to `team-a/alpine` repository. If there is an explicit _Deny_ in any of the applicable policies, the final decision is **Deny** 
 
