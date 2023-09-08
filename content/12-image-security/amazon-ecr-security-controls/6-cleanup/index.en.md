@@ -44,20 +44,20 @@ rm -f Dockerfile
 ```json
 {
     "repository": {
-        "repositoryArn": "arn:aws:ecr:us-west-2:ACOOUNT_ID:repository/team-a/alpine",
-        "registryId": "ACOOUNT_ID",
+        "repositoryArn": "arn:aws:ecr:us-west-2:ACCOUNT_ID:repository/team-a/alpine",
+        "registryId": "ACCOUNT_ID",
         "repositoryName": "team-a/alpine",
-        "repositoryUri": "ACOOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/team-a/alpine",
+        "repositoryUri": "ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/team-a/alpine",
         "createdAt": "2023-09-07T01:05:17+00:00",
         "imageTagMutability": "IMMUTABLE"
     }
 }
 {
     "repository": {
-        "repositoryArn": "arn:aws:ecr:us-west-2:ACOOUNT_ID:repository/team-b/alpine",
-        "registryId": "ACOOUNT_ID",
+        "repositoryArn": "arn:aws:ecr:us-west-2:ACCOUNT_ID:repository/team-b/alpine",
+        "registryId": "ACCOUNT_ID",
         "repositoryName": "team-b/alpine",
-        "repositoryUri": "ACOOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/team-b/alpine",
+        "repositoryUri": "ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/team-b/alpine",
         "createdAt": "2023-09-07T01:05:38+00:00",
         "imageTagMutability": "IMMUTABLE"
     }
@@ -68,13 +68,13 @@ rm -f Dockerfile
 {
     "Return": true
 }
-Untagged: ACOOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/team-a/alpine:v1
-Untagged: ACOOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/team-a/alpine:v2
-Untagged: ACOOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/team-a/alpine@sha256:c5c5fda71656f28e49ac9c5416b3643eaa6a108a8093151d6d1afc9463be8e33
-Untagged: ACOOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/team-b/alpine:v1
-Untagged: ACOOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/team-b/alpine@sha256:c5c5fda71656f28e49ac9c5416b3643eaa6a108a8093151d6d1afc9463be8e33
-Untagged: ACOOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/team-b/alpine:v2
-Untagged: ACOOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/team-b/alpine@sha256:da86df75e0d157fb800cf374a9b29029eddbfc5691948eccf6cbc35975974b68
+Untagged: ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/team-a/alpine:v1
+Untagged: ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/team-a/alpine:v2
+Untagged: ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/team-a/alpine@sha256:c5c5fda71656f28e49ac9c5416b3643eaa6a108a8093151d6d1afc9463be8e33
+Untagged: ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/team-b/alpine:v1
+Untagged: ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/team-b/alpine@sha256:c5c5fda71656f28e49ac9c5416b3643eaa6a108a8093151d6d1afc9463be8e33
+Untagged: ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/team-b/alpine:v2
+Untagged: ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/team-b/alpine@sha256:da86df75e0d157fb800cf374a9b29029eddbfc5691948eccf6cbc35975974b68
 Untagged: alpine:local
 Deleted: sha256:db75f1a33d76cc0b92eed7203c94934a0f511c8eb7d037be20f58e102982a488
 Untagged: alpine:latest

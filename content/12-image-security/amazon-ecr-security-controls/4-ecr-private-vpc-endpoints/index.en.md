@@ -171,11 +171,11 @@ The VPC Endpoint policy document on the above 2 Interface type VPC endpoints loo
 			"Action": "*",
 			"Effect": "Allow",
 			"Principal": "*",
-			"Resource": "arn:aws:ecr:us-west-2:ACOOUNT_ID:repository/*",
+			"Resource": "arn:aws:ecr:us-west-2:ACCOUNT_ID:repository/*",
 			"Condition": {
 				"StringEquals": {
 					"aws:PrincipalAccount": [
-						"ACOOUNT_ID"
+						"ACCOUNT_ID"
 					]
 				}
 			}
@@ -185,7 +185,7 @@ The VPC Endpoint policy document on the above 2 Interface type VPC endpoints loo
 			"Principal": "*",
 			"Action": "ecr:PutImage",
 			"Effect": "Deny",
-			"Resource": "arn:aws:ecr:us-west-2:ACOOUNT_ID:repository/team-a/alpine"
+			"Resource": "arn:aws:ecr:us-west-2:ACCOUNT_ID:repository/team-a/alpine"
 		}
 	]
 }
