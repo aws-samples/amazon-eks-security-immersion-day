@@ -118,3 +118,118 @@ The output will look like below.
 ```bash
 aws-node aws-eks-nodeagent
 ```
+
+Let us see how the configuration for the Network Polocy Agent container inside the `aws-node` DaemonSet looks like. The output is truncated to highlight only relevant Info.
+
+```bash
+kubectl get ds -n kube-system aws-node -oyaml
+```
+
+```yaml
+apiVersion: apps/v1
+kind: DaemonSet
+...
+      containers:
+        image: 602401143452.dkr.ecr.us-west-2.amazonaws.com/amazon-k8s-cni:v1.14.0-eksbuild.3
+        name: aws-node
+        ports:
+        - containerPort: 61678
+          hostPort: 61678
+          name: metrics
+          protocol: TCP
+        readinessProbe:
+          exec:
+            command:
+            - /app/grpc-health-probe
+            - -addr=:50051
+            - -connect-timeout=5s
+            - -rpc-timeout=5s
+        resources:
+          requests:
+            cpu: 25m
+        securityContext:
+          capabilities:
+            add:
+            - NET_ADMIN
+            - NET_RAW
+
+      - args:
+        - --enable-ipv6=false
+        - --enable-network-policy=true
+        - --enable-cloudwatch-logs=true
+        image: 602401143452.dkr.ecr.us-west-2.amazonaws.com/amazon/aws-network-policy-agent:v1.0.1-eksbuild.1
+        imagePullPolicy: IfNotPresent
+        name: aws-eks-nodeagent
+        resources:
+          requests:
+            cpu: 25m
+        securityContext:
+          capabilities:
+            add:
+            - NET_ADMIN
+          privileged: true
+      dnsPolicy: ClusterFirst
+      hostNetwork: true
+      initContainers:
+      - env:
+        - name: DISABLE_TCP_EARLY_DEMUX
+          value: "false"
+        - name: ENABLE_IPv6
+          value: "false"
+        image: 602401143452.dkr.ecr.us-west-2.amazonaws.com/amazon-k8s-cni-init:v1.14.0-eksbuild.3
+        imagePullPolicy: IfNotPresent
+        name: aws-vpc-cni-init
+        resources:
+          requests:
+            cpu: 25m
+        securityContext:
+          privileged: true
+      priorityClassName: system-node-critical
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: aws-node
+      serviceAccountName: aws-node
+      terminationGracePeriodSeconds: 10
+      tolerations:
+      - operator: Exists
+      - hostPath:
+          path: /var/run/aws-node
+          type: DirectoryOrCreate
+        name: run-dir
+      - hostPath:
+          path: /run/xtables.lock
+          type: ""
+        name: xtables-lock
+...
+```
+
+Run below command to see new CRDs created by Amazon EKS VPC CNI.
+
+```bash
+kubectl get crd
+```
+
+The output will look like below. Note that Amazon VPC CNI uses a new CRD `policyendpoints.networking.k8s.aws` to implement the Network Policies.
+
+```bash
+NAME                                         CREATED AT
+cninodes.vpcresources.k8s.aws                2023-09-07T11:26:26Z
+eniconfigs.crd.k8s.amazonaws.com             2023-09-07T11:26:23Z
+policyendpoints.networking.k8s.aws           2023-09-07T11:26:27Z
+securitygrouppolicies.vpcresources.k8s.aws   2023-09-07T11:26:26Z
+```
+
+Let is ensure that there are no network policies in the Cluster before proceeding further.
+
+```bash
+kubectl get netpol -A
+```
+
+::::expand{header="Check Output"}
+
+```bash
+No resources found
+```
+::::
+

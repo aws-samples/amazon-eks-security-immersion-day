@@ -11,7 +11,7 @@ Clone the repository for sample applications.
 cd ~/environment
 git clone https://github.com/aws-samples/eks-network-policy-examples.git
 ```
-## Scenario #1: Kubernetes default behavior without any network policies
+## Scenario #0: Kubernetes default behavior without any network policies
 
 By default, Kubernetes allows all pods to communicate with each other with no restrictions.
 
@@ -22,8 +22,8 @@ By default, Kubernetes allows all pods to communicate with each other with no re
 Run the below command to deploy the sample application.
 
 ```bash
-cd eks-network-policy-examples/
-kubectl apply -f advanced/manifests/
+cd ~/environment/eks-network-policy-examples/advanced
+kubectl apply -f manifests/
 ```
 
 ::::expand{header="Check Output"}

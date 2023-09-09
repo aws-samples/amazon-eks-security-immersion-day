@@ -3,7 +3,7 @@ title : "Ingress Traffic Scenarios"
 weight : 23
 ---
 
-## Scenario #2: Deny/Block all the ingress traffic to Demo app
+## Scenario #1: Deny/Block all the ingress traffic to Demo app
 
 In this scenario, we will block the all the traffic from all clients to the **demo-app** in `default` namesapce.
 
@@ -80,7 +80,7 @@ command terminated with exit code 28
 ```
 ::::
 
-## Scenario #3: Allow ingress traffic from within same (default) namespace to Demo app
+## Scenario #2: Allow ingress traffic from within same (default) namespace to Demo app
 
 In this scenario, we will allow the traffic from all clients from within the same name (`default`) namespace to the **demo-app**.
 
@@ -189,7 +189,7 @@ networkpolicy.networking.k8s.io "demo-app-allow-samens" deleted
 ::::
 
 
-## Scenario #4: Allow ingress traffic from only client-one in default namespace to Demo app
+## Scenario #3: Allow ingress traffic from only client-one in default namespace to Demo app
 
 In this scenario, we will allow traffic from a specific client i.e. **client-one** in `default` namespace to the **demo-app**.
 
@@ -300,7 +300,7 @@ command terminated with exit code 28
 ```
 ::::
 
-## Scenario #5: Allow ingress traffic from another-ns namespace to demo-app in default namespace
+## Scenario #4: Allow ingress traffic from another-ns namespace to demo-app in default namespace
 
 In this scenario, we will allow traffic from all pods in `another-ns` namespace to the **demo-app** in the `default` namespace.
 
@@ -485,7 +485,7 @@ default     demo-app-deny-all   app=demo-app   97m
 ```
 
 
-## Scenario #6: Allow ingress traffic from another-client-one in another-ns namespace to demo-app in default namespace
+## Scenario #5: Allow ingress traffic from another-client-one in another-ns namespace to demo-app in default namespace
 
 In this scenario, we will allow traffic from a specific client **another-client-one** from `another-ns` namespace to the **demo-app** in the `default` namespace.
 
