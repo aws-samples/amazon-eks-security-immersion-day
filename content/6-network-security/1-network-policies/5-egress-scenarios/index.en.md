@@ -3,12 +3,6 @@ title : "Egress Traffic Scenarios"
 weight : 24
 ---
 
-
-
-WSParticipantRole:~/environment $ kubectl get netpol -A
-No resources found
-
-
 ## Scenario #6: Deny all egress from client-one pod
 
 In this scenario, we will block all the egress traffic from a **client-one** pod
