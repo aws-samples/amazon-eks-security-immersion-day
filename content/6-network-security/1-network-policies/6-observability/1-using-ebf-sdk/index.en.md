@@ -4,26 +4,6 @@ weight : 21
 ---
 The latest version of the Amazon VPC CNI ships an SDK that provides an interface to interact with eBPF programs on the node. The SDK is installed when the aws-node is deployed onto the nodes. You can find the SDK binary installed under `/opt/cni/bin` directory on the node. Consider using this SDK when you would like to identify connectivity issue. Make sure eBPF programs are being created for the pods on the node.
 
-#### Install Session Manager plugin on Linux
-
-1. Download the Session Manager plugin RPM package.
-```bash
-cd ~/environment
-curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/linux_64bit/session-manager-plugin.rpm" -o "session-manager-plugin.rpm"
-```
-2. Run the install command.
-```bash
-sudo yum install -y session-manager-plugin.rpm
-```
-3. Run the following commands to verify that the Session Manager plugin installed successfully.
-```bash
-session-manager-plugin
-```
-If the installation was successful, the following message is returned.
-```
-The Session Manager plugin is installed successfully. Use the AWS CLI to start a session.
-```
-
 Run the below command to connect one of the worker nodes in the EKS Cluster.
 
 ```bash
@@ -38,7 +18,8 @@ sh-4.2$
 ```
 ::::
 
-In the SSM shell, Run the below command to dump all ebpf program related data
+In the SSM shell, Run the below command to load all eBPF programs managed by Network Policy Agent.
+
 
 ```bash
 sudo /opt/cni/bin/aws-eks-na-cli ebpf progs
@@ -113,7 +94,7 @@ Type : 2 ID : 42 Associated maps count : 6
 ```
 
 
-Run the below command to dump all ebpf maps related data.
+Run the below command to load all eBPF maps managed by Network Policy Agent.
 
 ```bash
 sudo /opt/cni/bin/aws-eks-na-cli ebpf maps

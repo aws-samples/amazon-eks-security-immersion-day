@@ -3,6 +3,8 @@ title : "Using PolicyEndpoint CRD"
 weight : 23
 ---
 
+PolicyEndpoint CRD needs to be installed in the cluster. Installing Network Policy Controller will automatically install the CRD.
+
 Run below command to see new CRDs created by Amazon EKS VPC CNI.
 
 ```bash
