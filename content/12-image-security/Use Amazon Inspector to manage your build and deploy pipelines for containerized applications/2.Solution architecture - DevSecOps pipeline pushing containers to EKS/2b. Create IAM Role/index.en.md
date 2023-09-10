@@ -26,13 +26,20 @@ cd ~/environment
 
 TRUST="{ \"Version\": \"2012-10-17\", \"Statement\": [ { \"Effect\": \"Allow\", \"Principal\": { \"AWS\": \"arn:aws:iam::${ACCOUNT_ID}:root\" }, \"Action\": \"sts:AssumeRole\" } ] }"
 
-echo '{ "Version": "2012-10-17", "Statement": [ { "Effect": "Allow", "Action": "eks:Describe*", "Resource": "*" } ] }' > /tmp/iam-role-policy
 
 aws iam create-role --role-name EksWorkshopCodeBuildKubectlRole --assume-role-policy-document "$TRUST" --output text --query 'Role.Arn'
 
-aws iam put-role-policy --role-name EksWorkshopCodeBuildKubectlRole --policy-name eks-describe --policy-document file:///tmp/iam-role-policy
+```
+
+::::expand{header="Check Output"}
+```bash
+
+arn:aws:iam::XXXXXXXXXXXX:role/EksWorkshopCodeBuildKubectlRole
 
 ```
+
+
+
 
 Now that we have the IAM role created, we are going to add the role to the aws-auth ConfigMap for the EKS cluster.
 
@@ -47,4 +54,10 @@ kubectl get -n kube-system configmap/aws-auth -o yaml | awk "/mapRoles: \|/{prin
 
 kubectl patch configmap/aws-auth -n kube-system --patch "$(cat /tmp/aws-auth-patch.yml)"
 
+```
+WARNING:  Note that _system:masters_ is only for lab purpose. In production,the above created IAM role needs to mapped a least privileged RBAC Role
+
+::::expand{header="Check Output"}
+```bash
+configmap/aws-auth patched
 ```

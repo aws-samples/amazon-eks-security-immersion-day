@@ -17,7 +17,7 @@ Run the below command to enable Inspector.
 aws inspector2 enable --resource-types ECR
 ```
 
-The output will look like below
+::::expand{header="Check Output"}
 ```bash
 {
     "accounts": [

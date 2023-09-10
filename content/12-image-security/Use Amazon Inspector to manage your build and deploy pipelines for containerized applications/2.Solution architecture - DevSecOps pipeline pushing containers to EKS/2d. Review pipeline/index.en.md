@@ -6,7 +6,9 @@ weight : 21
 
 ::alert[Please ensure you are in the correct region for the tasks listed below. You can select the correct region from the region selection dropdown towards the top right of the AWS console.]{header="Note"}
 
-Select Services and go to CodePipeline under Developer Tools. Identify the Pipeline created for ContainerBuildDeployPipeline. Review the stages in the pipeline and notice the approval stage.
+Select Services and go to CodePipeline under Developer Tools. Identify the Pipeline created for [ContainerBuildDeployPipeline](https://us-west-2.console.aws.amazon.com/codesuite/codepipeline/pipelines/ContainerBuildDeployPipeline/view?region=us-west-2). 
+
+Review the stages in the pipeline and notice the approval stage.
 
 CodePipeline should look like as shown once all CloudFormation templates are completed and pipeline is done. You may check that by selecting Services -> CodePipeline -> Select the latest created pipeline.
 
@@ -35,6 +37,14 @@ Here is further explanation for each stages of Code Pipeline.
 3. Since Scan on push ie enabled during the ECR repository creation, the image will be automatically scanned by Amazon inspector for vulnerabilities.
 4. On completion of scan,Lambda function receives the Amazon inspector scan summary ,through [Amazon EventBridge ](https://console.aws.amazon.com/events).
 5. Lambda makes a decision on allowing image to be deployed
+
+Based on the threshold evaluation, the container image will be flagged as either Approved or Rejected.
+![Lambda logic](/static/images/image-security/devsecops-inspector/Lambda-Scanning-logic.png)
+
+Following figure  shows thresholds that are defined for different Amazon Inspector vulnerability severities, as part of the Lambda function.
+
+![Inspector Score](/static/images/image-security/devsecops-inspector/Inspector-lambda-variables.png)
+
 6. Lambda retrieves pipeline details and sends auto rejection message if there are critical vulnerabilities found
 7. Users can also manually approve container vulnerability assessment in the pipeline
 

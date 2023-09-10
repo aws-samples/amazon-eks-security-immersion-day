@@ -34,7 +34,10 @@ The eval_container_scan_results Lambda function serves two purposes:
 1. Extract the findings from the Amazon Inspector scan message that invoked the Lambda function. 
 2. Evaluate the findings based on thresholds that are defined as parameters in the Lambda function definition. 
 
-Based on the threshold evaluation, the container image will be flagged as either Approved or Rejected. Following figure  shows thresholds that are defined for different Amazon Inspector vulnerability severities, as part of the Lambda function.
+Based on the threshold evaluation, the container image will be flagged as either Approved or Rejected.
+![Lambda logic](/static/images/image-security/devsecops-inspector/Lambda-Scanning-logic.png)
+
+Following figure  shows thresholds that are defined for different Amazon Inspector vulnerability severities, as part of the Lambda function.
 
 ![Inspector Score](/static/images/image-security/devsecops-inspector/Inspector-lambda-variables.png)
 
