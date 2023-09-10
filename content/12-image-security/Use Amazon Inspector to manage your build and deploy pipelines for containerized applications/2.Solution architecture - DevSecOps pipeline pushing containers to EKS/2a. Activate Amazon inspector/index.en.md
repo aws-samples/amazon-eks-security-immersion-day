@@ -1,21 +1,59 @@
 ---
-title : "Activate Inspector and Security hub"
+title : "Activate Inspector"
 weight : 21
 ---
 
-1. Navigate to the [Amazon Inspector console](https://console.aws.amazon.com/inspector/v2/home).
-2. Select **Get Started**
-      ![Get Started](/static/images/image-security/devsecops-inspector/Inspector-getstarted.png)
-3. Select **Enable Inspector**.
-      ![Enable Inspector!](/static/images/image-security/devsecops-inspector/Inspector-Activate.png)
+
+:::::tabs{variant="container"}
+
+::::tab{id="cli" label="Using AWS CLI"}
+Run the following command to enable Amazon Inspector and then also enable ECR 
 
 
+Run the below command to enable Inspector.
 
-### Activate Security Hub
 
-1. Navigate to the [Amazon Security Hub](https://eu-west-2.console.aws.amazon.com/securityhub/).
-2. Select **Go to Security Hub**
-   ![Get Started](/static/images/image-security/devsecops-inspector/SecurityHub-goto.png)
+```bash
+aws inspector2 enable --resource-types ECR
+```
 
-3. Leave the default selected security standards and Select **Enable Security Hub**.
-   ![Enable Security Hub](/static/images/image-security/devsecops-inspector/SecurityHub-enable.png)
+The output will look like below
+```bash
+{
+    "accounts": [
+        {
+            "accountId": "************",
+            "resourceStatus": {
+                "ec2": "DISABLED",
+                "ecr": "ENABLING",
+                "lambda": "DISABLED",
+                "lambdaCode": "DISABLED"
+            },
+            "status": "ENABLING"
+        }
+    ],
+    "failedAccounts": []
+}
+```
+::::
+
+::::tab{id="console" label="Using AWS Console"}
+
+In your AWS Console, Search for Inspector
+
+![Search for Inspector](/static/images/image-security/devsecops-inspector/Inspector-search.png)
+
+Click **Get Started**
+
+![Get Started](/static/images/image-security/devsecops-inspector/Inspector-getstarted.png)
+
+
+Click **Activate Inspector**
+![Enable Inspector!](/static/images/image-security/devsecops-inspector/Inspector-Activate.png)
+
+
+When you enable Inspector for the first time,you will see the following screen
+
+![GDNewEKSProtectionScreen-New](/static/images/image-security/devsecops-inspector/inspector-enabled.png)
+
+::::
