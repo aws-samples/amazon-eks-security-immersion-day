@@ -398,7 +398,8 @@ Resources:
 
 
       Name: container-deploy
-      ServiceRole: !Ref CodeBuildServiceRole
+      ServiceRole: !Ref CodeBuildDeployServiceRole
+
 
   PipelineServiceRole:
     Type: AWS::IAM::Role
