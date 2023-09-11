@@ -25,17 +25,33 @@ Once you have logged into the AWS Management Console from your Workshop Studio, 
 
 #### A. Disable AWS Cloud9 AWS temporary credentials
 
+:::::tabs{variant="container"}
+
+::::tab{id="cli" label="Using AWS CLI"}
+
+To ensure temporary credentials aren't already in place we will remove any existing credentials file as well as disabling **AWS managed temporary credentials**:
+
+```bash
+aws cloud9 update-environment  --environment-id $C9_PID --managed-credentials-action DISABLE
+rm -vf ${HOME}/.aws/credentials
+```
+::::
+
+::::tab{id="console" label="Using AWS Console"}
+
 Go to AWS Cloud9
 
 * Open the **Preferences** tab.
 * Open the **AWS Settings** and disable **AWS Managed Temporary Credentials**
 
-#### B. Install latest awscli
+::::
+
+:::::
+
+#### B. Add execution permissions to kubectl
 
 ```bash
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-unzip awscliv2.zip
-sudo ./aws/install
+sudo chmod +x /usr/bin/kubectl
 ```
 #### C. Install yq for yaml processing
 
@@ -60,13 +76,6 @@ Set below environment variables
 export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
 export AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
 ```
-
-Create a kubectl context for the Amazon EKS Cluster.
-
-```bash
-aws eks --region $AWS_REGION update-kubeconfig --name eksworkshop-eksctl
-```
-
 You can test access to your cluster by running the following command. The output will be a list of worker nodes
 
 ```bash
@@ -77,6 +86,7 @@ You should see below output
 
 ```bash
 NAME                                           STATUS   ROLES    AGE   VERSION
-ip-10-254-156-7.us-west-2.compute.internal     Ready    <none>   12h   v1.25.9-eks-0a21954
-ip-10-254-169-183.us-west-2.compute.internal   Ready    <none>   12h   v1.25.9-eks-0a21954
+ip-10-254-141-66.us-west-2.compute.internal    Ready    <none>   12h   v1.27.4-eks-8ccc7ba
+ip-10-254-208-115.us-west-2.compute.internal   Ready    <none>   12h   v1.27.4-eks-8ccc7ba
+ip-10-254-248-189.us-west-2.compute.internal   Ready    <none>   12h   v1.27.4-eks-8ccc7ba
 ```

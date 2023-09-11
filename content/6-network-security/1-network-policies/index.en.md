@@ -30,9 +30,16 @@ Amazon EKS introduces three key components that work seamlessly together:
 
 [Network Policy Controller](https://github.com/aws/amazon-network-policy-controller-k8s/) resolves the configured network policies and publishes the resolved endpoints via Custom CRD (PolicyEndpoints) resource. Network Policy agent derives the endpoints from PolicyEndpoint resources and enforces them via eBPF probes attached to pod's host Veth interface.
 
+For more details, check out the Github page for [Amazon Network Policy Controller for Kubernetes](https://github.com/aws/amazon-network-policy-controller-k8s)
+
 * **Node Agent**: The node agent is bundled with VPC CNI and runs as container under aws-node Daemonset. This node agent receives policy endpoints from controllers when the network policies are applied to the cluster. The node agent plays a critical role in managing eBPF programs, which paves the way for seamless enforcement of network policies.
 
+For more details, check out the Github page for[aws-network-policy-agent](https://github.com/aws/aws-network-policy-agent)
+
+
 * **eBPF SDK (Software Development Kit)**: Amazon VPC CNI includes an SDK that provides an intuitive interface to interact with [eBPF](https://ebpf.io/what-is-ebpf/) programs on the node. This SDK allows for runtime introspection, tracing, and analysis of eBPF execution that aides in identifying and resolving connectivity issues.
+
+For more details, check out the Github page for [AWS eBPF SDK](https://github.com/aws/aws-ebpf-sdk-go)
 
 ![ebpf_overview](/static/images/6-network-security/1-network-policies/ebpf_overview.png)
 

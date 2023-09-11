@@ -54,51 +54,43 @@ cat network-policy-agent.log
 The output will look like below,
 
 ```json
-{"level":"info","timestamp":"2023-09-08T16:50:30.887Z","logger":"controller-runtime.metrics","msg":"Metrics server is starting to listen","addr":":8080"}
-{"level":"info","timestamp":"2023-09-08T16:50:30.890Z","logger":"ebpf-client-init","msg":"Validating ","Probe: ":"v4events.bpf.o"}
-{"level":"info","timestamp":"2023-09-08T16:50:30.890Z","logger":"ebpf-client-init","msg":"error opening  ","Probe: ":"/host/opt/cni/bin/v4events.bpf.o","error":"open /host/opt/cni/bin/v4events.bpf.o: no such file or directory"}
-{"level":"info","timestamp":"2023-09-08T16:50:30.890Z","logger":"ebpf-client-init","msg":"comparing new and existing probes ..."}
-{"level":"info","timestamp":"2023-09-08T16:50:30.890Z","logger":"ebpf-client-init","msg":"change detected in event probe binaries.."}
-{"level":"info","timestamp":"2023-09-08T16:50:30.890Z","logger":"ebpf-client","msg":"Probe validation Done"}
-{"level":"info","timestamp":"2023-09-08T16:50:30.891Z","logger":"cp-util","msg":"Let's install BPF Binaries on to the host path....."}
-{"level":"info","timestamp":"2023-09-08T16:50:30.891Z","logger":"cp-util","msg":"Installing BPF Binary..","target":"/host/opt/cni/bin/v4events.bpf.o","source":"v4events.bpf.o"}
-{"level":"info","timestamp":"2023-09-08T16:50:30.891Z","logger":"cp-util","msg":"Successfully installed - ","binary":"/host/opt/cni/bin/v4events.bpf.o"}
-{"level":"info","timestamp":"2023-09-08T16:50:30.891Z","logger":"cp-util","msg":"Installing BPF Binary..","target":"/host/opt/cni/bin/tc.v4ingress.bpf.o","source":"tc.v4ingress.bpf.o"}
-{"level":"info","timestamp":"2023-09-08T16:50:30.891Z","logger":"cp-util","msg":"Successfully installed - ","binary":"/host/opt/cni/bin/tc.v4ingress.bpf.o"}
-{"level":"info","timestamp":"2023-09-08T16:50:30.891Z","logger":"cp-util","msg":"Installing BPF Binary..","target":"/host/opt/cni/bin/tc.v4egress.bpf.o","source":"tc.v4egress.bpf.o"}
-{"level":"info","timestamp":"2023-09-08T16:50:30.891Z","logger":"cp-util","msg":"Successfully installed - ","binary":"/host/opt/cni/bin/tc.v4egress.bpf.o"}
-{"level":"info","timestamp":"2023-09-08T16:50:30.891Z","logger":"cp-util","msg":"Installing BPF Binary..","target":"/host/opt/cni/bin/aws-eks-na-cli","source":"aws-eks-na-cli"}
-{"level":"info","timestamp":"2023-09-08T16:50:30.903Z","logger":"cp-util","msg":"Successfully installed - ","binary":"/host/opt/cni/bin/aws-eks-na-cli"}
-{"level":"info","timestamp":"2023-09-08T16:50:30.903Z","logger":"ebpf-client","msg":"Copied eBPF binaries to the host directory"}
-
-{"level":"info","timestamp":"2023-09-09T04:44:04.255Z","logger":"ebpf-client","msg":"Copied eBPF binaries to the host directory"}
-{"level":"info","timestamp":"2023-09-09T04:44:04.256Z","logger":"ebpf-client","msg":"Total no.of  global maps recovered...","count: ":2}
-{"level":"info","timestamp":"2023-09-09T04:44:04.256Z","logger":"ebpf-client","msg":"Global Map..","Name: ":"/sys/fs/bpf/globals/aws/maps/global_aws_conntrack_map","updateEventsProbe: ":false}
-{"level":"info","timestamp":"2023-09-09T04:44:04.256Z","logger":"ebpf-client","msg":"Conntrack Map is already present on the node"}
-{"level":"info","timestamp":"2023-09-09T04:44:04.256Z","logger":"ebpf-client","msg":"Global Map..","Name: ":"/sys/fs/bpf/globals/aws/maps/global_policy_events","updateEventsProbe: ":false}
-{"level":"info","timestamp":"2023-09-09T04:44:04.256Z","logger":"ebpf-client","msg":"Policy event Map is already present on the node ","Recovered FD":11}
-{"level":"info","timestamp":"2023-09-09T04:44:04.256Z","logger":"ebpf-client","msg":"Number of probes/maps recovered - ","count: ":0}
-{"level":"info","timestamp":"2023-09-09T04:44:04.256Z","logger":"ebpf-client","msg":"Successfully recovered BPF state"}
-{"level":"info","timestamp":"2023-09-09T04:44:04.256Z","logger":"ebpf-client","msg":"Derived existing ConntrackMap identifier"}
-{"level":"info","timestamp":"2023-09-09T04:44:04.256Z","logger":"ebpf-client","msg":"Initialized Conntrack client"}
-{"level":"info","timestamp":"2023-09-09T04:44:04.256Z","logger":"ebpf-client","msg":"Configure Event loop ... "}
-{"level":"info","timestamp":"2023-09-09T04:44:04.256Z","logger":"ebpf-client","msg":"Cloudwatch log support is enabled"}
-{"level":"info","timestamp":"2023-09-09T04:44:04.376Z","logger":"ebpf-client","msg":"Setup CW","Setting loggroup Name":"/aws/eks/eksworkshop-eksctl/cluster"}
-{"level":"info","timestamp":"2023-09-09T04:44:04.419Z","logger":"ebpf-client","msg":"Configured event logging"}
-{"level":"info","timestamp":"2023-09-09T04:44:04.419Z","logger":"ebpf-client","msg":"BPF Client initialization done"}
-{"level":"info","timestamp":"2023-09-09T04:44:04.419Z","logger":"setup","msg":"starting manager"}
-{"level":"info","timestamp":"2023-09-09T04:44:04.423Z","logger":"setup","msg":"Serving metrics on ","port":61680}
-{"level":"info","timestamp":"2023-09-09T04:44:04.423Z","msg":"Starting server","kind":"health probe","addr":"[::]:8081"}
-{"level":"info","timestamp":"2023-09-09T04:44:04.423Z","msg":"starting server","path":"/metrics","kind":"metrics","addr":"[::]:8080"}
-{"level":"info","timestamp":"2023-09-09T04:44:04.424Z","msg":"Starting EventSource","controller":"policyendpoint","controllerGroup":"networking.k8s.aws","controllerKind":"PolicyEndpoint","source":"kind source: *v1alpha1.PolicyEndpoint"}
-{"level":"info","timestamp":"2023-09-09T04:44:04.424Z","msg":"Starting Controller","controller":"policyendpoint","controllerGroup":"networking.k8s.aws","controllerKind":"PolicyEndpoint"}
-{"level":"info","timestamp":"2023-09-09T04:44:04.536Z","msg":"Starting workers","controller":"policyendpoint","controllerGroup":"networking.k8s.aws","controllerKind":"PolicyEndpoint","worker count":1}
-{"level":"info","timestamp":"2023-09-09T05:24:55.322Z","logger":"controllers.policyEndpoints","msg":"Received a new reconcile request","req":{"name":"client-one-deny-egress-dhsw4","namespace":"default"}}
-{"level":"info","timestamp":"2023-09-09T05:24:55.323Z","logger":"controllers.policyEndpoints","msg":"Processing Policy Endpoint  ","Name: ":"client-one-deny-egress-dhsw4","Namespace ":"default"}
-{"level":"info","timestamp":"2023-09-09T05:28:59.892Z","logger":"controllers.policyEndpoints","msg":"Received a new reconcile request","req":{"name":"client-one-allow-egress-coredns-c88vd","namespace":"default"}}
-{"level":"info","timestamp":"2023-09-09T05:28:59.892Z","logger":"controllers.policyEndpoints","msg":"Processing Policy Endpoint  ","Name: ":"client-one-allow-egress-coredns-c88vd","Namespace ":"default"}
-{"level":"info","timestamp":"2023-09-09T07:32:13.738Z","logger":"controllers.policyEndpoints","msg":"Received a new reconcile request","req":{"name":"client-one-allow-egress-demo-app-mjj4d","namespace":"default"}}
-{"level":"info","timestamp":"2023-09-09T07:32:13.738Z","logger":"controllers.policyEndpoints","msg":"Processing Policy Endpoint  ","Name: ":"client-one-allow-egress-demo-app-mjj4d","Namespace ":"default"}
+{"level":"info","timestamp":"2023-09-10T06:08:29.955Z","logger":"controller-runtime.metrics","msg":"Metrics server is starting to listen","addr":":8080"}
+{"level":"info","timestamp":"2023-09-10T06:08:29.956Z","logger":"ebpf-client-init","msg":"Validating ","Probe: ":"v4events.bpf.o"}
+{"level":"info","timestamp":"2023-09-10T06:08:29.956Z","logger":"ebpf-client-init","msg":"error opening  ","Probe: ":"/host/opt/cni/bin/v4events.bpf.o","error":"open /host/opt/cni/bin/v4events.bpf.o: no such file or directory"}
+{"level":"info","timestamp":"2023-09-10T06:08:29.956Z","logger":"ebpf-client-init","msg":"comparing new and existing probes ..."}
+{"level":"info","timestamp":"2023-09-10T06:08:29.957Z","logger":"ebpf-client-init","msg":"change detected in event probe binaries.."}
+{"level":"info","timestamp":"2023-09-10T06:08:29.957Z","logger":"ebpf-client","msg":"Probe validation Done"}
+{"level":"info","timestamp":"2023-09-10T06:08:29.957Z","logger":"cp-util","msg":"Let's install BPF Binaries on to the host path....."}
+{"level":"info","timestamp":"2023-09-10T06:08:29.957Z","logger":"cp-util","msg":"Installing BPF Binary..","target":"/host/opt/cni/bin/v4events.bpf.o","source":"v4events.bpf.o"}
+{"level":"info","timestamp":"2023-09-10T06:08:29.958Z","logger":"cp-util","msg":"Successfully installed - ","binary":"/host/opt/cni/bin/v4events.bpf.o"}
+{"level":"info","timestamp":"2023-09-10T06:08:29.958Z","logger":"cp-util","msg":"Installing BPF Binary..","target":"/host/opt/cni/bin/tc.v4ingress.bpf.o","source":"tc.v4ingress.bpf.o"}
+{"level":"info","timestamp":"2023-09-10T06:08:29.958Z","logger":"cp-util","msg":"Successfully installed - ","binary":"/host/opt/cni/bin/tc.v4ingress.bpf.o"}
+{"level":"info","timestamp":"2023-09-10T06:08:29.958Z","logger":"cp-util","msg":"Installing BPF Binary..","target":"/host/opt/cni/bin/tc.v4egress.bpf.o","source":"tc.v4egress.bpf.o"}
+{"level":"info","timestamp":"2023-09-10T06:08:29.958Z","logger":"cp-util","msg":"Successfully installed - ","binary":"/host/opt/cni/bin/tc.v4egress.bpf.o"}
+{"level":"info","timestamp":"2023-09-10T06:08:29.958Z","logger":"cp-util","msg":"Installing BPF Binary..","target":"/host/opt/cni/bin/aws-eks-na-cli","source":"aws-eks-na-cli"}
+{"level":"info","timestamp":"2023-09-10T06:08:29.967Z","logger":"cp-util","msg":"Successfully installed - ","binary":"/host/opt/cni/bin/aws-eks-na-cli"}
+{"level":"info","timestamp":"2023-09-10T06:08:29.967Z","logger":"ebpf-client","msg":"Copied eBPF binaries to the host directory"}
+{"level":"error","timestamp":"2023-09-10T06:08:29.967Z","logger":"ebpf-client","msg":"failed to recover global maps..","error":"error walking the bpfdirectory lstat /sys/fs/bpf/globals/aws/maps/: no such file or directory","stacktrace":"github.com/aws/aws-network-policy-agent/pkg/ebpf.recoverBPFState\n\t/workspace/pkg/ebpf/bpf_client.go:334\ngithub.com/aws/aws-network-policy-agent/pkg/ebpf.NewBpfClient\n\t/workspace/pkg/ebpf/bpf_client.go:158\ngithub.com/aws/aws-network-policy-agent/controllers.NewPolicyEndpointsReconciler\n\t/workspace/controllers/policyendpoints_controller.go:93\nmain.main\n\t/workspace/main.go:93\nruntime.main\n\t/root/sdk/go1.20.4/src/runtime/proc.go:250"}
+{"level":"info","timestamp":"2023-09-10T06:08:29.967Z","logger":"ebpf-client","msg":"Successfully recovered BPF state"}
+{"level":"info","timestamp":"2023-09-10T06:08:29.967Z","logger":"ebpf-client","msg":"Install the default global maps"}
+{"level":"info","timestamp":"2023-09-10T06:08:29.970Z","logger":"ebpf-client","msg":"Successfully loaded events probe"}
+{"level":"info","timestamp":"2023-09-10T06:08:29.970Z","logger":"ebpf-client","msg":"Initialized Conntrack client"}
+{"level":"info","timestamp":"2023-09-10T06:08:29.970Z","logger":"ebpf-client","msg":"Configure Event loop ... "}
+{"level":"info","timestamp":"2023-09-10T06:08:29.970Z","logger":"ebpf-client","msg":"Cloudwatch log support is enabled"}
+{"level":"info","timestamp":"2023-09-10T06:08:30.095Z","logger":"ebpf-client","msg":"Setup CW","Setting loggroup Name":"/aws/eks/eksworkshop-eksctl/cluster"}
+{"level":"info","timestamp":"2023-09-10T06:08:30.151Z","logger":"ebpf-client","msg":"Configured event logging"}
+{"level":"info","timestamp":"2023-09-10T06:08:30.151Z","logger":"ebpf-client","msg":"BPF Client initialization done"}
+{"level":"info","timestamp":"2023-09-10T06:08:30.151Z","logger":"setup","msg":"starting manager"}
+{"level":"info","timestamp":"2023-09-10T06:08:30.155Z","logger":"setup","msg":"Serving metrics on ","port":61680}
+{"level":"info","timestamp":"2023-09-10T06:08:30.156Z","msg":"Starting server","kind":"health probe","addr":"[::]:8081"}
+{"level":"info","timestamp":"2023-09-10T06:08:30.156Z","msg":"starting server","path":"/metrics","kind":"metrics","addr":"[::]:8080"}
+{"level":"info","timestamp":"2023-09-10T06:08:30.156Z","msg":"Starting EventSource","controller":"policyendpoint","controllerGroup":"networking.k8s.aws","controllerKind":"PolicyEndpoint","source":"kind source: *v1alpha1.PolicyEndpoint"}
+{"level":"info","timestamp":"2023-09-10T06:08:30.156Z","msg":"Starting Controller","controller":"policyendpoint","controllerGroup":"networking.k8s.aws","controllerKind":"PolicyEndpoint"}
+{"level":"info","timestamp":"2023-09-10T06:08:30.267Z","msg":"Starting workers","controller":"policyendpoint","controllerGroup":"networking.k8s.aws","controllerKind":"PolicyEndpoint","worker count":1}
+{"level":"info","timestamp":"2023-09-11T01:04:21.995Z","logger":"controllers.policyEndpoints","msg":"Received a new reconcile request","req":{"name":"demo-app-deny-all-mmzl8","namespace":"default"}}
+{"level":"info","timestamp":"2023-09-11T01:04:21.996Z","logger":"controllers.policyEndpoints","msg":"Processing Policy Endpoint  ","Name: ":"demo-app-deny-all-mmzl8","Namespace ":"default"}
+{"level":"info","timestamp":"2023-09-11T01:04:56.759Z","logger":"controllers.policyEndpoints","msg":"Received a new reconcile request","req":{"name":"demo-app-allow-samens-lspct","namespace":"default"}}
+{"level":"info","timestamp":"2023-09-11T01:04:56.759Z","logger":"controllers.policyEndpoints","msg":"Processing Policy Endpoint  ","Name: ":"demo-app-allow-samens-lspct","Namespace ":"default"}
 ```
 
 ### Send network policy logs to Amazon CloudWatch Logs

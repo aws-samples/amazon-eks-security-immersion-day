@@ -1,5 +1,5 @@
 ---
-title : "Using eBPF SDK"
+title : "Network Policy Agent CLI"
 weight : 21
 ---
 The latest version of the Amazon VPC CNI ships an SDK that provides an interface to interact with eBPF programs on the node. The SDK is installed when the aws-node is deployed onto the nodes. You can find the SDK binary installed under `/opt/cni/bin` directory on the node. Consider using this SDK when you would like to identify connectivity issue. Make sure eBPF programs are being created for the pods on the node.

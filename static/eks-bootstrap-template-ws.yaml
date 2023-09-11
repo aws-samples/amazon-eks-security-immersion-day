@@ -585,14 +585,14 @@ Resources:
       CapacityType: ON_DEMAND
       NodegroupName: "mng-al2"
       InstanceTypes:
-        - t3a.small
+        - t3a.large
       RemoteAccess:
         Ec2SshKey: !GetAtt SSHKeyPairCustomResource.KeyName
         SourceSecurityGroups:
           - !GetAtt Cloud9RoleAttacherCustomResource.SecurityGroupId
       ScalingConfig:
-        DesiredSize: 2
-        MinSize: 2
+        DesiredSize: 3
+        MinSize: 3
         MaxSize: 5
 
   EKSNodegroupBottlerocket:
