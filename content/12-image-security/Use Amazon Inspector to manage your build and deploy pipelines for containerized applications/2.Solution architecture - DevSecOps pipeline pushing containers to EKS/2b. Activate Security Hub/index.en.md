@@ -19,7 +19,7 @@ aws securityhub enable-security-hub --no-enable-default-standards
 ```
 There will be no output if there are no errors
 
-Lets enable security standards
+Lets enable security standards for foundational security best practices
 
 
 ```bash
@@ -41,6 +41,9 @@ aws securityhub batch-enable-standards --standards-subscription-requests '[{"Sta
 ```
 ::::
 
+Lets enable security standards for CIS AWS Foundational benchmark 1.4.0
+
+
 ```bash
 aws securityhub batch-enable-standards --standards-subscription-requests '[{"StandardsArn":"arn:aws:securityhub:us-west-2::standards/cis-aws-foundations-benchmark/v/1.4.0"}]'  
 ```
@@ -50,7 +53,7 @@ aws securityhub batch-enable-standards --standards-subscription-requests '[{"Sta
 {
     "StandardsSubscriptions": [
         {
-            "StandardsSubscriptionArn": "arn:aws:securityhub:us-west-2:XXXXXXXXXXXX:subscription/aws-foundational-security-best-practices/v/1.0.0",
+            "StandardsSubscriptionArn": "arn:aws:securityhub:us-west-2:XXXXXXXXXXXX:subscription/cis-aws-foundations-benchmark/v/1.4.0",
             "StandardsArn": "arn:aws:securityhub:us-west-2::standards/cis-aws-foundations-benchmark/v/1.4.0",
             "StandardsStatus": "PENDING"
         }
@@ -58,8 +61,6 @@ aws securityhub batch-enable-standards --standards-subscription-requests '[{"Sta
 }
 
 ```
-
-
 
 ::::
 
