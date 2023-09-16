@@ -18,16 +18,16 @@ If are running this workshop in your own account, you would need to follow the b
 ```bash
 cd ~/environment
 
-aws inspector2 disable
+aws inspector2 disable --resource-types ECR
+
 aws securityhub disable-security-hub
 
-kubectl delete deployment
+kubectl delete deployment inspector-workshop
 eksctl delete iamidentitymapping --cluster eksworkshop-eksctl --arn arn:aws:iam::${ACCOUNT_ID}:role/EksWorkshopCodeBuildKubectlRole
+aws iam delete-role-policy --role-name EksWorkshopCodeBuildKubectlRole --policy-name eks-describe
 aws iam delete-role --role-name EksWorkshopCodeBuildKubectlRole
 
-rm /tmp/*.json
 rm /tmp/iam-role-policy*
-
 
 aws cloudformation delete-stack --stack-name inspector-container-scan
 

@@ -23,7 +23,7 @@ Lets enable security standards for foundational security best practices and CIS 
 
 
 ```bash
-aws securityhub batch-enable-standards --standards-subscription-requests '[{"StandardsArn":"arn:aws:securityhub:us-west-2::standards/aws-foundational-security-best-practices/v/1.0.0"},{"StandardsArn":"arn:aws:securityhub:us-west-2::standards/cis-aws-foundations-benchmark/v/1.4.0"}]'  '  
+aws securityhub batch-enable-standards --standards-subscription-requests '[{"StandardsArn":"arn:aws:securityhub:us-west-2::standards/aws-foundational-security-best-practices/v/1.0.0"},{"StandardsArn":"arn:aws:securityhub:us-west-2::standards/cis-aws-foundations-benchmark/v/1.4.0"}]' 
 ```
 
 ::::expand{header="Check Output"}
