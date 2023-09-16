@@ -19,49 +19,30 @@ aws securityhub enable-security-hub --no-enable-default-standards
 ```
 There will be no output if there are no errors
 
-Lets enable security standards for foundational security best practices
+Lets enable security standards for foundational security best practices and CIS AWS Foundational benchmark 1.4.0
 
 
 ```bash
-aws securityhub batch-enable-standards --standards-subscription-requests '[{"StandardsArn":"arn:aws:securityhub:us-west-2::standards/aws-foundational-security-best-practices/v/1.0.0"}]'  
+aws securityhub batch-enable-standards --standards-subscription-requests '[{"StandardsArn":"arn:aws:securityhub:us-west-2::standards/aws-foundational-security-best-practices/v/1.0.0"},{"StandardsArn":"arn:aws:securityhub:us-west-2::standards/cis-aws-foundations-benchmark/v/1.4.0"}]'  '  
 ```
 
 ::::expand{header="Check Output"}
-
 ```
 {
     "StandardsSubscriptions": [
         {
-            "StandardsSubscriptionArn": "arn:aws:securityhub:us-west-2:XXXXXXXXXXXX:subscription/aws-foundational-security-best-practices/v/1.0.0",
+            "StandardsSubscriptionArn": "arn:aws:securityhub:us-west-2:XXXXXXXXXXXXX:subscription/aws-foundational-security-best-practices/v/1.0.0",
             "StandardsArn": "arn:aws:securityhub:us-west-2::standards/aws-foundational-security-best-practices/v/1.0.0",
             "StandardsStatus": "PENDING"
-        }
-    ]
-}
-```
-::::
-
-Lets enable security standards for CIS AWS Foundational benchmark 1.4.0
-
-
-```bash
-aws securityhub batch-enable-standards --standards-subscription-requests '[{"StandardsArn":"arn:aws:securityhub:us-west-2::standards/cis-aws-foundations-benchmark/v/1.4.0"}]'  
-```
-
-::::expand{header="Check Output"}
-```bash
-{
-    "StandardsSubscriptions": [
+        },
         {
-            "StandardsSubscriptionArn": "arn:aws:securityhub:us-west-2:XXXXXXXXXXXX:subscription/cis-aws-foundations-benchmark/v/1.4.0",
+            "StandardsSubscriptionArn": "arn:aws:securityhub:us-west-2:XXXXXXXXXXXXX:subscription/cis-aws-foundations-benchmark/v/1.4.0",
             "StandardsArn": "arn:aws:securityhub:us-west-2::standards/cis-aws-foundations-benchmark/v/1.4.0",
             "StandardsStatus": "PENDING"
         }
     ]
 }
-
 ```
-
 ::::
 
 ::::tab{id="console" label="Using AWS Console"}
@@ -76,7 +57,7 @@ Click **Get Started**
 
 Unselect "Enable CIS AWS Foundations Benchmark v1.2.0"  and select "Enable CIS AWS Foundations Benchmark v1.4.0"
 
-Click **Enable SecurityHub**
+Click on **Enable SecurityHub**
 ![Enable Security Hub](/static/images/image-security/devsecops-inspector/SecurityHub-enable.png)
 
 
