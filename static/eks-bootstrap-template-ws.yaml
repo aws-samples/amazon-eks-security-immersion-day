@@ -795,7 +795,7 @@ Resources:
               unzip awscliv2.zip -d /tmp
               sudo /tmp/aws/install --update
               rm -rf aws awscliv2.zip
-              curl -sSL -o /tmp/kubectl curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.27.4/2023-08-16/bin/linux/amd64/kubectl
+              curl -sSL -o /tmp/kubectl https://s3.us-west-2.amazonaws.com/amazon-eks/1.27.4/2023-08-16/bin/linux/amd64/kubectl
               chmod +x /tmp/kubectl
               mv /tmp/kubectl /usr/local/bin/kubectl
               su -l -c 'aws eks update-kubeconfig --name {eks_cluster_name} --region {region} --role-arn {instance_role_arn}' ec2-user
@@ -822,6 +822,8 @@ Resources:
               su -l -c 'helm repo update' ec2-user
               volume_id=$(aws --region {region} ec2 describe-volumes --filters Name=attachment.instance-id,Values={instance_id} --query 'Volumes[0].VolumeId' --output text)
               aws --region {region} ec2 modify-volume --volume-id $volume_id --size 30
+              # Only the environment owner can change the status of managed temporary credentials
+              su -l -c 'aws cloud9 update-environment --environment-id {cloud9environment_id} --managed-credentials-action DISABLE --region {region}' ec2-user
               # This must be the last line - do not add any lines after this!
               shutdown -r 1
               '''.format(
@@ -831,6 +833,7 @@ Resources:
                       key_material=event['ResourceProperties']['KeyMaterial'],
                       instance_id=instance_id,
                       account_id=event['ResourceProperties']['AccountId'],
+                      cloud9environment_id=event['ResourceProperties']['Cloud9EnvironmentId'],
                   ).split("\n")
                   client = boto3.client('ssm')
                   client.send_command(
