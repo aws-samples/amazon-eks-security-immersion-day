@@ -16,7 +16,7 @@ You can check your current Kubernetes version with following command.
 aws eks describe-cluster --name eksworkshop-eksctl --query cluster.version --output text
 ``` 
 
-The outout shows 1.25, which is the supported version.
+The output shows 1.27, which is the supported version.
 
 ```bash
 1.27
