@@ -13,12 +13,15 @@ All findings are aggregated in the Amazon Inspector console and pushed to AWS Se
 
 To view findings in Amazon Inspector
 
-1. In the [Amazon Inspector Console](https://console.aws.amazon.com/inspector) under Findings, choose By Repository
-2. From the list of repositories, choose the inspector-container-images repository
-3. Choose the Image tag link to bring uo list of individual vulnerabilities that we found within the container
+1. In the [Amazon Inspector Console](https://us-west-2.console.aws.amazon.com/inspector/v2/home?region=us-west-2#/dashboard) Click on **Findings**, In the **Filter criteria** scroll down menu, Select **Repository name** and Enter and Click **inspector-workshop** in the text box and Click **Apply**.
+
+![inspector_findings_by_repo_filter](/static/images/image-security/devsecops-inspector/inspector_findings_by_repo_filter.png)
 
 
-![Inspector](/static/images/image-security/devsecops-inspector/Inspector-findings.png)
+2. You can see the vulnerabilities found within the container.
+
+![inspector_findings_by_repo_filter2](/static/images/image-security/devsecops-inspector/inspector_findings_by_repo_filter2.png)
+
 
 
 Amazon Inspector generates a highly contextualized Amazon Inspector risk score for each finding by correlating CVE information with environmental factors such as network reachability results and exploitability data.
@@ -30,7 +33,7 @@ This helps prioritize the findings and highlights the most critical findings and
 
 After Amazon Inspector sends out the scan status event, a Lambda function receives and processes that event. This function needs to consume the Amazon Inspector scan status message and make a decision about whether the image can be deployed.
 
-The eval_container_scan_results Lambda function serves two purposes: 
+The `eval_container_scan_results` [Lambda function](https://us-west-2.console.aws.amazon.com/lambda/home?region=us-west-2#/functions/eval-container-scan-results?tab=code) serves **two** purposes: 
 1. Extract the findings from the Amazon Inspector scan message that invoked the Lambda function. 
 2. Evaluate the findings based on thresholds that are defined as parameters in the Lambda function definition. 
 

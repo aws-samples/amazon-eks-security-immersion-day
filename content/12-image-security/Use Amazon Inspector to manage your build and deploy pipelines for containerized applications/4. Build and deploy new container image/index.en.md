@@ -10,17 +10,17 @@ Deploying a new container image will involve pushing an updated Dockerfile to th
 
 To update Dockerfile in CodeCommit
 
-1. In the [CodeCommit Console](https://us-west-2.console.aws.amazon.com/codesuite/codecommit/repositories?region=us-west-2)., choose the repository named ContainerComponentsRepo.
-2. In the screen listing the repository files, choose the Dockerfile file link and choose Edit.
+1. In the [CodeCommit Console](https://us-west-2.console.aws.amazon.com/codesuite/codecommit/repositories?region=us-west-2)., choose the repository named `ContainerComponentsRepo`.
+2. In the screen listing the repository files, choose the `Dockerfile` file link and choose **Edit**.
 3. In the Edit a file form, overwrite the existing file contents with the following command:
 
 ```bash
-   FROM public.ecr.aws/amazonlinux/amazonlinux:latest
+FROM public.ecr.aws/amazonlinux/amazonlinux:latest
 ```
 4.In the Commit changes to main section, fill in the following fields.
-      Author name: your name
-      Email address: your email
-      Commit message: ‘Updated Dockerfile’
+      **Author name**: `your name`
+      **Email address**: `your email`
+      **Commit message**: `Updated Dockerfile`
 
    ![Edit file Code Commit](/static/images/image-security/devsecops-inspector/Codecommit-edit-dockerfile.png)
 

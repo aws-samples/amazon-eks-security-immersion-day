@@ -18,7 +18,7 @@ aws inspector2 enable --resource-types ECR
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```json
 {
     "accounts": [
         {
@@ -51,9 +51,10 @@ Click **Get Started**
 Click **Activate Inspector**
 ![Enable Inspector!](/static/images/image-security/devsecops-inspector/Inspector-Activate.png)
 
+::::
+
+:::::
 
 When you enable Inspector for the first time,you will see the following screen
 
 ![GDNewEKSProtectionScreen-New](/static/images/image-security/devsecops-inspector/inspector-enabled.png)
-
-::::

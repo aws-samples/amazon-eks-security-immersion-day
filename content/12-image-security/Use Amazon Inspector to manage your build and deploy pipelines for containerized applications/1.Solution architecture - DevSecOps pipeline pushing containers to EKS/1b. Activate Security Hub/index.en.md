@@ -27,7 +27,7 @@ aws securityhub batch-enable-standards --standards-subscription-requests '[{"Sta
 ```
 
 ::::expand{header="Check Output"}
-```
+```json
 {
     "StandardsSubscriptions": [
         {
@@ -47,7 +47,7 @@ aws securityhub batch-enable-standards --standards-subscription-requests '[{"Sta
 
 ::::tab{id="console" label="Using AWS Console"}
 
-In your AWS Console, Search for SecurityHub
+In your AWS Console, Search for **SecurityHub** 
 
 ![Search for SecurityHub](/static/images/image-security/devsecops-inspector/SecurityHub-search.png)
 
@@ -55,14 +55,15 @@ Click **Get Started**
 
 ![Security Hub Get Started](/static/images/image-security/devsecops-inspector/SecurityHub-goto.png)
 
-Unselect "Enable CIS AWS Foundations Benchmark v1.2.0"  and select "Enable CIS AWS Foundations Benchmark v1.4.0"
+Unselect **Enable CIS AWS Foundations Benchmark v1.2.0**  and select **Enable CIS AWS Foundations Benchmark v1.4.0**
 
-Click on **Enable SecurityHub**
 ![Enable Security Hub](/static/images/image-security/devsecops-inspector/SecurityHub-enable.png)
 
+Click on **Enable SecurityHub**
+
+::::
+:::::
 
 When you enable SecurityHub for the first time,you will see the following screen
 
 ![Security Hub Enabled](/static/images/image-security/devsecops-inspector/SecurityHub-enabled.png)
-
-::::

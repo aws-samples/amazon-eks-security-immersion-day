@@ -14,7 +14,7 @@ This information can be used to  analyze  security trends and identify the highe
 1. AWS Foundational Security Best Practices standard comes built into Security Hub. This is a highly curated set of 
    security best practices vetted by security experts
 2. Security hub also provided additional standards aligned to industry and regulation frameworks
-3. Security hub provides simple 0-100 security score for each standard, for each account across all enabled standards, 
+3. Security hub provides simple **0-100** security score for each standard, for each account across all enabled standards, 
    and a total score for all accounts associated with your administrator account.
 4. Connect multiple AWS accounts and consolidate findings across all accounts in Security hub.
 
