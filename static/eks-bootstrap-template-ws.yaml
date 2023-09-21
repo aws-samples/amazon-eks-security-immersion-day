@@ -803,7 +803,9 @@ Resources:
               su -l -c 'echo "export AWS_ACCOUNT_ID={account_id}" >> ~/.bash_profile' ec2-user
               su -l -c 'echo "export AWS_DEFAULT_REGION={region}" >> ~/.bash_profile' ec2-user
               su -l -c 'echo "export AWS_REGION={region}" >> ~/.bash_profile' ec2-user
-              su -l -c 'echo "export EKS_CLUSTER={eks_cluster_name}" >> ~/.bash_profile' ec2-user            
+              su -l -c 'echo "export EKS_CLUSTER={eks_cluster_name}" >> ~/.bash_profile' ec2-user
+              su -l -c 'echo "Found the Cloud9ID envs {cloud9environment_id}"' ec2-user
+              su -l -c 'echo "aws cloud9 update-environment  --environment-id {cloud9environment_id} --managed-credentials-action DISABLE > /dev/null 2>&1" |  tee -a ~/.bash_profile' ec2-user
               su -l -c 'echo "{key_material}" > ~/.ssh/id_rsa' ec2-user
               su -l -c 'chmod 600 ~/.ssh/id_rsa' ec2-user
               curl -sSL "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
@@ -822,8 +824,6 @@ Resources:
               su -l -c 'helm repo update' ec2-user
               volume_id=$(aws --region {region} ec2 describe-volumes --filters Name=attachment.instance-id,Values={instance_id} --query 'Volumes[0].VolumeId' --output text)
               aws --region {region} ec2 modify-volume --volume-id $volume_id --size 30
-              # Only the environment owner can change the status of managed temporary credentials
-              su -l -c 'aws cloud9 update-environment --environment-id {cloud9environment_id} --managed-credentials-action DISABLE --region {region}' ec2-user
               # This must be the last line - do not add any lines after this!
               shutdown -r 1
               '''.format(
