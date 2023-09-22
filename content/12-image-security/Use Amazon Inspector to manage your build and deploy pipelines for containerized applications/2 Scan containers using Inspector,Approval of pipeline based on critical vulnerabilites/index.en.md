@@ -37,7 +37,6 @@ The `eval_container_scan_results` [Lambda function](https://us-west-2.console.aw
 1. Extract the findings from the Amazon Inspector scan message that invoked the Lambda function. 
 2. Evaluate the findings based on thresholds that are defined as parameters in the Lambda function definition. 
 
-
 Based on the container vulnerability image results, the Lambda function determines whether the image should be approved or rejected for deployment. The function will retrieve the details about the current pipeline that the image is associated with from the DynamoDB table that was populated by the image approval action in the pipeline. After the details about the pipeline are retrieved, an Approved or Rejected message is sent to the pipeline approval action. If the status is Approved, the pipeline continues to the deploy stage, which will deploy the container image into the defined environment for that pipeline stage. If the status is Rejected, the pipeline status is set to Rejected and the pipeline will end.
 
 ![Inspector Score](/static/images/image-security/devsecops-inspector/Inspector-lambda-logic.png)
