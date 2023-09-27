@@ -18,7 +18,7 @@ Covered Elsewhere - Recommendation is covered by another control in AWS .
 CIS Scan Results and Exceptions
 
 | CIS ID | CIS Description | Reason | Workaround 
-| --- | --- | --- | --- | --- |
+| --- | --- | --- | --- | --- 
 | 1.1.22  |  Ensure sticky bit is set on all world-writable directories | Directories used by containerd are world-writable. This is required for the functioning of Kubernetes | There are issues open in kubernetes for this ask https://github.com/awslabs/amazon-eks-ami/issues/846
 | 1.6.1.6 | Ensure no unconfined services exist | 1 | 0 | Investigate any unconfined processes found during the audit action. They may need to have an existing security context assigned to them or a policy built for them.  https://aws.github.io/aws-eks-best-practices/security/docs/runtime/#runtime-security
 |2.1.1.2| Ensure chrony is configured | This is a false postive. Chrony configuration is setup in /etc/chrony.d/| Run chronyd tracking to confirm Chorny is configured
