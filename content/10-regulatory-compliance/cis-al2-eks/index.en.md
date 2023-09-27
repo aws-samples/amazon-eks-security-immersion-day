@@ -1,27 +1,33 @@
 ---
-title : "Validating Amazon EKS optimized Bottlerocket AMI against the CIS Benchmark"
+title : "Building Amazon Linux 2 CIS Benchmark AMIs for Amazon EKS"
 weight : 34
 ---
 
-The [Center for Internet Security (CIS)](https://www.cisecurity.org/) Benchmarks are best practices for the secure configuration of a target system. They define various Benchmarks for the Kubernetes control plane and the data plane. For [Amazon EKS](https://aws.amazon.com/eks/) clusters, it’s strongly recommended to follow the [CIS Amazon EKS Benchmark](https://aws.amazon.com/blogs/containers/introducing-cis-amazon-eks-benchmark/). However, many organizations also need to harden the operating system on the worker nodes for security and compliance purposes. [Bottlerocket](https://aws.amazon.com/bottlerocket/) is a Linux-based open-source operating system that is purpose-built by Amazon Web Services for containers. If an organization needs to ensure compliance, the organization must implement the [CIS Benchmark for Bottlerocket](https://www.cisecurity.org/benchmark/bottlerocket). 
+The [Center for Internet Security (CIS)](https://www.cisecurity.org/) Benchmarks are best practices for the secure configuration of a target system. They define various Benchmarks for the Kubernetes control plane and the data plane. For [Amazon EKS](https://aws.amazon.com/eks/) clusters, it’s strongly recommended to follow the [CIS Amazon EKS Benchmark](https://aws.amazon.com/blogs/containers/introducing-cis-amazon-eks-benchmark/). However, many organizations also need to harden the operating system on the worker nodes for security and compliance purposes. If the data plane of an Amazon EKS cluster uses [ Amazon Linux 2 ](https://aws.amazon.com/amazon-linux-2/?amazon-linux-whats-new.sort-by=item.additionalFields.postDateTime&amazon-linux-whats-new.sort-order=desc) as a node group Operating System, it is recommended to implement the [ CIS Amazon Linux 2 Benchmark ](https://www.cisecurity.org/benchmark/amazon_linux). 
+This workshop provides detailed, step-by-step instructions on how you  can build an Amazon EKS Amazon Machine Image (AMI) compliant with the CIS Amazon Linux 2 Benchmarks. It will also illustrate how to continuously validate the worker nodes against the Benchmark after deployment to minimize the risk of security configuration drift.
 
-In this module, we will have detailed step-by-step instructions on how you can bootstrap an Amazon EKS optimized Bottlerocket Amazon Machine Image (AMI) for the requirements of the [CIS Bottlerocket Benchmarks](https://aws.amazon.com/about-aws/whats-new/2022/08/center-for-internet-security-bottlerocket-available/). It will also illustrate how to continuously validate the worker nodes against the Benchmark after deployment to minimize the risk of security configuration drift.
 
+#### Amazon EKS optimized Amazon Linux 2 AMI hardening process
 
-#### Amazon EKS optimized Bottlerocket AMI hardening process
-
-The CIS Bottlerocket Benchmark defines two profiles for hardening (i.e., Level 1 and Level 2):
+The CIS Amazon Linux 2 Benchmark defines two profiles for hardening (i.e., Level 1 and Level 2):
 
 1. A Level 1 profile is intended to be practical and prudent, provide a clear security benefit, and not inhibit the utility of the technology beyond acceptable means.
 2. A Level 2 profile is intended for environments or use cases where security is paramount, acts as a defense in depth measure, and may negatively inhibit the utility or performance of the technology.
 
-Here is a solution for hardening and validating an Amazon EKS optimized Bottlerocket AMI against Level 2.
+There are two approaches for hardening the Amazon EKS AMI for CIS Benchmark Level 1 or Level 2 profiles.
+
+1. Use the standard Amazon EKS Optimized AMI as a base and add hardening on top of it. This process requires someone to apply all of configuration mentioned in the Amazon Linux 2 CIS Benchmark specification. This workshop addresses this approach and provides step by step instructions on how build an Amazon EKS hardened AMI, leveraging the community provided hardening script
+
+2. Use the Amazon Linux 2 (AL2) CIS Benchmark Level 1 and Level 2 AMI from the AWS Marketplace as a base, and add Amazon EKS specific components on top of it. Please refer the blog for this approach.
+
+
+Here is a solution for hardening and validating an Amazon EKS optimized Amazon Linux 2 AMI against Level 2.
 
 
 
-![CIS-Bottlerocket-Benchmark](/static/images/regulatory-compliance/cis-bottlerocket-eks/CIS-Bottlerocket-Benchmark-1024x514.png)
+![CIS-Amazon Linux 2-Benchmark](/static/images/regulatory-compliance/cis-bottlerocket-eks/CIS-Bottlerocket-Benchmark-1024x514.png)
 
-#### Amazon EKS optimized Bottlerocket AMI support for CIS Benchmark
+#### Amazon EKS optimized Amazon Linux 2 AMI support for CIS Benchmark
 
 The Amazon EKS optimized Bottlerocket AMI (as of this writing) supports 18 out of 28 Level 1 and 2 recommendations specified in the CIS Benchmark for Bottlerocket, without a need for any additional configuration effort. For the remaining 10 recommendations to adhere to Level 2, six recommendations can be addressed via a bootstrap container and four recommendations can be addressed via kernel sysctl configurations in the user data of the Amazon EKS worker nodes.
 
@@ -60,8 +66,8 @@ The code used in this solution is available in GitHub. Please clone the reposito
 
 ```bash
 cd ~/environment
-git clone https://github.com/aws-samples/containers-blog-maelstrom.git
-cd ~/environment/containers-blog-maelstrom/cis-bottlerocket-benchmark-eks/
+git clone https://github.com/preetamrebello/amazon-eks-custom-amis
+cd ~/environment/amazon-eks-custom-amis
 ```
 
 You’ll also need to configure the following environment variables:
@@ -70,8 +76,7 @@ You’ll also need to configure the following environment variables:
 export AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
 export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
 export CLUSTER_NAME=eksworkshop-eksctl
-export BOOTSTRAP_ECR_REPO=bottlerocket-cis-bootstrap-image
-export VALIDATION_ECR_REPO=bottlerocket-cis-validation-image
+export EKS_VERSION=$(aws eks describe-cluster --name $EKS_CLUSTER  --region $AWS_REGION --query "cluster.version")
 ```
 
 
