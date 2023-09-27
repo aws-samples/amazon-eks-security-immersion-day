@@ -8,57 +8,21 @@ Use these commands to delete the resources created during this post:
 Delete the Kubernetes Job and the sample deployment.
 
 ```bash
-cd ~/environment/containers-blog-maelstrom/cis-bottlerocket-benchmark-eks/
-kubectl delete -f job-eks.yaml
-kubectl delete -f deploy-nginx.yaml
+cd cd ~/environment/amazon-eks-custom-amis
+ kubectl delete -f nginx-deploy.yaml
 ```
-
-::::expand{header="Check Output"}
+Check Output
 ```bash
 job.batch "eks-cis-benchmark" deleted
 deployment.apps "nginx" deleted
 ```
 ::::
 
-Delete the Amazon ECR Repositories
-
-```bash
-aws ecr delete-repository --repository-name ${BOOTSTRAP_ECR_REPO} --force
-aws ecr delete-repository --repository-name ${VALIDATION_ECR_REPO} --force
-```
-
-::::expand{header="Check Output"}
-```json
-{
-    "repository": {
-        "repositoryArn": "arn:aws:ecr:us-west-2:XXXXXXXXXX:repository/bottlerocket-cis-bootstrap-image",
-        "registryId": "XXXXXXXXXX",
-        "repositoryName": "bottlerocket-cis-bootstrap-image",
-        "repositoryUri": "XXXXXXXXXX.dkr.ecr.us-west-2.amazonaws.com/bottlerocket-cis-bootstrap-image",
-        "createdAt": "2023-03-16T08:55:53+00:00",
-        "imageTagMutability": "MUTABLE"
-    }
-}
-
-{
-    "repository": {
-        "repositoryArn": "arn:aws:ecr:us-west-2:XXXXXXXXXX:repository/bottlerocket-cis-validation-image",
-        "registryId": "XXXXXXXXXX",
-        "repositoryName": "bottlerocket-cis-validation-image",
-        "repositoryUri": "XXXXXXXXXX.dkr.ecr.us-west-2.amazonaws.com/bottlerocket-cis-validation-image",
-        "createdAt": "2023-03-16T09:10:49+00:00",
-        "imageTagMutability": "MUTABLE"
-    }
-}
-```
-::::
-
-
 Delete Amazon EKS Managed nodegroup
 
 ```bash
-cd ~/environment/containers-blog-maelstrom/cis-bottlerocket-benchmark-eks/
-eksctl delete nodegroup -f br-mng.yaml --approve --wait
+cd cd ~/environment/amazon-eks-custom-amis
+eksctl delete nodegroup -f cluster.yaml --approve --wait
 ```
 
 ::::expand{header="Check Output"}
@@ -81,3 +45,16 @@ eksctl delete nodegroup -f br-mng.yaml --approve --wait
 2023-03-16 09:33:35 [✔]  deleted 1 nodegroup(s) from cluster "eksworkshop-eksctl"
 ```
 ::::
+
+Delete the AMI
+
+```bash
+aws ec2 deregister-image --image-id $EKS_AMI_ID
+```
+
+
+Delete the repositiory
+```bash
+cd ~/environment/
+rm -rf amazon-eks-custom-amis/
+```
