@@ -1,8 +1,7 @@
 ---
-title : "Use Amazon Inspector to manage your build and deploy pipelines for containerized applications"
+title : "DevSecOps pipeline using AWS CodePipeline,  Amazon Inspector and AWS Security Hub"
 weight : 34
 ---
-
 
 DevSecOps is the practice of integrating security testing at every stage of the software development process.
 In conventional software development methods, security testing was a separate process from the SDLC. The security team discovered security flaws only after they built the software.
