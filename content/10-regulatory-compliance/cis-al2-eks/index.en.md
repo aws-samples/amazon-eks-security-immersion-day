@@ -4,7 +4,7 @@ weight : 34
 ---
 
 The [Center for Internet Security (CIS)](https://www.cisecurity.org/) Benchmarks are best practices for the secure configuration of a target system. They define various Benchmarks for the Kubernetes control plane and the data plane. For [Amazon EKS](https://aws.amazon.com/eks/) clusters, it’s strongly recommended to follow the [CIS Amazon EKS Benchmark](https://aws.amazon.com/blogs/containers/introducing-cis-amazon-eks-benchmark/). However, many organizations also need to harden the operating system on the worker nodes for security and compliance purposes. If the data plane of an Amazon EKS cluster uses [ Amazon Linux 2 ](https://aws.amazon.com/amazon-linux-2/?amazon-linux-whats-new.sort-by=item.additionalFields.postDateTime&amazon-linux-whats-new.sort-order=desc) as a node group Operating System, it is recommended to implement the [ CIS Amazon Linux 2 Benchmark ](https://www.cisecurity.org/benchmark/amazon_linux). 
-This workshop provides detailed, step-by-step instructions on how you  can build an Amazon EKS Amazon Machine Image (AMI) compliant with the CIS Amazon Linux 2 Benchmarks. It will also illustrate how to continuously validate the worker nodes against the Benchmark after deployment to minimize the risk of security configuration drift.
+This workshop provides detailed, step-by-step instructions on how you  can build an Amazon EKS Amazon Machine Image (AMI) compliant with the CIS Amazon Linux 2 Benchmarks. It will also provide guidance on how to validate the worker nodes against the Benchmark after deployment.
 
 
 #### Amazon EKS optimized Amazon Linux 2 AMI hardening process
@@ -21,24 +21,25 @@ There are two approaches for hardening the Amazon EKS AMI for CIS Benchmark Leve
 2. Use the Amazon Linux 2 (AL2) CIS Benchmark Level 1 and Level 2 AMI from the AWS Marketplace as a base, and add Amazon EKS specific components on top of it. Please refer the blog for this approach.
 
 
-Here is a solution for hardening and validating an Amazon EKS optimized Amazon Linux 2 AMI against Level 2.
+Here is a solution for hardening and validating an Amazon EKS optimized Amazon Linux 2 AMI against Level 2. 
 
 
 
-![CIS-Amazon Linux 2-Benchmark](/static/images/regulatory-compliance/cis-bottlerocket-eks/CIS-Bottlerocket-Benchmark-1024x514.png)
+![CIS-Amazon Linux 2-Benchmark](/static/images/regulatory-compliance/cis-al2-eks/cis-al2-soln.png)
 
 #### Amazon EKS optimized Amazon Linux 2 AMI support for CIS Benchmark
 
-The Amazon EKS optimized Bottlerocket AMI (as of this writing) supports 18 out of 28 Level 1 and 2 recommendations specified in the CIS Benchmark for Bottlerocket, without a need for any additional configuration effort. For the remaining 10 recommendations to adhere to Level 2, six recommendations can be addressed via a bootstrap container and four recommendations can be addressed via kernel sysctl configurations in the user data of the Amazon EKS worker nodes.
-
+The Amazon EKS customized AMI using the hardening  script (as of this writing) can achive almost 89-93% of hardening for  Level 1 and 2 recommendations specified in the CIS Benchmark for Amazon Linux 2, it also follows the hardening standards mentioned in  [CIS Amazon EKS Benchmark](https://aws.amazon.com/blogs/containers/introducing-cis-amazon-eks-benchmark/). For the recommendations which are not able to adhere we do have provided reasons or alternative remidiation guidelines.
 
 | Section Number | Section | Level 1 | Level 2 | Total
 | --- | --- | --- | --- | --- |
-| 1 | Initial setup | 7 | 3 | 10
-| 2 | Services | 1 | 0 | 1
-| 3 | Network configuration | 3 | **12** | 15
-| 4 | Logging and auditing | 2 | 0 | 2
-|   |                      | 13 | 15 | 28
+| 1 | Initial setup | 45 | 7 | 52
+| 2 | Services | 27 | 0 | 27
+| 3 | Network configuration | 45 | 3 | 48
+| 4 | Logging and auditing | 11 | 22 | 33
+| 5 | Access, Authentication and Authorization | 47 | 2 | 49
+| 6 | System Maintenance | 30 | 1 | 31
+|   |                      | 205 | 35 | 240
 
 
 
@@ -62,21 +63,10 @@ If the installation was successful, the following message is returned.
 The Session Manager plugin is installed successfully. Use the AWS CLI to start a session.
 ```
 
-The code used in this solution is available in GitHub. Please clone the repository to prepare for the walkthrough.
-
-```bash
-cd ~/environment
-git clone https://github.com/preetamrebello/amazon-eks-custom-amis
-cd ~/environment/amazon-eks-custom-amis
-```
-
 You’ll also need to configure the following environment variables:
 
 ```bash
 export AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
 export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
-export CLUSTER_NAME=eksworkshop-eksctl
 export EKS_VERSION=$(aws eks describe-cluster --name $EKS_CLUSTER  --region $AWS_REGION --query "cluster.version")
 ```
-
-

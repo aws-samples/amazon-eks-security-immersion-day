@@ -18,7 +18,7 @@ Covered Elsewhere - Recommendation is covered by another control in AWS .
 CIS Scan Results and Exceptions
 
 | CIS ID | CIS Description | Reason | Workaround 
-| --- | --- | --- | --- | --- 
+| --- | --- | --- | --- |
 | 1.1.22  |  Ensure sticky bit is set on all world-writable directories | Directories used by containerd are world-writable. This is required for the functioning of Kubernetes | There are issues open in kubernetes for this ask https://github.com/awslabs/amazon-eks-ami/issues/846
 | 1.6.1.6 | Ensure no unconfined services exist | 1 | 0 | Investigate any unconfined processes found during the audit action. They may need to have an existing security context assigned to them or a policy built for them.  https://aws.github.io/aws-eks-best-practices/security/docs/runtime/#runtime-security
 |2.1.1.2| Ensure chrony is configured | This is a false postive. Chrony configuration is setup in /etc/chrony.d/| Run chronyd tracking to confirm Chorny is configured
@@ -32,9 +32,8 @@ CIS Scan Results and Exceptions
 | 5.3.4  |Ensure SSH access is limited | 1 | 0 | Customer can setup this access 
 | 6.1.10  |Ensure no world writable files exist	Fail| Directories used by containerd are world-writable. This is required for the functioning of Kubernetes| There are issues open in kubernetes for this ask https://github.com/awslabs/amazon-eks-ami/issues/846| 15
 | 6.1.11 | Ensure no unowned files or directories exist	Fail | 2 | 0 
-| 6.1.12 |  Ensure no ungrouped files or directories exist	Fail | 2 | 0 
-| 6.2.2 | Ensure /etc/shadow password fields are not empty| 2 | This is false positive | If any accounts in the /etc/shadow file do not have a password, run the following command to lock the account until it can be determined why it does not have a password: passwd -l <username>
-Also, check to see if the account is logged in and investigate what it is being used for to determine if it needs to be forced off.
+| 6.1.12 |  Ensure no ungrouped files or directories exist | 2 | 0 
+| 6.2.2 | Ensure /etc/shadow password fields are not empty| This is false positive | If any accounts in the /etc/shadow file do not have a password, run the following command to lock the account until it can be determined why it does not have a password: passwd -l <username> Also, check to see if the account is logged in and investigate what it is being used for to determine if it needs to be forced off.
     
 
 
