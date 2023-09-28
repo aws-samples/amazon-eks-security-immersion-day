@@ -42,6 +42,7 @@ As part of this workshop we will cover the following modules:
 | **Image Security** | [Container Image CVE Management with Amazon Inspector](/12-image-security/manage-image-cve-with-inspector/) | 30 mins | N/A |
 | | [Amazon ECR Security Controls](/12-image-security/amazon-ecr-security-controls/) | 60 mins | N/A |
 | | [Container Image Signing and Verification with AWS Signer](/12-image-security/image-signing-with-aws-signer/) | 90 mins | N/A |
+| | [DevSecOps pipeline using AWS CodePipeline,  Amazon Inspector and AWS Security Hub](/12-image-security/devsecops-pipeline/) | 90 mins | N/A |
 | **Data Encryption and Secrets Management** | [Mounting Secrets from AWS Secrets Manager](/13-data-encryption-and-secret-management/mounting-secrets-from-aws-secrets-manager/) | 60 mins | N/A |
 
 
