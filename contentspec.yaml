@@ -17,6 +17,7 @@ infrastructure:
       parameters:
         - templateParameter: EETeamRoleArn
           defaultValue: "{{.ParticipantRoleArn}}"
+
  
 # END Infrastructure
 

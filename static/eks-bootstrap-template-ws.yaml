@@ -843,3 +843,35 @@ Resources:
       Region: !Sub "${AWS::Region}"
       InstanceRoleArn: !GetAtt Cloud9InstanceRole.Arn
       KeyMaterial: !GetAtt SSHKeyPairCustomResource.KeyMaterial
+
+  CodeBuildSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: Codebuild Internet Group
+      GroupDescription: CodeBuild SecurityGroup
+      VpcId: !Ref VPC
+
+
+
+
+
+Outputs:
+
+  VPC:
+    Description: 'VPC'
+    Value: !Ref VPC
+    Export:
+      Name: vpcId
+
+
+  SubnetAPrivate:
+    Description: 'Subnet A private'
+    Value: !Ref PrivateSubnetA
+    Export:
+      Name: SubnetAPrivate
+
+  CodeBuildSecurityGroup:
+    Description: 'Security group for codebuild'
+    Value: !GetAtt Cloud9RoleAttacherCustomResource.SecurityGroupId
+    Export:
+      Name: CodeBuildSecurityGroup
