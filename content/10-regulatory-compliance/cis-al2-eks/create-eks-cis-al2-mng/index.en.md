@@ -70,17 +70,39 @@ Create the managed node group
 ```bash
 eksctl create nodegroup --config-file=cis-al2-mng.yaml
 ```
-It will take couple of minutes to create the Amazon EKS managed nodegroup.
-
-check output
+It will take approximately 10-15 minutes to create the Amazon EKS managed nodegroup.
 
 ::::expand{header="Check Output"}
 ```bash
-vpc-030e4a3055ba71b2c
-subnet-021c732a5fb47987d
-subnet-0a519601dde1343db
-subnet-06b2953cd4cf217a7
-sg-006edc1b420a36f44
+2023-09-28 20:11:39 [!]  no eksctl-managed CloudFormation stacks found for "eksworkshop-eksctl", will attempt to create nodegroup(s) on non eksctl-managed cluster
+2023-09-28 20:11:39 [ℹ]  nodegroup "custom-ng-amd" will use "ami-0aafe4768c171cf05" [AmazonLinux2/1.25]
+2023-09-28 20:11:39 [ℹ]  2 existing nodegroup(s) (mng-al2,mng-br) will be excluded
+2023-09-28 20:11:39 [ℹ]  1 nodegroup (custom-ng-amd) was included (based on the include/exclude rules)
+2023-09-28 20:11:39 [ℹ]  will create a CloudFormation stack for each of 1 managed nodegroups in cluster "eksworkshop-eksctl"
+2023-09-28 20:11:39 [ℹ]  1 task: { 1 task: { 1 task: { create managed nodegroup "custom-ng-amd" } } }
+2023-09-28 20:11:39 [ℹ]  building managed nodegroup stack "eksctl-eksworkshop-eksctl-nodegroup-custom-ng-amd"
+2023-09-28 20:11:40 [ℹ]  deploying stack "eksctl-eksworkshop-eksctl-nodegroup-custom-ng-amd"
+2023-09-28 20:11:40 [ℹ]  waiting for CloudFormation stack "eksctl-eksworkshop-eksctl-nodegroup-custom-ng-amd"
+2023-09-28 20:12:10 [ℹ]  waiting for CloudFormation stack "eksctl-eksworkshop-eksctl-nodegroup-custom-ng-amd"
+2023-09-28 20:13:01 [ℹ]  waiting for CloudFormation stack "eksctl-eksworkshop-eksctl-nodegroup-custom-ng-amd"
+2023-09-28 20:14:38 [ℹ]  waiting for CloudFormation stack "eksctl-eksworkshop-eksctl-nodegroup-custom-ng-amd"
+2023-09-28 20:15:56 [ℹ]  waiting for CloudFormation stack "eksctl-eksworkshop-eksctl-nodegroup-custom-ng-amd"
+2023-09-28 20:16:29 [ℹ]  waiting for CloudFormation stack "eksctl-eksworkshop-eksctl-nodegroup-custom-ng-amd"
+2023-09-28 20:17:39 [ℹ]  waiting for CloudFormation stack "eksctl-eksworkshop-eksctl-nodegroup-custom-ng-amd"
+2023-09-28 20:18:35 [ℹ]  waiting for CloudFormation stack "eksctl-eksworkshop-eksctl-nodegroup-custom-ng-amd"
+2023-09-28 20:19:51 [ℹ]  waiting for CloudFormation stack "eksctl-eksworkshop-eksctl-nodegroup-custom-ng-amd"
+2023-09-28 20:19:51 [ℹ]  no tasks
+2023-09-28 20:19:51 [✔]  created 0 nodegroup(s) in cluster "eksworkshop-eksctl"
+2023-09-28 20:19:51 [ℹ]  nodegroup "custom-ng-amd" has 2 node(s)
+2023-09-28 20:19:51 [ℹ]  node "ip-10-254-155-211.us-west-2.compute.internal" is ready
+2023-09-28 20:19:51 [ℹ]  node "ip-10-254-192-226.us-west-2.compute.internal" is ready
+2023-09-28 20:19:51 [ℹ]  waiting for at least 2 node(s) to become ready in "custom-ng-amd"
+2023-09-28 20:19:51 [ℹ]  nodegroup "custom-ng-amd" has 2 node(s)
+2023-09-28 20:19:51 [ℹ]  node "ip-10-254-155-211.us-west-2.compute.internal" is ready
+2023-09-28 20:19:51 [ℹ]  node "ip-10-254-192-226.us-west-2.compute.internal" is ready
+2023-09-28 20:19:51 [✔]  created 1 managed nodegroup(s) in cluster "eksworkshop-eksctl"
+2023-09-28 20:19:52 [ℹ]  checking security group configuration for all nodegroups
+2023-09-28 20:19:52 [ℹ]  all nodegroups have up-to-date cloudformation templates
 ```
 ::::
 
@@ -94,6 +116,8 @@ Run below command to filter only custom ami nodes.
 ```
 The output will look like below.
 
-NAME                             STATUS   ROLES    AGE    VERSION
-ip-192-168-1-4.ec2.internal      Ready    <none>   3m7s   v1.26.2-eks-a59e1f0
-ip-192-168-34-254.ec2.internal   Ready    <none>   3m7s   v1.26.2-eks-a59e1f0
+```bash
+NAME                                           STATUS   ROLES    AGE     VERSION
+ip-10-254-155-211.us-west-2.compute.internal   Ready    <none>   5m10s   v1.25.13-eks-43840fb
+ip-10-254-192-226.us-west-2.compute.internal   Ready    <none>   5m10s   v1.25.13-eks-43840fb
+```

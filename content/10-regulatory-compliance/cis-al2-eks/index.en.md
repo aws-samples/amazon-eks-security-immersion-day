@@ -18,7 +18,7 @@ There are two approaches for hardening the Amazon EKS AMI for CIS Benchmark Leve
 
 1. Use the standard Amazon EKS Optimized AMI as a base and add hardening on top of it. This process requires someone to apply all of configuration mentioned in the Amazon Linux 2 CIS Benchmark specification. This workshop addresses this approach and provides step by step instructions on how build an Amazon EKS hardened AMI, leveraging the community provided hardening script
 
-2. Use the Amazon Linux 2 (AL2) CIS Benchmark Level 1 and Level 2 AMI from the AWS Marketplace as a base, and add Amazon EKS specific components on top of it. Please refer the blog for this approach.
+2. Use the Amazon Linux 2 (AL2) CIS Benchmark Level 1 and Level 2 AMI from the AWS Marketplace as a base, and add Amazon EKS specific components on top of it. Please refer the [blog](https://aws.amazon.com/blogs/containers/building-amazon-linux-2-cis-benchmark-amis-for-amazon-eks/) for this approach.
 
 
 Here is a solution for hardening and validating an Amazon EKS optimized Amazon Linux 2 AMI against Level 2. 

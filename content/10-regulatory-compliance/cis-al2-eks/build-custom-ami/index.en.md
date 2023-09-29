@@ -37,7 +37,7 @@ Set the variables to AWS Regions and EKS version in packer variables file. The a
 cd ~/environment/amazon-eks-custom-amis
 sed  -i '/variable "region"/{n;n;n;s/.*/default  =  "'$AWS_REGION'"/}' variables.pkr.hcl
 sed  -i '/variable "eks_version"/{n;n;n;s/.*/default  =  '$EKS_VERSION'/}' variables.pkr.hcl
-sed  -i '/variable "ssh_interface"/{n;n;n;s/.*/default  =  "private_ip"/}' variables.pkr.hcl
+sed -i '/variable "associate_public_ip_address"/{n;n;n;s/.*/default  =   true/}' variables.pkr.hcl
 ```
 
 Build the ami using below commands. It will take approximately 8-10 minutes to complete the build. In this workshop we are building AMD based architecture. Based on your requirement the appropriate var file can be used.
@@ -49,15 +49,40 @@ packer build  -var-file=al2_amd64.pkrvars.hcl  -var 'subnet_id='$SUBNET_ID'' .
 
 ```
 
-This will be the output after completion of the build
+This will be the output after completion of the build (Output is truncated)
 
 ::::expand{header="Check Output"}
 ```bash
+==> amazon-eks.amazon-ebs.this: Waiting for AMI to become ready...
+==> amazon-eks.amazon-ebs.this: Skipping Enable AMI deprecation...
+==> amazon-eks.amazon-ebs.this: Modifying attributes on AMI (ami-0aafe4768c171cf05)...
+    amazon-eks.amazon-ebs.this: Modifying: description
+    amazon-eks.amazon-ebs.this: Modifying: imds_support
+==> amazon-eks.amazon-ebs.this: Modifying attributes on snapshot (snap-05545f085bec892a1)...
+==> amazon-eks.amazon-ebs.this: Modifying attributes on snapshot (snap-0e7b3720f052a5d65)...
+==> amazon-eks.amazon-ebs.this: Adding tags to AMI (ami-0aafe4768c171cf05)...
+==> amazon-eks.amazon-ebs.this: Tagging snapshot: snap-05545f085bec892a1
+==> amazon-eks.amazon-ebs.this: Tagging snapshot: snap-0e7b3720f052a5d65
+==> amazon-eks.amazon-ebs.this: Creating AMI tags
+    amazon-eks.amazon-ebs.this: Adding tag: "SourceAMI": "ami-02b4071bb2bda80f3"
+    amazon-eks.amazon-ebs.this: Adding tag: "Name": "amazon-eks-1.25-20230928195858"
+==> amazon-eks.amazon-ebs.this: Creating snapshot tags
+==> amazon-eks.amazon-ebs.this: Terminating the source AWS instance...
+==> amazon-eks.amazon-ebs.this: Cleaning up any extra volumes...
+==> amazon-eks.amazon-ebs.this: No volumes to clean up, skipping
+==> amazon-eks.amazon-ebs.this: Deleting temporary security group...
+==> amazon-eks.amazon-ebs.this: Deleting temporary keypair...
+Build 'amazon-eks.amazon-ebs.this' finished after 7 minutes 13 seconds.
 
+==> Wait completed after 7 minutes 13 seconds
+
+==> Builds finished. The artifacts of successful builds are:
+--> amazon-eks.amazon-ebs.this: AMIs were created:
+us-west-2: ami-0aafe4768c171cf05
 ```
 ::::
 
-Set an environment variable with the above custom Amazon EKS AMI. This will ve used to deploy managed node group
+Set an environment variable with the above custom Amazon EKS AMI. This will be used to deploy managed node group
 ```bash 
 export EKS_AMI_ID=$(aws ec2 describe-images    --filters 'Name=tag:Name,Values="amazon-eks*"'  --owners $AWS_ACCOUNT_ID --query 'Images[*].[ImageId]'  --output text)
 echo $EKS_AMI_ID

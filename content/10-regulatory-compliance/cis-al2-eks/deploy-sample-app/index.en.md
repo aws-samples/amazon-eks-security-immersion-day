@@ -94,12 +94,24 @@ Run the below command to access the logs from the pod and then Ctrl + C to exit 
 The output looks like the following:
 
 ```bash
- /docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
-...
-...
-2022/11/23 08:12:47 [notice] 1#1: start worker process 29
-2022/11/23 08:12:47 [notice] 1#1: start worker process 30
-127.0.0.1 - - [23/Nov/2022:08:24:29 +0000] "GET / HTTP/1.1" 200 615 "-" "curl/7.74.0" "-"
+/docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
+/docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
+10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
+10-listen-on-ipv6-by-default.sh: info: Enabled listen on IPv6 in /etc/nginx/conf.d/default.conf
+/docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
+/docker-entrypoint.sh: Configuration complete; ready for start up
+2023/09/28 20:24:39 [notice] 1#1: using the "epoll" event method
+2023/09/28 20:24:39 [notice] 1#1: nginx/1.25.2
+2023/09/28 20:24:39 [notice] 1#1: built by gcc 12.2.0 (Debian 12.2.0-14) 
+2023/09/28 20:24:39 [notice] 1#1: OS: Linux 5.10.192-183.736.amzn2.x86_64
+2023/09/28 20:24:39 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2023/09/28 20:24:39 [notice] 1#1: start worker processes
+2023/09/28 20:24:39 [notice] 1#1: start worker process 29
+2023/09/28 20:24:39 [notice] 1#1: start worker process 30
+127.0.0.1 - - [28/Sep/2023:20:25:31 +0000] "GET / HTTP/1.1" 200 615 "-" "curl/7.88.1" "-"
 ^C
 ```
 
