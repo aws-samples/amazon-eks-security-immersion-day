@@ -53,7 +53,7 @@ aws ec2 deregister-image --image-id $EKS_AMI_ID
 ```
 
 
-Delete the repositiory
+Delete the repository
 ```bash
 cd ~/environment/
 rm -rf amazon-eks-custom-amis/

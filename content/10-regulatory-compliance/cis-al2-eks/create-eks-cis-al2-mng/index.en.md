@@ -3,7 +3,7 @@ title : "Create EKS-managed node group with custom build CIS hardened AMI"
 weight : 22
 ---
 
-With the custom ami created and ready for use , we can create a managed node group running Amazon Linux 2 configured to CIS Amazon Linux 2 Benchmark. 
+With the custom ami created and ready for use, we can create a managed node group running Amazon Linux 2 configured to CIS Amazon Linux 2 Benchmark. 
 
 
 Let us set some environment variables.

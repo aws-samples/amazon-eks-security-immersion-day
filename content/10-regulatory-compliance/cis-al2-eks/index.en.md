@@ -29,7 +29,7 @@ Here is a solution for hardening and validating an Amazon EKS optimized Amazon L
 
 #### Amazon EKS optimized Amazon Linux 2 AMI support for CIS Benchmark
 
-The Amazon EKS customized AMI using the hardening  script (as of this writing) can achive almost 89-93% of hardening for  Level 1 and 2 recommendations specified in the CIS Benchmark for Amazon Linux 2, it also follows the hardening standards mentioned in  [CIS Amazon EKS Benchmark](https://aws.amazon.com/blogs/containers/introducing-cis-amazon-eks-benchmark/). For the recommendations which are not able to adhere we do have provided reasons or alternative remidiation guidelines.
+The Amazon EKS customized AMI using the hardening  script (as of this writing) can achieve more than 90% of hardening for  Level 1 and 2 recommendations specified in the CIS Benchmark for Amazon Linux 2, it also follows the hardening standards mentioned in  [CIS Amazon EKS Benchmark](https://aws.amazon.com/blogs/containers/introducing-cis-amazon-eks-benchmark/). For the recommendations which are not able to adhere we do have provided reasons or alternative remediation guidelines. Below tabled comprised of scored and unscored checks.
 
 | Section Number | Section | Level 1 | Level 2 | Total
 | --- | --- | --- | --- | --- |

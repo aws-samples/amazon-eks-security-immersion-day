@@ -3,7 +3,7 @@ title : "Building a Custom AMI hadrdend with CIS specification hardening script"
 weight : 21
 ---
 
-In this section we will walkthrough the process of building custom ami hardened as per CIS specification benchmark using community provided script. We will be using Hasihcorp [packer](https://www.packer.io/) to build the ami.
+In this section we will walk through the process of building custom ami hardened as per CIS specification benchmark using community provided script. We will be using Hasihcorp [packer](https://www.packer.io/) to build the ami.
 
 Install the Packer tool. Below instructions assume you are using an Amazon Linux based machine to build the AMI.
 

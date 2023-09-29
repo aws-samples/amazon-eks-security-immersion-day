@@ -3,7 +3,7 @@ title : "Deploy a sample nginx pod on the custom ami Amazon Linux  nodes"
 weight : 23
 ---
 
-With a working cluster and managed node group, we can deploy a sample application to make sure everything is running properly. For this example, we’ll use a simple nginx deployment to deploy pods to the cluster into the custome ami  nodegroup using Kubernetes pod scheduling property [nodeSelector](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#nodeselector). We can then verify the pods are running, and the nginx webserver started correctly:
+With a working cluster and managed node group, we can deploy a sample application to make sure everything is running properly. For this example, we’ll use a simple nginx deployment to deploy pods to the cluster into the custom ami  nodegroup using Kubernetes pod scheduling property [nodeSelector](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#nodeselector). We can then verify the pods are running, and the nginx webserver started correctly:
 
 ```bash
 cd ~/environment/amazon-eks-custom-amis
