@@ -797,6 +797,7 @@ Resources:
               rm -rf aws awscliv2.zip
               curl -sSL -o /tmp/kubectl curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.28.1/2023-09-14/bin/linux/amd64/kubectl
               chmod +x /tmp/kubectl
+              cp /tmp/kubectl /usr/bin/kubectl
               mv /tmp/kubectl /usr/local/bin/kubectl
               su -l -c 'aws eks update-kubeconfig --name {eks_cluster_name} --region {region} --role-arn {instance_role_arn}' ec2-user
               su -l -c 'mkdir -p ~/.ssh && chmod 700 ~/.ssh' ec2-user
