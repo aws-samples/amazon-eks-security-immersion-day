@@ -12,6 +12,7 @@ weight : 200
 
 ## Workshop Contributors
 
+* Sebastien Allamand
 * Jayaprakash Alawala
 * Jimmy Ray
 * Raj Bagwe

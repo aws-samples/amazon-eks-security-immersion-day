@@ -484,7 +484,7 @@ Resources:
                   print('Creating cluster ' + cluster_name)
                   response = eks.create_cluster(
                       name=cluster_name,
-                      version='1.25',
+                      version='1.28',
                       roleArn=event['ResourceProperties']['ClusterRoleArn'],
                       resourcesVpcConfig={
                           'subnetIds': event['ResourceProperties']['SubnetIds'],
@@ -554,6 +554,23 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
         - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Policies:
+        - PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              Effect: Allow
+              Action:
+                - logs:DescribeLogGroups
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: "*"
+          PolicyName: CWLogsAccessForCNINodeAgent
 
   EKSNodegroup:
     Type: AWS::EKS::Nodegroup
@@ -568,14 +585,18 @@ Resources:
       CapacityType: ON_DEMAND
       NodegroupName: "mng-al2"
       InstanceTypes:
-        - t3a.small
+        - t3a.large
+        - t3.large
+        - m4.large
+        - m5a.large
+        - m5.large
       RemoteAccess:
         Ec2SshKey: !GetAtt SSHKeyPairCustomResource.KeyName
         SourceSecurityGroups:
           - !GetAtt Cloud9RoleAttacherCustomResource.SecurityGroupId
       ScalingConfig:
-        DesiredSize: 2
-        MinSize: 2
+        DesiredSize: 3
+        MinSize: 3
         MaxSize: 5
 
   EKSNodegroupBottlerocket:
@@ -774,7 +795,11 @@ Resources:
                   instance_id = instance['InstanceId']
                   commands = '''
               su -l -c 'aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com' ec2-user
-              curl -sSL -o /tmp/kubectl https://s3.us-west-2.amazonaws.com/amazon-eks/1.25.6/2023-01-30/bin/linux/amd64/kubectl
+              curl 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o 'awscliv2.zip'
+              unzip awscliv2.zip -d /tmp
+              sudo /tmp/aws/install --update
+              rm -rf aws awscliv2.zip
+              curl -sSL -o /tmp/kubectl https://s3.us-west-2.amazonaws.com/amazon-eks/1.27.4/2023-08-16/bin/linux/amd64/kubectl
               chmod +x /tmp/kubectl
               mv /tmp/kubectl /usr/local/bin/kubectl
               su -l -c 'aws eks update-kubeconfig --name {eks_cluster_name} --region {region} --role-arn {instance_role_arn}' ec2-user
@@ -783,6 +808,8 @@ Resources:
               su -l -c 'echo "export AWS_DEFAULT_REGION={region}" >> ~/.bash_profile' ec2-user
               su -l -c 'echo "export AWS_REGION={region}" >> ~/.bash_profile' ec2-user
               su -l -c 'echo "export EKS_CLUSTER={eks_cluster_name}" >> ~/.bash_profile' ec2-user
+              su -l -c 'echo "Found the Cloud9ID envs {cloud9environment_id}"' ec2-user
+              su -l -c 'echo "aws cloud9 update-environment  --environment-id {cloud9environment_id} --managed-credentials-action DISABLE > /dev/null 2>&1" |  tee -a ~/.bash_profile' ec2-user
               su -l -c 'echo "{key_material}" > ~/.ssh/id_rsa' ec2-user
               su -l -c 'chmod 600 ~/.ssh/id_rsa' ec2-user
               curl -sSL "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
@@ -810,6 +837,7 @@ Resources:
                       key_material=event['ResourceProperties']['KeyMaterial'],
                       instance_id=instance_id,
                       account_id=event['ResourceProperties']['AccountId'],
+                      cloud9environment_id=event['ResourceProperties']['Cloud9EnvironmentId'],
                   ).split("\n")
                   client = boto3.client('ssm')
                   client.send_command(
