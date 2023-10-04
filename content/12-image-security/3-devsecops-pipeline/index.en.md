@@ -1,6 +1,6 @@
 ---
 title : "DevSecOps pipeline using AWS CodePipeline,  Amazon Inspector and AWS Security Hub"
-weight : 34
+weight : 50
 ---
 
 DevSecOps is the practice of integrating security testing at every stage of the software development process.

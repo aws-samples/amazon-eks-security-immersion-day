@@ -1,6 +1,6 @@
 ---
 title : "Pod Security Standards"
-weight : 41
+weight : 40
 ---
 
 #### Pod Security Concepts

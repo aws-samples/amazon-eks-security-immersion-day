@@ -16,10 +16,10 @@ You can check your current Kubernetes version with following command.
 aws eks describe-cluster --name eksworkshop-eksctl --query cluster.version --output text
 ``` 
 
-The output shows 1.27, which is the supported version.
+The output shows 1.28, which is the supported version.
 
 ```bash
-1.27
+1.28
 ```
 
 * **Version 1.14 or later of the Amazon VPC CNI plugin for Kubernetes on your cluster.**
@@ -49,9 +49,10 @@ kubectl get node -o wide
 The output will look lke below.
 
 ```bash
-NAME                                           STATUS   ROLES    AGE   VERSION               INTERNAL-IP      EXTERNAL-IP   OS-IMAGE         KERNEL-VERSION                  CONTAINER-RUNTIME
-ip-10-254-141-66.us-west-2.compute.internal    Ready    <none>   30h   v1.27.4-eks-8ccc7ba   10.254.141.66    <none>        Amazon Linux 2   5.10.186-179.751.amzn2.x86_64   containerd://1.6.19
-ip-10-254-208-115.us-west-2.compute.internal   Ready    <none>   30h   v1.27.4-eks-8ccc7ba   10.254.208.115   <none>        Amazon Linux 2   5.10.186-179.751.amzn2.x86_64   containerd://1.6.19
+NAME                                           STATUS   ROLES    AGE    VERSION
+ip-10-254-128-55.us-west-2.compute.internal    Ready    <none>   3h9m   v1.28.1-eks-43840fb
+ip-10-254-180-171.us-west-2.compute.internal   Ready    <none>   3h9m   v1.28.1-eks-43840fb
+ip-10-254-217-72.us-west-2.compute.internal    Ready    <none>   3h9m   v1.28.1-eks-43840fb
 ```
 
 The output shows the Linux version is `5.10.186-179.751.amzn2.x86_64` which is supported.

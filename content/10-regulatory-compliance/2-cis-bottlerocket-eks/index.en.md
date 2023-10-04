@@ -1,6 +1,6 @@
 ---
 title : "Validating Amazon EKS optimized Bottlerocket AMI against the CIS Benchmark"
-weight : 34
+weight : 35
 ---
 
 The [Center for Internet Security (CIS)](https://www.cisecurity.org/) Benchmarks are best practices for the secure configuration of a target system. They define various Benchmarks for the Kubernetes control plane and the data plane. For [Amazon EKS](https://aws.amazon.com/eks/) clusters, it’s strongly recommended to follow the [CIS Amazon EKS Benchmark](https://aws.amazon.com/blogs/containers/introducing-cis-amazon-eks-benchmark/). However, many organizations also need to harden the operating system on the worker nodes for security and compliance purposes. [Bottlerocket](https://aws.amazon.com/bottlerocket/) is a Linux-based open-source operating system that is purpose-built by Amazon Web Services for containers. If an organization needs to ensure compliance, the organization must implement the [CIS Benchmark for Bottlerocket](https://www.cisecurity.org/benchmark/bottlerocket). 

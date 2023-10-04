@@ -1,6 +1,6 @@
 ---
 title: "Using Open Policy Agent (OPA) and Gatekeeper for policy-based control in Amazon EKS"
-weight: 40
+weight: 41
 ---
 
 Security and governance is a critical component of configuring and managing fine-grained control for Kubernetes clusters and applications. Amazon EKS provides secure, managed Kubernetes clusters by default, but you still need to ensure that you configure and administer the applications appropriately that you run as part of the cluster.

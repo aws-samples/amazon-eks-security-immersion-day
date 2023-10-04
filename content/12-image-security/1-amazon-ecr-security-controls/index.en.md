@@ -1,6 +1,6 @@
 ---
 title : "Amazon ECR Security Controls"
-weight : 36
+weight : 30
 ---
 
 <!---
