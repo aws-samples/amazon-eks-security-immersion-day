@@ -12,42 +12,45 @@ params:
 infrastructure:
   cloudformationTemplates:
     - templateLocation: static/eks-bootstrap-template-ws.yaml
-    #- templateLocation: static/eks-spot-workshop-quickstart-cnf.yaml
+      #- templateLocation: static/eks-spot-workshop-quickstart-cnf.yaml
       label: Amazon EKS Security Immersion Day
       parameters:
         - templateParameter: EETeamRoleArn
-          defaultValue: "{{.ParticipantRoleArn}}"
+          defaultValue: '{{.ParticipantRoleArn}}'
 
- 
 # END Infrastructure
 
 # START Accounts
 awsAccountConfig:
   accountSources:
     - WorkshopStudio
-  #serviceLinkedRoles: 
-    #- appsync.amazonaws.com
-  participantRole: 
-    #iamPolicies: 
+  #serviceLinkedRoles:
+  #- appsync.amazonaws.com
+  participantRole:
+    #iamPolicies:
     #  - static/iam-policy-0.json
     #  - static/ws-default-policy.json
     #  - static/AllowTeamRoleAccessToCloud9.json
-    managedPolicies: 
-      - "arn:aws:iam::aws:policy/AdministratorAccess"
+    managedPolicies:
+      - 'arn:aws:iam::aws:policy/AdministratorAccess'
     trustedPrincipals:
-      service: 
+      service:
         - ec2.amazonaws.com
         - lambda.amazonaws.com
   regionConfiguration:
     minAccessibleRegions: 1
     maxAccessibleRegions: 3
     accessibleRegions:
-      required:
-        - us-west-2
-      optional:
-        - us-west-2
+      # required:
+      #   - us-west-2
+      # optional:
+      #   - us-west-2
+
     deployableRegions:
-      required:
+      recommended:
         - us-west-2
       optional:
+        - us-east-1
+        - eu-west-1
+        - eu-west-3
 # END Accounts
