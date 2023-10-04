@@ -25,7 +25,7 @@ eksctl completion bash >> ~/.bash_completion
 #### Install kubectl
 ```bash
 sudo curl --silent --location -o /usr/local/bin/kubectl \
-   https://s3.us-west-2.amazonaws.com/amazon-eks/1.27.4/2023-08-16/bin/linux/amd64/kubectl
+   https://s3.us-west-2.amazonaws.com/amazon-eks/1.28.1/2023-09-14/bin/linux/amd64/kubectl
 
 sudo chmod +x /usr/local/bin/kubectl
 ```

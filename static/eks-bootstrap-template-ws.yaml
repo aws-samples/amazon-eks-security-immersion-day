@@ -586,6 +586,10 @@ Resources:
       NodegroupName: "mng-al2"
       InstanceTypes:
         - t3a.large
+        - t3.large
+        - m4.large
+        - m5a.large
+        - m5.large
       RemoteAccess:
         Ec2SshKey: !GetAtt SSHKeyPairCustomResource.KeyName
         SourceSecurityGroups:

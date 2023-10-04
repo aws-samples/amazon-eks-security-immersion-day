@@ -23,37 +23,12 @@ Once you have logged into the AWS Management Console from your Workshop Studio, 
 * Your workspace should now look like this
 ![c9after](/static/images/create-workspace/cloud9-4.png)
 
-#### A. Disable AWS Cloud9 AWS temporary credentials
-
-:::::tabs{variant="container"}
-
-::::tab{id="cli" label="Using AWS CLI"}
-
-To ensure temporary credentials aren't already in place we will remove any existing credentials file as well as disabling **AWS managed temporary credentials**:
-
-```bash
-aws cloud9 update-environment  --environment-id $C9_PID --managed-credentials-action DISABLE
-rm -vf ${HOME}/.aws/credentials
-```
-::::
-
-::::tab{id="console" label="Using AWS Console"}
-
-Go to AWS Cloud9
-
-* Open the **Preferences** tab.
-* Open the **AWS Settings** and disable **AWS Managed Temporary Credentials**
-
-::::
-
-:::::
-
-#### B. Add execution permissions to kubectl
+#### A. Add execution permissions to kubectl
 
 ```bash
 sudo chmod +x /usr/bin/kubectl
 ```
-#### C. Install yq for yaml processing
+#### B. Install yq for yaml processing
 
 ```bash
 echo 'yq() {
@@ -68,7 +43,7 @@ for command in kubectl jq envsubst aws
     which $command &>/dev/null && echo "$command in path" || echo "$command NOT FOUND"
   done
 ```
-#### D. Confirm Amazon EKS Setup
+#### C. Confirm Amazon EKS Setup
 
 
 Set below environment variables
@@ -86,7 +61,7 @@ You should see below output
 
 ```bash
 NAME                                           STATUS   ROLES    AGE   VERSION
-ip-10-254-141-66.us-west-2.compute.internal    Ready    <none>   12h   v1.27.4-eks-8ccc7ba
-ip-10-254-208-115.us-west-2.compute.internal   Ready    <none>   12h   v1.27.4-eks-8ccc7ba
-ip-10-254-248-189.us-west-2.compute.internal   Ready    <none>   12h   v1.27.4-eks-8ccc7ba
+ip-10-254-128-55.us-west-2.compute.internal    Ready    <none>   88m   v1.28.1-eks-43840fb
+ip-10-254-180-171.us-west-2.compute.internal   Ready    <none>   88m   v1.28.1-eks-43840fb
+ip-10-254-217-72.us-west-2.compute.internal    Ready    <none>   88m   v1.28.1-eks-43840fb
 ```

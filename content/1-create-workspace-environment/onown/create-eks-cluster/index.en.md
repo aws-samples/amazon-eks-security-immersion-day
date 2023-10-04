@@ -15,15 +15,20 @@ kind: ClusterConfig
 metadata:
   name: eksworkshop-eksctl
   region: ${AWS_REGION}
-  version: "1.27"
+  version: "1.28"
 
 availabilityZones: ["${AZS[0]}", "${AZS[1]}", "${AZS[2]}"]
 
 managedNodeGroups:
 - name: mng-al2
   desiredCapacity: 3
-  instanceType: t3a.large
-
+  instanceTypes:
+  - t3a.large
+  - t3.large
+  - m4.large
+  - m5a.large
+  - m5.large
+  
 # To enable all of the control plane logs, uncomment below:
 # cloudWatch:
 #  clusterLogging:
