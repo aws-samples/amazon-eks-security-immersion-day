@@ -5,14 +5,14 @@ weight : 21
 
 ### Configure Notation trustpolicy document
 
-In the previous section, we used the Notation CLI and AWS Signer signing profile to sign a container image. In this section, we will verify the applied container image signature using the Notation CLI. For this process, you will need a valid Notation [trustpolicy](https://notaryproject.dev/docs/tutorials/trust-policy/) document.
+In the previous section, we used the Notation CLI and AWS Signer signing profile to sign a container image. In this section, we will verify the applied container image signature using the Notation CLI. For this process, you will need a valid Notation trustpolicy document to specify trusted identities that sigh the artifacts, and level of signature verification to use. For more details, see [trust policy spec](https://github.com/notaryproject/specifications/blob/main/specs/trust-store-trust-policy.md#trust-policy).
 
-As mentioned earlier in the Notation install, the *trustpolicy* was found in the notation directory tree. However, the *trustpolicy* installed at `.config/notation/trustpolicy.json` by the installer is an **empty file**.
+As mentioned earlier in the Notation install, the *trustpolicy* was found in the notation directory tree. However, the *trustpolicy* installed at `~/.config/notation/trustpolicy.json` by the installer is an **empty file**.
 
 Ensure the trustpolicy document is empty and below command does not show any output.
 
 ```bash
-cat .config/notation/trustpolicy.json
+cat ~/.config/notation/trustpolicy.json
 ```
  Let us create a valid *trustpolicy* document using below command.
 
@@ -48,7 +48,7 @@ The above Notation *trustpolicy* document configures Notation to verify containe
 * **trustStores** :  Truststores used for verification. In this case, it is `signingAuthority:aws-signer-ts` installed at `~/.config/notation/truststore/x509/signingAuthority/aws-signer-ts/aws-signer-notation-root.crt`. This is root certificate for AWS Signer.
 * **trustedIdentities** : Specifies the list of AWS Signer signing profiles.
 
-Next, we need to configure the above *trustpolicy* document with Notation to use for verifying the signatures. 
+###  Next, we need to configure the above *trustpolicy* document with Notation to use for verifying the signatures. 
 
 Run the below `notation policy import` command to import a known-good JSON document.
 
@@ -106,19 +106,6 @@ The output will look like below.
 ```bash
 Successfully verified signature for XXXXXXXXXX.dkr.ecr.us-west-2.amazonaws.com/pause@sha256:33f19d2d8ba5fc17ac1099a840b0feac5f40bc6ac02d99891dbd13b0e204af4e
 ```
-
-Let us exit from the Al2023 EC2 Instance.
-
-```bash
-exit
-```
-
-::::expand{header="Check Output"}
-```bash
-logout
-Connection to ip-10-254-142-20.us-west-2.compute.internal closed.
-```
-::::
 
 Congratlulations !!! You have successfully completed the Module on signing the container image and verifying the sinature using the Notation CLI.
 

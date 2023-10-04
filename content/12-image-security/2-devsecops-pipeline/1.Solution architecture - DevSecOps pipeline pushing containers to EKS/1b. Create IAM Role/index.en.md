@@ -1,14 +1,14 @@
 ---
-title : "Create IAM role"
-weight : 21
+title: 'Create IAM role for CodeBuild'
+weight: 21
 ---
-
 
 In an AWS CodePipeline, we are going to use AWS CodeBuild to deploy a sample Kubernetes service. This requires an AWS Identity and Access Management (IAM) role capable of interacting with the EKS cluster.
 
 In this step, we are going to create an IAM role and add an inline policy that we will use in the CodeBuild stage to interact with the EKS cluster via kubectl.
 
 Set below environment variables
+
 ```bash
 export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
 export AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
@@ -29,17 +29,17 @@ aws iam put-role-policy --role-name EksWorkshopCodeBuildKubectlRole --policy-nam
 
 ```
 
-
 ::::expand{header="Check Output"}
+
 ```bash
 arn:aws:iam::XXXXXXXXXX:role/EksWorkshopCodeBuildKubectlRole
 ```
+
 ::::
 
 Now that we have the IAM role created, we are going to add the role to the **aws-auth** `ConfigMap` for the EKS cluster.
 
 Once the ConfigMap includes this new role, kubectl in the CodeBuild stage of the pipeline will be able to interact with the EKS cluster via the IAM role.
-
 
 ```bash
 eksctl create iamidentitymapping \
@@ -51,10 +51,12 @@ eksctl create iamidentitymapping \
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 2023-09-21 09:19:54 [ℹ]  checking arn arn:aws:iam::XXXXXXXXXX:role/EksWorkshopCodeBuildKubectlRole against entries in the auth ConfigMap
 2023-09-21 09:19:54 [ℹ]  adding identity "arn:aws:iam::XXXXXXXXXX:role/EksWorkshopCodeBuildKubectlRole" to auth ConfigMap
 ```
+
 ::::
 
 Run the below command to ensure that **aws-auth** `configmap` is updated successfully.
@@ -64,6 +66,7 @@ kubectl -n kube-system get cm aws-auth -oyaml
 ```
 
 ::::expand{header="Check Output"}
+
 ```yaml
 apiVersion: v1
 data:
@@ -81,10 +84,11 @@ data:
     []
 kind: ConfigMap
 metadata:
-  creationTimestamp: "2023-09-19T04:27:41Z"
+  creationTimestamp: '2023-09-19T04:27:41Z'
   name: aws-auth
   namespace: kube-system
-  resourceVersion: "437687"
+  resourceVersion: '437687'
   uid: b8e4bdf3-cfa6-497b-83f2-9669c6fb00ca
 ```
-::::    
+
+::::

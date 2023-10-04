@@ -20,7 +20,7 @@ cd kyverno-notation-aws/
 kubectl delete -f configs/crds/
 kubectl delete -f configs/install.yaml
 kubectl delete -f https://raw.githubusercontent.com/kyverno/kyverno/main/config/install-latest-testing.yaml
-kubectl delete -f https://github.com/cert-manager/cert-manager/releases/download/v1.11.0/cert-manager.yaml
+kubectl delete -f https://github.com/cert-manager/cert-manager/releases/download/v1.13.1/cert-manager.yaml
 
 aws signer cancel-signing-profile  --profile-name notation_test
 
@@ -31,10 +31,6 @@ aws ecr delete-repository \
     --force
 
 aws iam delete-policy --policy-arn $SIGNER_POLICY
-
-aws ec2 terminate-instances --instance-ids $AL2023_EC2_INSTANCE_ID
-
-aws ec2 delete-key-pair --key-name "al2023-ssh-key"
 
 ```
 

@@ -5,7 +5,7 @@ weight : 21
 
 In this lab, we will create a kube-bench batch job in EKS cluster to run the CIS Amazon EKS Benchmark assessment.
 1. Open the [AWS Cloud9 console](https://console.aws.amazon.com/cloud9/) created for the workshop 
-2. Create Kubernetes Job
+2. Create [Kubernetes Job](https://github.com/aquasecurity/kube-bench/blob/main/job-eks.yaml)
 ```shell
 cat <<EOF >kubebench.yaml
 apiVersion: batch/v1
@@ -14,84 +14,44 @@ metadata:
   name: kube-bench
 spec:
   template:
-    metadata:
-      labels:
-        app: kube-bench
     spec:
-      containers:
-        - command: ["kube-bench"]
-          image: docker.io/aquasec/kube-bench:v0.6.17
-          name: kube-bench
-          volumeMounts:
-            - mountPath: /var/lib/etcd
-              name: var-lib-etcd
-              readOnly: true
-            - mountPath: /var/lib/kubelet
-              name: var-lib-kubelet
-              readOnly: true
-            - mountPath: /var/lib/kube-scheduler
-              name: var-lib-kube-scheduler
-              readOnly: true
-            - mountPath: /var/lib/kube-controller-manager
-              name: var-lib-kube-controller-manager
-              readOnly: true
-            - mountPath: /etc/systemd
-              name: etc-systemd
-              readOnly: true
-            - mountPath: /lib/systemd/
-              name: lib-systemd
-              readOnly: true
-            - mountPath: /srv/kubernetes/
-              name: srv-kubernetes
-              readOnly: true
-            - mountPath: /etc/kubernetes
-              name: etc-kubernetes
-              readOnly: true
-            - mountPath: /usr/local/mount-from-host/bin
-              name: usr-bin
-              readOnly: true
-            - mountPath: /etc/cni/net.d/
-              name: etc-cni-netd
-              readOnly: true
-            - mountPath: /opt/cni/bin/
-              name: opt-cni-bin
-              readOnly: true
       hostPID: true
+      containers:
+        - name: kube-bench
+          # Push the image to your ECR and then refer to it here
+          # image: <ID.dkr.ecr.region.amazonaws.com/aquasec/kube-bench:ref>
+          image: docker.io/aquasec/kube-bench:latest
+          # To send findings to AWS Security Hub, refer to `job-eks-asff.yaml` instead
+          command:
+            [
+              "kube-bench",
+              "run",
+              "--targets",
+              "node",
+              "--benchmark",
+              "eks-1.2.0",
+            ]
+          volumeMounts:
+            - name: var-lib-kubelet
+              mountPath: /var/lib/kubelet
+              readOnly: true
+            - name: etc-systemd
+              mountPath: /etc/systemd
+              readOnly: true
+            - name: etc-kubernetes
+              mountPath: /etc/kubernetes
+              readOnly: true
       restartPolicy: Never
       volumes:
-        - hostPath:
-            path: /var/lib/etcd
-          name: var-lib-etcd
-        - hostPath:
-            path: /var/lib/kubelet
-          name: var-lib-kubelet
-        - hostPath:
-            path: /var/lib/kube-scheduler
-          name: var-lib-kube-scheduler
-        - hostPath:
-            path: /var/lib/kube-controller-manager
-          name: var-lib-kube-controller-manager
-        - hostPath:
-            path: /etc/systemd
-          name: etc-systemd
-        - hostPath:
-            path: /lib/systemd
-          name: lib-systemd
-        - hostPath:
-            path: /srv/kubernetes
-          name: srv-kubernetes
-        - hostPath:
-            path: /etc/kubernetes
-          name: etc-kubernetes
-        - hostPath:
-            path: /usr/bin
-          name: usr-bin
-        - hostPath:
-            path: /etc/cni/net.d/
-          name: etc-cni-netd
-        - hostPath:
-            path: /opt/cni/bin/
-          name: opt-cni-bin       
+        - name: var-lib-kubelet
+          hostPath:
+            path: "/var/lib/kubelet"
+        - name: etc-systemd
+          hostPath:
+            path: "/etc/systemd"
+        - name: etc-kubernetes
+          hostPath:
+            path: "/etc/kubernetes"     
 EOF
 kubectl apply -f kubebench.yaml
 ```

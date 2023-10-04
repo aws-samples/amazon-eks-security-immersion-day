@@ -1,21 +1,7 @@
 ---
-title : "Container image verification in Kubernetes with Kyverno"
-weight : 22
+title: 'Container image verification in Kubernetes with Kyverno'
+weight: 22
 ---
-
-Before we proceed, ensure that you exited from AL2023 Instance and back to the Cloud9 Environment.
-
-Run `pwd` to check you are in Cloud9.
-
-```bash
-pwd
-```
-::::expand{header="Check Output"}
-```bash
-WSParticipantRole:~/environment $ pwd
-/home/ec2-user/environment
-```
-::::
 
 In this section, we will explore container image signature validation in Kubernetes. We will use Amazon EKS with [Kubernetes Dynamic Admission Controllers](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/) and the Kyverno policy engine. The Kyverno-Notation-AWS Signer solution is found in the [kyverno-notation-aws](https://github.com/nirmata/kyverno-notation-aws) OSS project.
 
@@ -26,9 +12,11 @@ To install the Kyverno-Notation-AWS Signer solution, we will follow the [install
 Run the following command to install the Install cert-manager.
 
 ```bash
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.11.0/cert-manager.yaml
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.13.1/cert-manager.yaml
 ```
+
 ::::expand{header="Check Output"}
+
 ```bash
 namespace/cert-manager unchanged
 customresourcedefinition.apiextensions.k8s.io/clusterissuers.cert-manager.io configured
@@ -77,14 +65,17 @@ deployment.apps/cert-manager-webhook configured
 mutatingwebhookconfiguration.admissionregistration.k8s.io/cert-manager-webhook configured
 validatingwebhookconfiguration.admissionregistration.k8s.io/cert-manager-webhook configured
 ```
+
 ::::
 
 Install the Kyverno policy engine.
+
 ```bash
 kubectl create -f https://raw.githubusercontent.com/kyverno/kyverno/main/config/install-latest-testing.yaml
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 namespace/kyverno created
 serviceaccount/kyverno-admission-controller created
@@ -149,6 +140,7 @@ deployment.apps/kyverno-reports-controller created
 cronjob.batch/kyverno-cleanup-admission-reports created
 cronjob.batch/kyverno-cleanup-cluster-admission-reports created
 ```
+
 ::::
 
 Clone the `kyverno-notation-aws` github.
@@ -160,11 +152,13 @@ cd kyverno-notation-aws/
 ```
 
 Install the `kyverno-notation-aws` application.
+
 ```bash
 kubectl apply -f configs/install.yaml
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 namespace/kyverno-notation-aws created
 clusterissuer.cert-manager.io/selfsigned-issuer created
@@ -180,6 +174,7 @@ deployment.apps/kyverno-notation-aws created
 service/svc created
 configmap/notation-plugin-config created
 ```
+
 ::::
 
 Apply the Kubernetes custom resources definitions for the Notation TrustPolicy and TrustStore resources
@@ -189,15 +184,17 @@ kubectl apply -f configs/crds/
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 customresourcedefinition.apiextensions.k8s.io/trustpolicies.notation.nirmata.io created
 customresourcedefinition.apiextensions.k8s.io/truststores.notation.nirmata.io created
 ```
+
 ::::
 
 ### Configure Kyverno
 
-We need to configure the Kyverno solution to use the Notation and AWS Signer configuration which we used earlier to sign the container images and verify the container image signatures. 
+We need to configure the Kyverno solution to use the Notation and AWS Signer configuration which we used earlier to sign the container images and verify the container image signatures.
 
 Run the below command to create a TrustStore configuration file.
 
@@ -212,23 +209,14 @@ spec:
   trustStoreName: aws-signer-ts
   type: signingAuthority
   caBundle: |-
-    -----BEGIN CERTIFICATE-----
-    MIICWTCCAd6g...
-    -----END CERTIFICATE-----
+$(sed 's/^/    /' ~/.config/notation/truststore/x509/signingAuthority/aws-signer-ts/aws-signer-notation-root.crt)
 EOF
 ```
 
-We need to update `caBundle` element in the above `TrustStore` resource to the AWS Signer root certificate configured when we installed Notation and AWS Signer earlier.
-
-Run the below command to copy the AWS Signer root certificate file from AL2023 EC2 Instance to the Cloud9 environment.
-
-```bash
-scp -i "al2023-ssh-key.pem" ec2-user@$AL2023_EC2_INSTANCE_PRIVATE_IP:/home/ec2-user/.config/notation/truststore/x509/signingAuthority/aws-signer-ts/aws-signer-notation-root.crt .
-```
-
-Update the `caBundle` element value in the `truststore.yaml` with the contents of the file `aws-signer-notation-root.crt`.
+We can see that we updated `caBundle` element in the above `TrustStore` resource to the AWS Signer root certificate configured when we installed Notation and AWS Signer earlier.
 
 ::::expand{header="Check for sample truststore.yaml file"}
+
 ```yaml
 apiVersion: notation.nirmata.io/v1alpha1
 kind: TrustStore
@@ -254,24 +242,24 @@ spec:
     NPJ9zRGyYa7+GNs64ty/Z6bzPHOKbGo4In3KKJo=
     -----END CERTIFICATE-----
 ```
-::::
 
+::::
 
 Let's apply the `truststore.yaml` to the cluster.
 
 ```bash
-kubectl apply -f truststore.yaml 
+kubectl apply -f truststore.yaml
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 truststore.notation.nirmata.io/aws-signer-ts created
 ```
+
 ::::
 
-
-
-Next, we need to apply the correct `TrustPolicy` resource that will tell the Notation Golang libraries (used in the Kyverno solution) to use the correct AWS Signer profile and TrustStore. 
+Next, we need to apply the correct `TrustPolicy` resource that will tell the Notation Golang libraries (used in the Kyverno solution) to use the correct AWS Signer profile and TrustStore.
 
 Run below command to get AWS signer profile arn.
 
@@ -281,9 +269,11 @@ echo $AWS_SIGNING_PROFILE_ARN
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 arn:aws:signer:us-west-2:XXXXXXXXXX:/signing-profiles/notation_test
 ```
+
 ::::
 
 Run the following command to create the `TrustPolicy` configuration.
@@ -314,32 +304,32 @@ EOF
 Let's apply the `trustpolicy.yaml` to the cluster.
 
 ```bash
-kubectl apply -f trustpolicy.yaml 
+kubectl apply -f trustpolicy.yaml
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 trustpolicy.notation.nirmata.io/trustpolicy-sample created
 ```
-::::
 
+::::
 
 Next, we need to create a **Kyverno cluster policy** `check-images`. This cluster policy needs the TLS certificate chain from the `kyverno-notation-aws-tls` secret. This allows the cluster policy to call `kyverno-notation-aws`, a Kubernetes service, external to the `Kyverno policy engine`.
 
 Run below command to create the Kyverno cluster policy configuration.
-
 
 ```yaml
 cat << EOF > kyverno-policy.yaml
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: check-images     
+  name: check-images
 spec:
   validationFailureAction: Enforce
   failurePolicy: Fail
   webhookTimeoutSeconds: 30
-  schemaValidation: false  
+  schemaValidation: false
   rules:
   - name: call-aws-signer-extension
     match:
@@ -351,12 +341,12 @@ spec:
           - Pod
           operations:
             - CREATE
-            - UPDATE 
+            - UPDATE
     context:
     - name: ca-bundle
       configMap:
         name: ca-bundle
-        namespace: kyverno-notation-aws    
+        namespace: kyverno-notation-aws
     - name: result
       apiCall:
         method: POST
@@ -364,17 +354,14 @@ spec:
         - key: images
           value: "{{images}}"
         - key: trustPolicy
-          value: "tp-{{request.namespace}}" 
+          value: "tp-{{request.namespace}}"
         service:
           url: https://svc.kyverno-notation-aws/checkimages
           caBundle: |-
-            -----BEGIN CERTIFICATE-----
-            MIICiTCCAjCg...<replace this with tls.crt value from the secret kyverno-notation-aws-tls in namespace kyverno-notation-aws>
-            -----END CERTIFICATE-----
-            
-            -----BEGIN CERTIFICATE-----
-            MIIBdzCCAR2g...<replace this with ca.crt value from the secret kyverno-notation-aws-tls in namespace kyverno-notation-aws>
-            -----END CERTIFICATE-----
+$(kubectl get secrets -n kyverno-notation-aws svc.kyverno-notation-aws.svc.tls-ca -o json | jq '.data."tls.crt"' -r | base64 -d | sed 's/^/            /')
+
+
+$(kubectl get secrets -n kyverno-notation-aws svc.kyverno-notation-aws.svc.tls-ca -o json | jq '.data."tls.key"' -r | base64 -d | sed 's/^/            /')
 
     validate:
       message: "not allowed"
@@ -387,125 +374,76 @@ spec:
 EOF
 ```
 
-Ww need to update the `caBundle` element in the Kyverno cluster policy with `tls.crt` and `ca.crt` values from the secret kyverno-notation-aws-tls in namespace kyverno-notation-aws.
+We updated the `caBundle` element in the Kyverno cluster policy with `tls.crt` and `tls.key` values from the secret svc.kyverno-notation-aws.svc.tls-ca in namespace kyverno-notation-aws.
 
-Run below command to get the `tls.crt` value.
-
-```bash
-kubectl -n kyverno-notation-aws get secret kyverno-notation-aws-tls -o json | jq -r '.data."tls.crt"' | base64 -d
-```
-
-::::expand{header="Check Output"}
-```bash
------BEGIN CERTIFICATE-----
-MIICijCCAjCgAwIBAgIQL3kIIiFQAy0IgmfUG2tjljAKBggqhkjOPQQDAjAbMRkw
-FwYDVQQDExBteS1zZWxmc2lnbmVkLWNhMB4XDTIzMDcwNTA4NTIxM1oXDTIzMTAw
-MzA4NTIxM1owMTEQMA4GA1UEChMHbmlybWF0YTEdMBsGA1UEAxMUa3l2ZXJuby1u
-b3RhdGlvbi1hd3MwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQD6mGyB
-av4EakmD4Va0ijknWZDDuOhHhIKtk69NxtU4HTjI5QIig3MnU06y0jzd458WAToP
-1RYuxqE1+q0QbrWG3uouQCuVmBoRwckFCeLKDl0z3q9YRhEHSmE2PSPNAnLlUAcD
-AWA3sY0hUAec61FNVEnhdwv6nhBA+Hcz084d7JbKcRZvHqOixM5mgD8FTnuXUDNV
-b/fQ4RbklZ6WCum8FWLZmhTFM1q5WIyuHIW6j56vGKGOxLaUr65W17i32/fuXxCB
-RjJIviKhnwY4YTlhAc5uNF0Z/8sh/aPIF8TdPfiqY/JVmsahRvPnT8/16KZ65LJE
-bUtDwtqekxoElrXVAgMBAAGjdTBzMB0GA1UdJQQWMBQGCCsGAQUFBwMBBggrBgEF
-BQcDAjAMBgNVHRMBAf8EAjAAMB8GA1UdIwQYMBaAFL0gCgDaeafBYyRlloR6AOUw
-ufr3MCMGA1UdEQQcMBqCGHN2Yy5reXZlcm5vLW5vdGF0aW9uLWF3czAKBggqhkjO
-PQQDAgNIADBFAiBJDB7Stz1SVqYKalsoJM7vvzflz5EtlDV08asX8eFddgIhAMfT
-ZZLTdoNLC5Q0cKdICa44TjZO4yvdAJR1fYnEOWL3
------END CERTIFICATE-----
-```
-::::
-
-
-
-Run below command to get the `ca.crt` value.
-
-```bash
-kubectl -n kyverno-notation-aws get secret kyverno-notation-aws-tls -o json | jq -r '.data."ca.crt"' | base64 -d
-```
-
-
-
-::::expand{header="Check Output"}
-```bash
------BEGIN CERTIFICATE-----
-MIIBdjCCARygAwIBAgIQJZL2nkdKlAfobqR9zv/ESTAKBggqhkjOPQQDAjAbMRkw
-FwYDVQQDExBteS1zZWxmc2lnbmVkLWNhMB4XDTIzMDcwNTA4NTIwOFoXDTIzMTAw
-MzA4NTIwOFowGzEZMBcGA1UEAxMQbXktc2VsZnNpZ25lZC1jYTBZMBMGByqGSM49
-AgEGCCqGSM49AwEHA0IABLYizLHe17lW04RmPEsE/VVmrzfvkPIZGovxH5xK/xTP
-v9B+z6dxYojRO7RoirM9+LbIwMpUIcIyvqDYDo8X8pujQjBAMA4GA1UdDwEB/wQE
-AwICpDAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBS9IAoA2nmnwWMkZZaEegDl
-MLn69zAKBggqhkjOPQQDAgNIADBFAiANsjDi9NhIyl5goKB97sBBw92NpQlRMIz8
-fUNN1zl4jwIhAO++sEOHtbQC2AJLVFOAj9xlqJ9HdQEnIuSUK0IigGUL
------END CERTIFICATE-----
-```
-::::
 
 ::::expand{header="Check for final kyverno-policy.yaml"}
+
 ```yaml
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: check-images     
+  name: check-images
 spec:
   validationFailureAction: Enforce
   webhookTimeoutSeconds: 30
   rules:
-  - name: call-aws-signer-extension
-    match:
-      any:
-      - resources:
-          namespaces:
-          - test-notation
-          kinds:
-          - Pod
-    context:
-    - name: result
-      apiCall:
-        method: POST
-        data:
-        - key: images
-          value: "{{ request.object.spec.[ephemeralContainers, initContainers, containers][].image }}"
-        service:
-          url: https://svc.kyverno-notation-aws/checkimages
-          caBundle: |-
-            -----BEGIN CERTIFICATE-----
-            MIICijCCAjCgAwIBAgIQL3kIIiFQAy0IgmfUG2tjljAKBggqhkjOPQQDAjAbMRkw
-            FwYDVQQDExBteS1zZWxmc2lnbmVkLWNhMB4XDTIzMDcwNTA4NTIxM1oXDTIzMTAw
-            MzA4NTIxM1owMTEQMA4GA1UEChMHbmlybWF0YTEdMBsGA1UEAxMUa3l2ZXJuby1u
-            b3RhdGlvbi1hd3MwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQD6mGyB
-            av4EakmD4Va0ijknWZDDuOhHhIKtk69NxtU4HTjI5QIig3MnU06y0jzd458WAToP
-            1RYuxqE1+q0QbrWG3uouQCuVmBoRwckFCeLKDl0z3q9YRhEHSmE2PSPNAnLlUAcD
-            AWA3sY0hUAec61FNVEnhdwv6nhBA+Hcz084d7JbKcRZvHqOixM5mgD8FTnuXUDNV
-            b/fQ4RbklZ6WCum8FWLZmhTFM1q5WIyuHIW6j56vGKGOxLaUr65W17i32/fuXxCB
-            RjJIviKhnwY4YTlhAc5uNF0Z/8sh/aPIF8TdPfiqY/JVmsahRvPnT8/16KZ65LJE
-            bUtDwtqekxoElrXVAgMBAAGjdTBzMB0GA1UdJQQWMBQGCCsGAQUFBwMBBggrBgEF
-            BQcDAjAMBgNVHRMBAf8EAjAAMB8GA1UdIwQYMBaAFL0gCgDaeafBYyRlloR6AOUw
-            ufr3MCMGA1UdEQQcMBqCGHN2Yy5reXZlcm5vLW5vdGF0aW9uLWF3czAKBggqhkjO
-            PQQDAgNIADBFAiBJDB7Stz1SVqYKalsoJM7vvzflz5EtlDV08asX8eFddgIhAMfT
-            ZZLTdoNLC5Q0cKdICa44TjZO4yvdAJR1fYnEOWL3
-            -----END CERTIFICATE-----
-            
-            -----BEGIN CERTIFICATE-----
-            MIIBdjCCARygAwIBAgIQJZL2nkdKlAfobqR9zv/ESTAKBggqhkjOPQQDAjAbMRkw
-            FwYDVQQDExBteS1zZWxmc2lnbmVkLWNhMB4XDTIzMDcwNTA4NTIwOFoXDTIzMTAw
-            MzA4NTIwOFowGzEZMBcGA1UEAxMQbXktc2VsZnNpZ25lZC1jYTBZMBMGByqGSM49
-            AgEGCCqGSM49AwEHA0IABLYizLHe17lW04RmPEsE/VVmrzfvkPIZGovxH5xK/xTP
-            v9B+z6dxYojRO7RoirM9+LbIwMpUIcIyvqDYDo8X8pujQjBAMA4GA1UdDwEB/wQE
-            AwICpDAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBS9IAoA2nmnwWMkZZaEegDl
-            MLn69zAKBggqhkjOPQQDAgNIADBFAiANsjDi9NhIyl5goKB97sBBw92NpQlRMIz8
-            fUNN1zl4jwIhAO++sEOHtbQC2AJLVFOAj9xlqJ9HdQEnIuSUK0IigGUL
-            -----END CERTIFICATE-----
+    - name: call-aws-signer-extension
+      match:
+        any:
+          - resources:
+              namespaces:
+                - test-notation
+              kinds:
+                - Pod
+      context:
+        - name: result
+          apiCall:
+            method: POST
+            data:
+              - key: images
+                value: '{{ request.object.spec.[ephemeralContainers, initContainers, containers][].image }}'
+            service:
+              url: https://svc.kyverno-notation-aws/checkimages
+              caBundle: |-
+                -----BEGIN CERTIFICATE-----
+                MIICijCCAjCgAwIBAgIQL3kIIiFQAy0IgmfUG2tjljAKBggqhkjOPQQDAjAbMRkw
+                FwYDVQQDExBteS1zZWxmc2lnbmVkLWNhMB4XDTIzMDcwNTA4NTIxM1oXDTIzMTAw
+                MzA4NTIxM1owMTEQMA4GA1UEChMHbmlybWF0YTEdMBsGA1UEAxMUa3l2ZXJuby1u
+                b3RhdGlvbi1hd3MwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQD6mGyB
+                av4EakmD4Va0ijknWZDDuOhHhIKtk69NxtU4HTjI5QIig3MnU06y0jzd458WAToP
+                1RYuxqE1+q0QbrWG3uouQCuVmBoRwckFCeLKDl0z3q9YRhEHSmE2PSPNAnLlUAcD
+                AWA3sY0hUAec61FNVEnhdwv6nhBA+Hcz084d7JbKcRZvHqOixM5mgD8FTnuXUDNV
+                b/fQ4RbklZ6WCum8FWLZmhTFM1q5WIyuHIW6j56vGKGOxLaUr65W17i32/fuXxCB
+                RjJIviKhnwY4YTlhAc5uNF0Z/8sh/aPIF8TdPfiqY/JVmsahRvPnT8/16KZ65LJE
+                bUtDwtqekxoElrXVAgMBAAGjdTBzMB0GA1UdJQQWMBQGCCsGAQUFBwMBBggrBgEF
+                BQcDAjAMBgNVHRMBAf8EAjAAMB8GA1UdIwQYMBaAFL0gCgDaeafBYyRlloR6AOUw
+                ufr3MCMGA1UdEQQcMBqCGHN2Yy5reXZlcm5vLW5vdGF0aW9uLWF3czAKBggqhkjO
+                PQQDAgNIADBFAiBJDB7Stz1SVqYKalsoJM7vvzflz5EtlDV08asX8eFddgIhAMfT
+                ZZLTdoNLC5Q0cKdICa44TjZO4yvdAJR1fYnEOWL3
+                -----END CERTIFICATE-----
 
-    validate:
-      message: "not allowed"
-      deny:
-        conditions:
-          all:
-          - key: "{{ result.verified }}"
-            operator: EQUALS
-            value: false
+                -----BEGIN CERTIFICATE-----
+                MIIBdjCCARygAwIBAgIQJZL2nkdKlAfobqR9zv/ESTAKBggqhkjOPQQDAjAbMRkw
+                FwYDVQQDExBteS1zZWxmc2lnbmVkLWNhMB4XDTIzMDcwNTA4NTIwOFoXDTIzMTAw
+                MzA4NTIwOFowGzEZMBcGA1UEAxMQbXktc2VsZnNpZ25lZC1jYTBZMBMGByqGSM49
+                AgEGCCqGSM49AwEHA0IABLYizLHe17lW04RmPEsE/VVmrzfvkPIZGovxH5xK/xTP
+                v9B+z6dxYojRO7RoirM9+LbIwMpUIcIyvqDYDo8X8pujQjBAMA4GA1UdDwEB/wQE
+                AwICpDAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBS9IAoA2nmnwWMkZZaEegDl
+                MLn69zAKBggqhkjOPQQDAgNIADBFAiANsjDi9NhIyl5goKB97sBBw92NpQlRMIz8
+                fUNN1zl4jwIhAO++sEOHtbQC2AJLVFOAj9xlqJ9HdQEnIuSUK0IigGUL
+                -----END CERTIFICATE-----
+
+      validate:
+        message: 'not allowed'
+        deny:
+          conditions:
+            all:
+              - key: '{{ result.verified }}'
+                operator: EQUALS
+                value: false
 ```
+
 ::::
 
 Let us now apply the Kyverno cluster policy into the cluster.
@@ -515,19 +453,21 @@ kubectl apply -f kyverno-policy.yaml
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 clusterpolicy.kyverno.io/check-images created
 ```
+
 ::::
 
 ### Configure IRSA for kyverno-notation-aws Application
 
-So far, we applied three resources in the cluster i.e.  `TrustStore`, `TrustPolicy`, and `ClusterPolicy`.  
+So far, we applied three resources in the cluster i.e. `TrustStore`, `TrustPolicy`, and `ClusterPolicy`.
 
 We will now configure the correct `kyverno-notation-aws` service account in the `kyverno-notation-aws` namespace to use [**IAM Roles for Service Accounts (IRSA)**](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html). Using IRSA supplies IAM credentials based on an IAM role principal and policies to pods using the service account. These credentials are used for the following access:
 
-* Get region-specific Amazon ECR credentials for pulling container image signatures
-* Access AWS Signer APIs needed for the container image signature verification process
+- Get region-specific Amazon ECR credentials for pulling container image signatures
+- Access AWS Signer APIs needed for the container image signature verification process
 
 A `kyverno-notation-aws` service account is already installed with the `kyverno-notation-aws` application, and you need to override the service account to use our desired IRSA configuration. The easiest way to accomplish this override is to use the following [eksctl](https://eksctl.io/) command.
 
@@ -565,9 +505,11 @@ echo $SIGNER_POLICY
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 arn:aws:iam::XXXXXXXXXX:policy/notary-admission-signer
 ```
+
 ::::
 
 Run below command to create the Service account.
@@ -581,15 +523,16 @@ eksctl create iamserviceaccount \
   --attach-policy-arn $SIGNER_POLICY \
   --approve \
   --override-existing-serviceaccounts
-``` 
+```
 
 ::::expand{header="Check Output"}
+
 ```bash
 2023-07-05 09:44:58 [ℹ]  7 existing iamserviceaccount(s) (cert-manager/cert-manager,karpenter/karpenter,kube-system/aws-load-balancer-controller,kube-system/ebs-csi-controller-sa,kube-system/efs-csi-controller-sa,prometheus/amp-irsa-role,sample/external-dns) will be excluded
 2023-07-05 09:44:58 [ℹ]  1 iamserviceaccount (kyverno-notation-aws/kyverno-notation-aws) was included (based on the include/exclude rules)
 2023-07-05 09:44:58 [!]  metadata of serviceaccounts that exist in Kubernetes will be updated, as --override-existing-serviceaccounts was set
-2023-07-05 09:44:58 [ℹ]  1 task: { 
-    2 sequential sub-tasks: { 
+2023-07-05 09:44:58 [ℹ]  1 task: {
+    2 sequential sub-tasks: {
         create IAM role for serviceaccount "kyverno-notation-aws/kyverno-notation-aws",
         create serviceaccount "kyverno-notation-aws/kyverno-notation-aws",
     } }2023-07-05 09:44:58 [ℹ]  building iamserviceaccount stack "eksctl-eks126-addon-iamserviceaccount-kyverno-notation-aws-kyverno-notation-aws"
@@ -600,8 +543,8 @@ eksctl create iamserviceaccount \
 2023-07-05 09:45:28 [ℹ]  updated serviceaccount "kyverno-notation-aws/kyverno-notation-aws"
 
 ```
-::::
 
+::::
 
 Once the `kyverno-notation-aws service` account is updated, we need to delete the current `kyverno-notation-aws` pods, so that new pods will pick up the AWS credentials from the newly configured `kyverno-notation-aws` service account and allows `kyverno-notation-aws service` to communicate with our Amazon ECR registries and the AWS Signer API.
 
@@ -617,10 +560,12 @@ kubectl -n kyverno-notation-aws get pod
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 NAME                                   READY   STATUS    RESTARTS   AGE
 kyverno-notation-aws-6d477b86b-fxgcn   1/1     Running   0          49s
 ```
+
 ::::
 
 ### Testing the Signature Verification
@@ -642,6 +587,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: unsigned-pod
+  namespace: test-notation
 spec:
   containers:
   - name: unsigned-pod
@@ -652,7 +598,7 @@ spec:
         memory: "100Mi"
       limits:
         cpu: "1"
-        memory: "1Gi"  
+        memory: "1Gi"
 EOF
 kubectl apply -f unsigned-pod.yaml -n test-notation
 ```
@@ -660,14 +606,13 @@ kubectl apply -f unsigned-pod.yaml -n test-notation
 The output will look like below.
 
 ```bash
-Error from server: error when creating "unsigned-pod.yaml": admission webhook "validate.kyverno.svc-fail" denied the request: 
+Error from server: error when creating "unsigned-pod.yaml": admission webhook "validate.kyverno.svc-fail" denied the request:
 
-resource Pod/test-notation/unsigned-pod was blocked due to the following policies 
+resource Pod/test-notation/unsigned-pod was blocked due to the following policies
 
 check-images:
-  call-aws-signer-extension: 'failed to check deny conditions: failed to substitute
-    variables in condition key: failed to resolve result.verified at path : JMESPath
-    query failed: Unknown key "result" in path'
+  call-aws-signer-extension: |
+    failed to check deny conditions: failed to substitute variables in condition key: failed to resolve result.verified at path : failed to fetch data for APICall: HTTP 406 Not Acceptable: failed to verify container pause: failed to verify image {{public.ecr.aws pause eks-distro/kubernetes/pause 3.2 } /spec/containers/0/image}: failed to resolve digest: failed to resolve digest: HEAD "https://public.ecr.aws/v2/eks-distro/kubernetes/pause/manifests/3.2": response status code 403: Forbidden
 ```
 
 As shown above, the error is expected since the container image is not signed.
@@ -688,6 +633,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: signed-pod
+  namespace: test-notation  
 spec:
   containers:
   - name: signed-pod
@@ -698,7 +644,7 @@ spec:
         memory: "100Mi"
       limits:
         cpu: "1"
-        memory: "1Gi"  
+        memory: "1Gi"
 EOF
 
 kubectl apply -f signed-pod.yaml -n test-notation
@@ -727,7 +673,8 @@ kubectl -n kyverno-notation-aws logs  $POD_NAME
 
 The output will look like below.
 
-```2023-07-21T06:12:28.403Z        INFO    /auth.go:26     using region: us-east-1
+```2023-07-21T06:12:28.403Z INFO    /auth.go:26     using region: us-east-1
 2023-07-21T06:44:50.650Z        INFO    /verify.go:144  verifying image XXXXXXXXXX.dkr.ecr.us-east-1.amazonaws.com/pause@sha256:33f19d2d8ba5fc17ac1099a840b0feac5f40bc6ac02d99891dbd13b0e204af4e
 ```
 
+Congratulations! You have setup an automatic verification control for your images in the **test-notation** namespace, that you can easilly replicate for your sensible workloads.

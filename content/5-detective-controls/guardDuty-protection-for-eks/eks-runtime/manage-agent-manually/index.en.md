@@ -1,6 +1,7 @@
 ---
-title : "Managing GuardDuty agent manually"
-weight : 24
+title: 'Managing GuardDuty agent manually'
+weight: 24
+hidden: true # Don't think we need this page keep it simple (automatic installation)
 ---
 
 This section describes how you can manage your Amazon EKS add-on agent (GuardDuty agent) after you enable EKS Runtime Monitoring.To use EKS Runtime Monitoring, you must enable EKS Runtime Monitoring and configure the Amazon EKS add-on, aws-guardduty-agent. Performing only one of these two steps will not help GuardDuty detect potential threats or generate findings.
@@ -9,7 +10,7 @@ Note that in the previous sections, we chose the option **Manage agent automatic
 
 Let first deselect the check box in the Console.
 
-In the [Amazon GuardDuty console](https://console.aws.amazon.com/guardduty/home), Under the **Configuration** tab,  Click on the **EDIT** button.  In the **Edit configuration** page, select **Enable** button, select the checkboxes for **EKS Audit Log Monitoring**, **EKS Runtime Monitoring** and deslect **Manage agent automatically**. Click on the **Save Changes** button.
+In the [Amazon GuardDuty console](https://console.aws.amazon.com/guardduty/home), Under the **Configuration** tab, Click on the **EDIT** button. In the **Edit configuration** page, select **Enable** button, select the checkboxes for **EKS Audit Log Monitoring**, **EKS Runtime Monitoring** and deslect **Manage agent automatically**. Click on the **Save Changes** button.
 
 ![GDDisableAgent](/static/images/detective-controls/GDDisableAgent.png)
 
@@ -24,12 +25,14 @@ eksctl delete addon --cluster $EKS_CLUSTER_NAME --name $GD_EKS_ADDON_NAME
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 2023-06-06 05:36:34 [ℹ]  Kubernetes version "1.25" in use by cluster "eksworkshop-eksctl"
 2023-06-06 05:36:34 [ℹ]  deleting addon: aws-guardduty-agent
 2023-06-06 05:36:35 [ℹ]  deleted addon: aws-guardduty-agent
 2023-06-06 05:36:35 [ℹ]  no associated IAM stacks found
 ```
+
 ::::
 
 ::alert[If you add `--preserve` option to the above `eksctl delete addon` command, in addition to Amazon EKS no longer managing the add-on, the add-on software WILL NOT removed from your cluster. That means, it only deletes the EKS add-on 'aws-guardduty-agent' and preserves its resources i.e. you will see pods running in the `amazon-guardduty` namesoace]{header="Note"}
@@ -38,7 +41,7 @@ Ensure the Amazon EKS add-on `aws-guardduty-agent` is removed from the EKS Conso
 
 ![GDEKSAddonRemoved](/static/images/detective-controls/GDEKSAddonRemoved.png)
 
-Run below commands to ensure there are no `aws-guardduty-agent` pods running in  the cluster.
+Run below commands to ensure there are no `aws-guardduty-agent` pods running in the cluster.
 
 ```bash
 kubectl get pod -n amazon-guardduty
@@ -60,9 +63,11 @@ echo $VPC_ENDPOINT
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 vpce-0116b6cd26efe36f2
 ```
+
 ::::
 
 Run the following to delete the VPC Endpoint.
@@ -72,11 +77,13 @@ aws ec2 delete-vpc-endpoints --vpc-endpoint-ids $VPC_ENDPOINT
 ```
 
 ::::expand{header="Check Output"}
+
 ```json
 {
-    "Unsuccessful": []
+  "Unsuccessful": []
 }
 ```
+
 ::::
 
 Go to the [Endpoints section in VPC Console](https://us-west-2.console.aws.amazon.com/vpc/home?region=us-west-2#Endpoints:) to ensure that the VPC Endpoint is deleted.
@@ -106,15 +113,15 @@ echo $SUBNET_LIST
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 vpc-097b094d65f08d9dd
 subnet-03b945dcf434fa62f subnet-009b209f03760d12b subnet-013157237c2d1027f
 ```
+
 ::::
 
 Let us create a security group for VPC Endpoint and allows traffic from `0.0.0.0/0` CIDR for tcp port 443.
-
-
 
 ```bash
 export SECURITY_GROUP_NAME="GuardDutySelfManagedSecurityGroup"
@@ -131,6 +138,7 @@ aws ec2 authorize-security-group-ingress --group-id $SECURITY_GROUP_ID --protoco
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 sg-09d3d0d26c06aa678
 {
@@ -149,6 +157,7 @@ sg-09d3d0d26c06aa678
     ]
 }
 ```
+
 ::::
 
 Create an IAM policy document for Amazon VPC Endpoint for GuardDuty.
@@ -196,13 +205,14 @@ echo $VPC_ENDPOINT_ID
 ```
 
 ::::expand{header="Check Output"}
+
 ```json
 vpce-06b39a3d72b7c6f50
 ```
+
 ::::
 
 Go to the [Endpoints section in VPC Console](https://us-west-2.console.aws.amazon.com/vpc/home?region=us-west-2#Endpoints:) to ensure that the VPC Endpoint is created. Wait for few minuts until the Status becomes **Available**.
-
 
 ![GDVPCEndpointcreated](/static/images/detective-controls/GDVPCEndpointcreated.png)
 
@@ -215,25 +225,26 @@ aws eks  create-addon --cluster-name $EKS_CLUSTER_NAME --addon-name $GD_EKS_ADDO
 ```
 
 ::::expand{header="Check Output"}
+
 ```json
 {
-    "addon": {
-        "addonName": "aws-guardduty-agent",
-        "clusterName": "eksworkshop-eksctl",
-        "status": "CREATING",
-        "addonVersion": "v1.1.0-eksbuild.1",
-        "health": {
-            "issues": []
-        },
-        "addonArn": "arn:aws:eks:us-west-2:XXXXXXXXXX:addon/eksworkshop-eksctl/aws-guardduty-agent/d4c4456e-f919-3798-1cd9-6a93c5015665",
-        "createdAt": "2023-06-05T09:23:01.523000+00:00",
-        "modifiedAt": "2023-06-05T09:23:01.543000+00:00",
-        "tags": {}
-    }
+  "addon": {
+    "addonName": "aws-guardduty-agent",
+    "clusterName": "eksworkshop-eksctl",
+    "status": "CREATING",
+    "addonVersion": "v1.1.0-eksbuild.1",
+    "health": {
+      "issues": []
+    },
+    "addonArn": "arn:aws:eks:us-west-2:XXXXXXXXXX:addon/eksworkshop-eksctl/aws-guardduty-agent/d4c4456e-f919-3798-1cd9-6a93c5015665",
+    "createdAt": "2023-06-05T09:23:01.523000+00:00",
+    "modifiedAt": "2023-06-05T09:23:01.543000+00:00",
+    "tags": {}
+  }
 }
 ```
-::::
 
+::::
 
 Go to EKS Console and ensure that Amazon GuardDuty EKS Runtime Monitoring EKS Managed Add-on is deployed into the EKS cluster. Wait for few minuts until the Status becomes **Active**.
 

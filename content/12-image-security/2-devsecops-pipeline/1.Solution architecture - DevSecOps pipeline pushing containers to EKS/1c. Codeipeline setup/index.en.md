@@ -1,5 +1,5 @@
 ---
-title : "Codepipeline setup"
+title : "CodePipeline setup"
 weight : 21
 ---
 

@@ -5,20 +5,6 @@ weight : 22
 
 ### Create an ECR Repoistory
 
-Before we proceed, ensure that you exited from AL2023 Instance and back to the Cloud9 Environment.
-
-Run `pwd` to check you are in Cloud9.
-
-```bash
-pwd
-```
-::::expand{header="Check Output"}
-```bash
-WSParticipantRole:~/environment $ pwd
-/home/ec2-user/environment
-```
-::::
-
 Let us first create an Amazon ECR private repo and push the Kubernetes pause container image.
 
 Run below commands to set few environmet variables.
@@ -87,23 +73,6 @@ Ensure that the pause container image is pushed to [Amazon ECE Repo](https://con
 
 
 ### Create AWS signing profile
-
-In the previous section, we prepared the AWS signing environment in AL2023 EC2 Instance.
-
-Let us ssh into the AL2023 EC2 Instance and follow all the Instructions to sign the image.
-
-```bash
-ssh -i "al2023-ssh-key.pem" ec2-user@$AL2023_EC2_INSTANCE_PRIVATE_IP
-```
-
-Set below environment variables.
-
-```bash
-TOKEN=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"` && export AWS_REGION=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -s http://169.254.169.254/latest/dynamic/instance-identity/document/ | jq -r '.region')
-export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
-export IMAGE_REPO="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
-export IMAGE_NAME=pause
-```
 
 We need to first create an AWS Signer signing profile using the `Notation-OCI-SHA384-ECDSA` signing platform. You can optionally specify a signature validity period using the `--signature-validity-period` parameter. This value may be specified using `DAYS`, `MONTHS`, or `YEARS`. If no validity period is specified, the default value of **135 months (i.e. 11 years and 3 months)** is used. We will use the default option in this lab.
 
@@ -267,13 +236,11 @@ Complete!
 To use the Amazon ECR Docker Credential Helper, we need to ensure `docker-credential-ecr-login` and `docker` binaries exists on your `PATH` and configure the ~/.docker/config.json as follows.
 
 ```bash
-which docker
 which docker-credential-ecr-login
 ```
 
 ::::expand{header="Check Output"}
 ```bash
-/usr/bin/docker
 /usr/bin/docker-credential-ecr-login
 ```
 ::::
@@ -309,7 +276,7 @@ sha256:33f19d2d8ba5fc17ac1099a840b0feac5f40bc6ac02d99891dbd13b0e204af4e
 ::::
 
 Run the below `notation` command to sign the container image.
-,
+
 ```bash
 notation sign ${IMAGE_REPO}/${IMAGE_NAME}@$IMAGE_DIGEST \
 --plugin com.amazonaws.signer.notation.plugin \
