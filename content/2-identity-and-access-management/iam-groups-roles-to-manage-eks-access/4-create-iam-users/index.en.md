@@ -6,43 +6,25 @@ weight : 24
 In order to test our scenarios, we will create 3 users, one for each groups we created :
 
 ```bash
-aws iam create-user --user-name PaulAdmin
-aws iam create-user --user-name JeanDev
-aws iam create-user --user-name PierreInteg
+IAM_USERS=("PaulAdmin" "JeanDev" "PierreInteg")
+for IAM_USER in ${IAM_USERS[@]}; do
+    export IAM_USER_ARN=$(aws iam get-user --user-name $IAM_USER | jq -r '.User.Arn')
+    if [ -z "$IAM_USER_ARN" ]
+    then
+        IAM_USER_ARN=$(aws iam create-user --user-name $IAM_USER | jq -r '.User.Arn')
+        echo "IAM User ${IAM_USER} created. IAM_USER_ARN=$IAM_USER_ARN"
+    
+    else
+        echo "IAM User ${IAM_USER} already exist..."
+    fi
+done
 ```
 
 ::::expand{header="Check Output"}
-```json
-{
-    "User": {
-        "Path": "/",
-        "UserName": "PaulAdmin",
-        "UserId": "AIDAYGIGGNX6DQ3VBNWSP",
-        "Arn": "arn:aws:iam::XXXXXXXXXXX:user/PaulAdmin",
-        "CreateDate": "2023-03-14T09:38:58+00:00"
-    }
-}
-
-{
-    "User": {
-        "Path": "/",
-        "UserName": "JeanDev",
-        "UserId": "AIDAYGIGGNX6KG5ALPI65",
-        "Arn": "arn:aws:iam::XXXXXXXXXXX:user/JeanDev",
-        "CreateDate": "2023-03-14T09:38:59+00:00"
-    }
-}
-
-{
-    "User": {
-        "Path": "/",
-        "UserName": "PierreInteg",
-        "UserId": "AIDAYGIGGNX6EF5ELOVZ4",
-        "Arn": "arn:aws:iam::XXXXXXXXXXX:user/PierreInteg",
-        "CreateDate": "2023-03-14T09:39:00+00:00"
-    }
-}
-
+```bash
+IAM User PaulAdmin created. IAM_USER_ARN=arn:aws:iam::ACCOUNT_ID:user/PaulAdmin
+IAM User JeanDev created. IAM_USER_ARN=arn:aws:iam::ACCOUNT_ID:user/JeanDev
+IAM User PierreInteg created. IAM_USER_ARN=arn:aws:iam::ACCOUNT_ID:user/PierreInteg
 ```
 ::::
 
@@ -71,7 +53,7 @@ aws iam get-group --group-name k8sInteg
             "Path": "/",
             "UserName": "PaulAdmin",
             "UserId": "AIDAYGIGGNX6DQ3VBNWSP",
-            "Arn": "arn:aws:iam::XXXXXXXXXXX:user/PaulAdmin",
+            "Arn": "arn:aws:iam::ACCOUNT_ID:user/PaulAdmin",
             "CreateDate": "2023-03-14T09:38:58+00:00"
         }
     ],
@@ -79,7 +61,7 @@ aws iam get-group --group-name k8sInteg
         "Path": "/",
         "GroupName": "k8sAdmin",
         "GroupId": "AGPAYGIGGNX6INPRF5C7E",
-        "Arn": "arn:aws:iam::XXXXXXXXXXX:group/k8sAdmin",
+        "Arn": "arn:aws:iam::ACCOUNT_ID:group/k8sAdmin",
         "CreateDate": "2023-03-14T09:33:25+00:00"
     }
 }
@@ -90,7 +72,7 @@ aws iam get-group --group-name k8sInteg
             "Path": "/",
             "UserName": "JeanDev",
             "UserId": "AIDAYGIGGNX6KG5ALPI65",
-            "Arn": "arn:aws:iam::XXXXXXXXXXX:user/JeanDev",
+            "Arn": "arn:aws:iam::ACCOUNT_ID:user/JeanDev",
             "CreateDate": "2023-03-14T09:38:59+00:00"
         }
     ],
@@ -98,7 +80,7 @@ aws iam get-group --group-name k8sInteg
         "Path": "/",
         "GroupName": "k8sDev",
         "GroupId": "AGPAYGIGGNX6GRTEAJQE3",
-        "Arn": "arn:aws:iam::XXXXXXXXXXX:group/k8sDev",
+        "Arn": "arn:aws:iam::ACCOUNT_ID:group/k8sDev",
         "CreateDate": "2023-03-14T09:35:00+00:00"
     }
 }
@@ -109,7 +91,7 @@ aws iam get-group --group-name k8sInteg
             "Path": "/",
             "UserName": "PierreInteg",
             "UserId": "AIDAYGIGGNX6EF5ELOVZ4",
-            "Arn": "arn:aws:iam::XXXXXXXXXXX:user/PierreInteg",
+            "Arn": "arn:aws:iam::ACCOUNT_ID:user/PierreInteg",
             "CreateDate": "2023-03-14T09:39:00+00:00"
         }
     ],
@@ -117,7 +99,7 @@ aws iam get-group --group-name k8sInteg
         "Path": "/",
         "GroupName": "k8sInteg",
         "GroupId": "AGPAYGIGGNX6KBNORQ3GN",
-        "Arn": "arn:aws:iam::XXXXXXXXXXX:group/k8sInteg",
+        "Arn": "arn:aws:iam::ACCOUNT_ID:group/k8sInteg",
         "CreateDate": "2023-03-14T09:35:55+00:00"
     }
 }
@@ -140,9 +122,9 @@ aws iam create-access-key --user-name PierreInteg | tee /tmp/PierreInteg.json
 {
     "AccessKey": {
         "UserName": "PaulAdmin",
-        "AccessKeyId": "XXXXXXXXXXX",
+        "AccessKeyId": "XXXXXXXXX",
         "Status": "Active",
-        "SecretAccessKey": "XXXXXXXXXXX",
+        "SecretAccessKey": "XXXXXXXX",
         "CreateDate": "2023-03-14T09:52:30+00:00"
     }
 }
@@ -150,9 +132,9 @@ aws iam create-access-key --user-name PierreInteg | tee /tmp/PierreInteg.json
 {
     "AccessKey": {
         "UserName": "JeanDev",
-        "AccessKeyId": "XXXXXXXXXXX",
+        "AccessKeyId": "XXXXXXX",
         "Status": "Active",
-        "SecretAccessKey": "XXXXXXXXXXX",
+        "SecretAccessKey": "XXXXXXXX",
         "CreateDate": "2023-03-14T09:52:31+00:00"
     }
 }
@@ -160,9 +142,9 @@ aws iam create-access-key --user-name PierreInteg | tee /tmp/PierreInteg.json
 {
     "AccessKey": {
         "UserName": "PierreInteg",
-        "AccessKeyId": "XXXXXXXXXXX",
+        "AccessKeyId": "XXXXXXX",
         "Status": "Active",
-        "SecretAccessKey": "XXXXXXXXXXX",
+        "SecretAccessKey": "XXXXXXX",
         "CreateDate": "2023-03-14T09:52:32+00:00"
     }
 }

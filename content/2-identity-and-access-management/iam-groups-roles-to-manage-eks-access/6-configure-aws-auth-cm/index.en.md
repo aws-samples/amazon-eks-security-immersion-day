@@ -40,14 +40,14 @@ eksctl create iamidentitymapping \
 
 ::::expand{header="Check Output"}
 ```json
-2023-03-14 09:57:10 [ℹ]  checking arn arn:aws:iam::XXXXXXXXXX:role/k8sDev against entries in the auth ConfigMap
-2023-03-14 09:57:10 [ℹ]  adding identity "arn:aws:iam::XXXXXXXXXX:role/k8sDev" to auth ConfigMap
+2023-03-14 09:57:10 [ℹ]  checking arn arn:aws:iam::ACCOUNT_ID:role/k8sDev against entries in the auth ConfigMap
+2023-03-14 09:57:10 [ℹ]  adding identity "arn:aws:iam::ACCOUNT_ID:role/k8sDev" to auth ConfigMap
 
-2023-03-14 09:57:10 [ℹ]  checking arn arn:aws:iam::XXXXXXXXXX:role/k8sInteg against entries in the auth ConfigMap
-2023-03-14 09:57:10 [ℹ]  adding identity "arn:aws:iam::XXXXXXXXXX:role/k8sInteg" to auth ConfigMap
+2023-03-14 09:57:10 [ℹ]  checking arn arn:aws:iam::ACCOUNT_ID:role/k8sInteg against entries in the auth ConfigMap
+2023-03-14 09:57:10 [ℹ]  adding identity "arn:aws:iam::ACCOUNT_ID:role/k8sInteg" to auth ConfigMap
 
-2023-03-14 09:57:10 [ℹ]  checking arn arn:aws:iam::XXXXXXXXXX:role/k8sAdmin against entries in the auth ConfigMap
-2023-03-14 09:57:10 [ℹ]  adding identity "arn:aws:iam::XXXXXXXXXX:role/k8sAdmin" to auth ConfigMap
+2023-03-14 09:57:10 [ℹ]  checking arn arn:aws:iam::ACCOUNT_ID:role/k8sAdmin against entries in the auth ConfigMap
+2023-03-14 09:57:10 [ℹ]  adding identity "arn:aws:iam::ACCOUNT_ID:role/k8sAdmin" to auth ConfigMap
 ```
 ::::
 
@@ -66,24 +66,24 @@ data:
     - groups:
       - system:bootstrappers
       - system:nodes
-      rolearn: arn:aws:iam::xxxxxxxxxx:role/eksctl-eksworkshop-eksctl-nodegro-NodeInstanceRole-14TKBWBD7KWFH
+      rolearn: arn:aws:iam::ACCOUNT_ID:role/eksctl-eksworkshop-eksctl-nodegro-NodeInstanceRole-14TKBWBD7KWFH
       username: system:node:{{EC2PrivateDNSName}}
-    - rolearn: arn:aws:iam::xxxxxxxxxx:role/k8sDev
+    - rolearn: arn:aws:iam::ACCOUNT_ID:role/k8sDev
       username: dev-user
-    - rolearn: arn:aws:iam::xxxxxxxxxx:role/k8sInteg
+    - rolearn: arn:aws:iam::ACCOUNT_ID:role/k8sInteg
       username: integ-user
     - groups:
       - system:masters
-      rolearn: arn:aws:iam::xxxxxxxxxx:role/k8sAdmin
+      rolearn: arn:aws:iam::ACCOUNT_ID:role/k8sAdmin
       username: admin
   mapUsers: |
     []
 kind: ConfigMap
 ```
 
-In the above output, the AWS IAM Role for example `arn:aws:iam::xxxxxxxxxx:role/k8sAdmin` is mapped to a Kubernetes RBAC user `admin`, which is added to the Kubernetes RBAC group `system:masters`.
+In the above output, the AWS IAM Role for example `arn:aws:iam::ACCOUNT_ID:role/k8sAdmin` is mapped to a Kubernetes RBAC user `admin`, which is added to the Kubernetes RBAC group `system:masters`.
 
-We can leverage eksctl to get a list of all identities managed in our cluster. Example:
+We can leverage eksctl to get a list of all identities managed in our cluster. 
 
 ```bash
 eksctl get iamidentitymapping --cluster eksworkshop-eksctl
@@ -92,17 +92,17 @@ eksctl get iamidentitymapping --cluster eksworkshop-eksctl
 The output looks like below.
 
 ```bash
-arn:aws:iam::xxxxxxxxxx:role/eksctl-quick-nodegroup-ng-fe1bbb6-NodeInstanceRole-1KRYARWGGHPTTsystem:node:{{EC2PrivateDNSName}}system:bootstrappers,system:nodes
-arn:aws:iam::xxxxxxxxxx:role/k8sAdmin           adminsystem:masters
-arn:aws:iam::xxxxxxxxxx:role/k8sDev             dev-user
-arn:aws:iam::xxxxxxxxxx:role/k8sInteg           integ-user
+arn:aws:iam::ACCOUNT_ID:role/eksctl-quick-nodegroup-ng-fe1bbb6-NodeInstanceRole-1KRYARWGGHPTTsystem:node:{{EC2PrivateDNSName}}system:bootstrappers,system:nodes
+arn:aws:iam::ACCOUNT_ID:role/k8sAdmin           adminsystem:masters
+arn:aws:iam::ACCOUNT_ID:role/k8sDev             dev-user
+arn:aws:iam::ACCOUNT_ID:role/k8sInteg           integ-user
 ```
 
 Here is what we have created so far:
 
--   a RBAC role for K8sAdmin, that we map to admin user and give access to **system\:masters** kubernetes Groups so that it has Full Admin rights on the cluster.
+-   a RBAC role for `K8sAdmin`, that we map to admin user and give access to **system\:masters** kubernetes Groups so that it has Full Admin rights on the cluster.
 ::alert[This is only for example purpose. It is highly recommended not to add any Kubernetes user to **system\:masters** group unless it is necessary]{header="Note"}
--   a RBAC role for k8sDev that we map on dev-user in development namespace
--   a RBAC role for k8sInteg that we map on integ-user in integration namespace
+-   a RBAC role for `k8sDev` that we map on dev-user in development Namespace
+-   a RBAC role for `k8sInteg` that we map on integ-user in integration Namespace
 
 We will see on next section how we can test it.

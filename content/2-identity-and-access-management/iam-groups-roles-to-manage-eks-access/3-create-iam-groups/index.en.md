@@ -5,8 +5,6 @@ weight : 23
 
 In this section let's create 3 IAM groups and attach IAM permission policy on these IAM groups to be assume the IAM roles created earlier for Kubernetes role.
 
-![Attach-Policy-to-IAMgroup](/static/images/iam/iam-role-rbac/Attach-Policy-to-IAMgroup.PNG)
-
 We want to have different IAM users which will be added to specific IAM groups in order to have different rights in the kubernetes cluster.
 
 We will define 3 groups:
@@ -22,20 +20,21 @@ We will define 3 groups:
 The **k8sAdmin** Group will be allowed to assume the **k8sAdmin** IAM Role.
 
 ```bash
-aws iam create-group --group-name k8sAdmin
+IAM_GROUP="k8sAdmin"
+export IAM_GROUP_ARN=$(aws iam get-group --group-name $IAM_GROUP  | jq -r '.Group.Arn')
+if [ -z "$IAM_GROUP_ARN" ]
+then
+      IAM_GROUP_ARN=$(aws iam create-group --group-name $IAM_GROUP  | jq -r '.Group.Arn')
+      echo "IAM Group ${IAM_GROUP} created. IAM_GROUP_ARN=$IAM_GROUP_ARN"
+  
+else
+      echo "IAM Group ${IAM_GROUP} already exist..."
+fi
 ```
 
 ::::expand{header="Check Output"}
-```json
-{
-    "Group": {
-        "Path": "/",
-        "GroupName": "k8sAdmin",
-        "GroupId": "AGPAYGIGGNX6INPRF5C7E",
-        "Arn": "arn:aws:iam::XXXXXXXXXXX:group/k8sAdmin",
-        "CreateDate": "2023-03-14T09:33:25+00:00"
-    }
-}
+```bash
+IAM Group k8sAdmin created. IAM_GROUP_ARN=arn:aws:iam::ACCOUNT_ID:group/k8sAdmin
 ```
 ::::
 
@@ -67,20 +66,21 @@ aws iam put-group-policy \
 The **k8sDev** Group will be allowed to assume the **k8sDev** IAM Role.
 
 ```bash
-aws iam create-group --group-name k8sDev
+IAM_GROUP="k8sDev"
+export IAM_GROUP_ARN=$(aws iam get-group --group-name $IAM_GROUP  | jq -r '.Group.Arn')
+if [ -z "$IAM_GROUP_ARN" ]
+then
+      IAM_GROUP_ARN=$(aws iam create-group --group-name $IAM_GROUP  | jq -r '.Group.Arn')
+      echo "IAM Group ${IAM_GROUP} created. IAM_GROUP_ARN=$IAM_GROUP_ARN"
+  
+else
+      echo "IAM Group ${IAM_GROUP} already exist..."
+fi
 ```
 
 ::::expand{header="Check Output"}
-```json
-{
-    "Group": {
-        "Path": "/",
-        "GroupName": "k8sDev",
-        "GroupId": "AGPAYGIGGNX6GRTEAJQE3",
-        "Arn": "arn:aws:iam::XXXXXXXXXXX:group/k8sDev",
-        "CreateDate": "2023-03-14T09:35:00+00:00"
-    }
-}
+```bash
+IAM Group k8sDev created. IAM_GROUP_ARN=arn:aws:iam::ACCOUNT_ID:group/k8sDev
 ```
 ::::
 
@@ -109,19 +109,20 @@ aws iam put-group-policy \
 
 #### Create k8sInteg IAM Group
 ```bash
-aws iam create-group --group-name k8sInteg
+IAM_GROUP="k8sInteg"
+export IAM_GROUP_ARN=$(aws iam get-group --group-name $IAM_GROUP  | jq -r '.Group.Arn')
+if [ -z "$IAM_GROUP_ARN" ]
+then
+      IAM_GROUP_ARN=$(aws iam create-group --group-name $IAM_GROUP  | jq -r '.Group.Arn')
+      echo "IAM Group ${IAM_GROUP} created. IAM_GROUP_ARN=$IAM_GROUP_ARN"
+  
+else
+      echo "IAM Group ${IAM_GROUP} already exist..."
+fi
 ```
 ::::expand{header="Check Output"}
 ```json
-{
-    "Group": {
-        "Path": "/",
-        "GroupName": "k8sInteg",
-        "GroupId": "AGPAYGIGGNX6KBNORQ3GN",
-        "Arn": "arn:aws:iam::XXXXXXXXXXX:group/k8sInteg",
-        "CreateDate": "2023-03-14T09:35:55+00:00"
-    }
-}
+IAM Group k8sInteg created. IAM_GROUP_ARN=arn:aws:iam::ACCOUNT_ID:group/k8sInteg
 ```
 ::::
 
@@ -161,21 +162,21 @@ The output will look like below.
             "Path": "/",
             "GroupName": "k8sAdmin",
             "GroupId": "AGPAZRV3OHPJZGT2JKVDV",
-            "Arn": "arn:aws:iam::xxxxxxxxxx:group/k8sAdmin",
+            "Arn": "arn:aws:iam::ACCOUNT_ID:group/k8sAdmin",
             "CreateDate": "2020-04-07T13:32:52Z"
         },
         {
             "Path": "/",
             "GroupName": "k8sDev",
             "GroupId": "AGPAZRV3OHPJUOBR375KI",
-            "Arn": "arn:aws:iam::xxxxxxxxxx:group/k8sDev",
+            "Arn": "arn:aws:iam::ACCOUNT_ID:group/k8sDev",
             "CreateDate": "2020-04-07T13:33:15Z"
         },
         {
             "Path": "/",
             "GroupName": "k8sInteg",
             "GroupId": "AGPAZRV3OHPJR6GM6PFDG",
-            "Arn": "arn:aws:iam::xxxxxxxxxx:group/k8sInteg",
+            "Arn": "arn:aws:iam::ACCOUNT_ID:group/k8sInteg",
             "CreateDate": "2020-04-07T13:33:25Z"
         }
     ]

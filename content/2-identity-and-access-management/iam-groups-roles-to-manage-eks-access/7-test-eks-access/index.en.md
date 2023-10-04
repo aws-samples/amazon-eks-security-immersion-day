@@ -14,6 +14,7 @@ It is possible to automate the retrieval of temporary credentials for the assume
 ```bash
 mkdir -p ~/.aws
 
+if ! test -f ~/.aws/config; then
 cat << EoF >> ~/.aws/config
 [profile admin]
 role_arn=arn:aws:iam::${ACCOUNT_ID}:role/k8sAdmin
@@ -28,11 +29,15 @@ role_arn=arn:aws:iam::${ACCOUNT_ID}:role/k8sInteg
 source_profile=eksInteg
 
 EoF
+else
+  echo "AWS Config file ~/.aws/config already exists..."
+fi
 ```
 
 #### Add in `~/.aws/credentials`:
 
 ```bash
+if ! test -f ~/.aws/credentials; then
 cat << EoF >> ~/.aws/credentials
 
 [eksAdmin]
@@ -48,6 +53,11 @@ aws_access_key_id=$(jq -r .AccessKey.AccessKeyId /tmp/PierreInteg.json)
 aws_secret_access_key=$(jq -r .AccessKey.SecretAccessKey /tmp/PierreInteg.json)
 
 EoF
+else
+  echo "AWS Credentials file ~/.aws/credentials already exists..."
+fi
+
+
 ```
 
 #### Test this with the dev profile:
@@ -61,8 +71,8 @@ The output looks like below.
 ```json
 {
     "UserId": "AROAUD5VMKW75WJEHFU4X:botocore-session-1581687024",
-    "Account": "xxxxxxxxxx",
-    "Arn": "arn:aws:sts::xxxxxxxxxx:assumed-role/k8sDev/botocore-session-1581687024"
+    "Account": "ACCOUNT_ID",
+    "Arn": "arn:aws:sts::ACCOUNT_ID:assumed-role/k8sDev/botocore-session-1581687024"
 }
 ```
 
@@ -79,8 +89,8 @@ The output looks like below.
 ```bash
 {
     "UserId": "AROAUD5VMKW77KXQAL7ZX:botocore-session-1582022121",
-    "Account": "xxxxxxxxxx",
-    "Arn": "arn:aws:sts::xxxxxxxxxx:assumed-role/k8sAdmin/botocore-session-1582022121"
+    "Account": "ACCOUNT_ID",
+    "Arn": "arn:aws:sts::ACCOUNT_ID:assumed-role/k8sAdmin/botocore-session-1582022121"
 }
 ```
 
