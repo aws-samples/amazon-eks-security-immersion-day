@@ -23,21 +23,12 @@ Once you have logged into the AWS Management Console from your Workshop Studio, 
 * Your workspace should now look like this
 ![c9after](/static/images/create-workspace/cloud9-4.png)
 
-#### A. Disable AWS Cloud9 AWS temporary credentials
-
-Go to AWS Cloud9
-
-* Open the **Preferences** tab.
-* Open the **AWS Settings** and disable **AWS Managed Temporary Credentials**
-
-#### B. Install latest awscli
+#### A. Add execution permissions to kubectl
 
 ```bash
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-unzip awscliv2.zip
-sudo ./aws/install
+sudo chmod +x /usr/bin/kubectl
 ```
-#### C. Install yq for yaml processing
+#### B. Install yq for yaml processing
 
 ```bash
 echo 'yq() {
@@ -52,7 +43,7 @@ for command in kubectl jq envsubst aws
     which $command &>/dev/null && echo "$command in path" || echo "$command NOT FOUND"
   done
 ```
-#### D. Confirm Amazon EKS Setup
+#### C. Confirm Amazon EKS Setup
 
 
 Set below environment variables
@@ -60,13 +51,6 @@ Set below environment variables
 export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
 export AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
 ```
-
-Create a kubectl context for the Amazon EKS Cluster.
-
-```bash
-aws eks --region $AWS_REGION update-kubeconfig --name eksworkshop-eksctl
-```
-
 You can test access to your cluster by running the following command. The output will be a list of worker nodes
 
 ```bash
@@ -77,6 +61,7 @@ You should see below output
 
 ```bash
 NAME                                           STATUS   ROLES    AGE   VERSION
-ip-10-254-156-7.us-west-2.compute.internal     Ready    <none>   12h   v1.25.9-eks-0a21954
-ip-10-254-169-183.us-west-2.compute.internal   Ready    <none>   12h   v1.25.9-eks-0a21954
+ip-10-254-128-55.us-west-2.compute.internal    Ready    <none>   88m   v1.28.1-eks-43840fb
+ip-10-254-180-171.us-west-2.compute.internal   Ready    <none>   88m   v1.28.1-eks-43840fb
+ip-10-254-217-72.us-west-2.compute.internal    Ready    <none>   88m   v1.28.1-eks-43840fb
 ```
