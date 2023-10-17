@@ -1,13 +1,9 @@
 version: 2.0
-# BEGIN Locale
+
 defaultLocaleCode: en-US
 localeCodes:
   - en-US
-# END Locale
-params:
-  hello: world
-  foo:
-    - bar
+
 # START Infrastructure
 infrastructure:
   cloudformationTemplates:
@@ -40,7 +36,7 @@ awsAccountConfig:
   regionConfiguration:
     minAccessibleRegions: 1
     maxAccessibleRegions: 3
-    accessibleRegions:
+    #accessibleRegions:
       # required:
       #   - us-west-2
       # optional:
@@ -50,6 +46,7 @@ awsAccountConfig:
       recommended:
         - us-west-2
       optional:
+        - us-east-2
         - us-east-1
         - eu-west-1
         - eu-west-3
