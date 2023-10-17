@@ -753,6 +753,7 @@ Resources:
                 Action:
                   - ssm:SendCommand
                   - ec2:DescribeInstances
+                  - ec2:ReportInstanceStatus
                 Resource: "*"
               - Effect: Allow
                 Action:
