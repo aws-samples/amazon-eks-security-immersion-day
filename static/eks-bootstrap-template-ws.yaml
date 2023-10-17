@@ -793,13 +793,15 @@ Resources:
                   )
                   instance = response['Reservations'][0]['Instances'][0]
                   instance_id = instance['InstanceId']
+                  waiter = client.get_waiter('system_status_ok')
+                  waiter.wait(InstanceIds=[instance_id])                  
                   commands = '''
               su -l -c 'aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com' ec2-user
               curl 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o 'awscliv2.zip'
               unzip awscliv2.zip -d /tmp
               sudo /tmp/aws/install --update
               rm -rf aws awscliv2.zip
-              curl -sSL -o /tmp/kubectl https://s3.us-west-2.amazonaws.com/amazon-eks/1.27.4/2023-08-16/bin/linux/amd64/kubectl
+              curl -sSL -o /tmp/kubectl https://s3.us-west-2.amazonaws.com/amazon-eks/1.28.2/2023-10-12/bin/linux/amd64/kubectl
               chmod +x /tmp/kubectl
               mv /tmp/kubectl /usr/local/bin/kubectl
               su -l -c 'aws eks update-kubeconfig --name {eks_cluster_name} --region {region} --role-arn {instance_role_arn}' ec2-user
