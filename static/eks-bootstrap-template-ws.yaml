@@ -178,7 +178,7 @@ Resources:
     Properties:
       Description: Amazon EKS Security Immersion Day
       InstanceType: c5.large
-      AutomaticStopTimeMinutes: 60
+      AutomaticStopTimeMinutes: 120
       SubnetId: !Ref PublicSubnetA
       ImageId: resolve:ssm:/aws/service/cloud9/amis/amazonlinux-2-x86_64
       OwnerArn: !Join
@@ -195,7 +195,7 @@ Resources:
                   1,
                   !Split ["/", !Select [5, !Split [":", !Ref EETeamRoleArn]]],
                 ]
-              - Participant        
+              - Participant             
 
 
   Cloud9InstanceRole:
@@ -206,7 +206,9 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              Service: !Sub ec2.${AWS::URLSuffix}
+              Service: 
+                - !Sub ec2.${AWS::URLSuffix}
+                - !Sub ssm.${AWS::URLSuffix}
             Action: sts:AssumeRole
           - Effect: Allow
             Principal:
@@ -214,6 +216,7 @@ Resources:
             Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AdministratorAccess
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore        
 
   Cloud9InstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -753,6 +756,7 @@ Resources:
                 Action:
                   - ssm:SendCommand
                   - ec2:DescribeInstances
+                  - ec2:DescribeInstanceStatus
                   - ec2:ReportInstanceStatus
                 Resource: "*"
               - Effect: Allow
@@ -763,6 +767,7 @@ Resources:
 
   Cloud9InitializerFunction:
     Type: AWS::Lambda::Function
+    DependsOn: [Cloud9Environment]
     Properties:
       Role: !GetAtt EC2InitializerRole.Arn
       #Architectures:
@@ -795,9 +800,8 @@ Resources:
                   )
                   instance = response['Reservations'][0]['Instances'][0]
                   instance_id = instance['InstanceId']
-                  time.sleep(180)
-                  #waiter = client.get_waiter('system_status_ok')
-                  #waiter.wait(InstanceIds=[instance_id])                  
+                  waiter = client.get_waiter('instance_running')
+                  waiter.wait(InstanceIds=[instance_id])                  
                   commands = '''
               su -l -c 'aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com' ec2-user
               curl 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o 'awscliv2.zip'
