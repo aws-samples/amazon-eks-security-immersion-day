@@ -1,9 +1,45 @@
 AWSTemplateFormatVersion: "2010-09-09"
 
 Parameters:
+
+  Cloud9EnvironmentName:
+    Description: How the name appears in the console
+    Type: String
+    Default: eks-security-workshop
+
+  WorkstationRoleName:
+    Description: Workshop Studio participant role arn
+    Type: String
+    Default: eks-security-workshop
+
+  C9EnvType:
+    Description: Environment type.
+    Default: 3rdParty
+    Type: String
+    AllowedValues:
+      - 3rdParty
+      - aws-event
+    ConstraintDescription: must specify aws-event or 3rdParty.
+
   EETeamRoleArn:
     Type: String
-    Default: "IgnoreThisInIsenguardAccountForNow"
+    Description: The Arn of the Cloud9 Owner to be set if 3rdParty deployment.
+    Default: ''
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: 'Cloud9 Configuration'
+        Parameters:
+          - Cloud9EnvironmentName
+          - WorkstationRoleName
+          - C9EnvType
+          - EETeamRoleArn
+
+Conditions:
+  Create3rdPartyResources: !Equals [!Ref C9EnvType, 3rdParty]
+  CreateAWSEventResources: !Equals [!Ref C9EnvType, aws-event]
 
 Resources:
   VPC:
@@ -177,6 +213,7 @@ Resources:
     Type: AWS::Cloud9::EnvironmentEC2
     Properties:
       Description: Amazon EKS Security Immersion Day
+      Name: !Ref Cloud9EnvironmentName
       InstanceType: c5.large
       AutomaticStopTimeMinutes: 120
       SubnetId: !Ref PublicSubnetA
@@ -195,32 +232,38 @@ Resources:
                   1,
                   !Split ["/", !Select [5, !Split [":", !Ref EETeamRoleArn]]],
                 ]
-              - Participant             
-
+              - Participant
+      Tags:
+        - Key: SSMBootstrap
+          Value: Active
+        - Key: Environment
+          Value: !Sub ${Cloud9EnvironmentName}
 
   Cloud9InstanceRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: !Ref WorkstationRoleName
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Principal:
-              Service: 
-                - !Sub ec2.${AWS::URLSuffix}
-                - !Sub ssm.${AWS::URLSuffix}
-            Action: sts:AssumeRole
-          - Effect: Allow
-            Principal:
-              AWS: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:root"
-            Action: sts:AssumeRole
+              Service:
+                - ec2.amazonaws.com
+                - codebuild.amazonaws.com
+                - ssm.amazonaws.com
+              AWS: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:root
+            Action:
+              - 'sts:AssumeRole'
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AdministratorAccess
-        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore        
+        - arn:aws:iam:::policy/AmazonSSMManagedInstanceCore
 
   Cloud9InstanceProfile:
     Type: AWS::IAM::InstanceProfile
+    DependsOn: [Cloud9InstanceRole]
     Properties:
+      InstanceProfileName: !Ref WorkstationRoleName
       Roles:
         - !Ref Cloud9InstanceRole
 
@@ -308,6 +351,7 @@ Resources:
                       },
                       InstanceId=instance_id
                   )
+
                   cfnresponse.send(event, context, cfnresponse.SUCCESS, {
                       'SecurityGroupId': security_group_id
                   })
@@ -754,11 +798,25 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - ssm:SendCommand
+                  - cloudformation:DescribeStacks
+                  - cloudformation:DescribeStackEvents
+                  - cloudformation:DescribeStackResource
+                  - cloudformation:DescribeStackResources
                   - ec2:DescribeInstances
-                  - ec2:DescribeInstanceStatus
-                  - ec2:ReportInstanceStatus
-                Resource: "*"
+                  - ec2:AssociateIamInstanceProfile
+                  - ec2:ModifyInstanceAttribute
+                  - ec2:ReplaceIamInstanceProfileAssociation
+                  - ec2:DescribeIamInstanceProfileAssociations
+                  - ec2:DescribeVolumes
+                  - ec2:ModifyVolume
+                  - ec2:DescribeVolumesModifications
+                  - ec2:RebootInstances
+                  - iam:ListInstanceProfiles
+                  - iam:PassRole
+                  - ssm:DescribeInstanceInformation
+                  - ssm:SendCommand
+                  - ssm:GetCommandInvocation
+                Resource: '*'
               - Effect: Allow
                 Action:
                   - iam:PassRole
@@ -789,8 +847,8 @@ Resources:
                   return
 
               try:
-                  client = boto3.client('ec2')
-                  response = client.describe_instances(
+                  ec2 = boto3.client('ec2')
+                  response = ec2.describe_instances(
                       Filters=[{
                           'Name': 'tag:aws:cloud9:environment',
                           'Values': [
@@ -800,8 +858,34 @@ Resources:
                   )
                   instance = response['Reservations'][0]['Instances'][0]
                   instance_id = instance['InstanceId']
-                  waiter = client.get_waiter('instance_running')
-                  waiter.wait(InstanceIds=[instance_id])                  
+                  waiter = ec2.get_waiter('instance_running')
+                  waiter.wait(InstanceIds=[instance_id])
+
+
+                  # Reboot is required to avoid weird race condition with IAM role and SSM agent
+                  # It also causes the file system to expand in the OS
+                  print('Rebooting instance')
+                  ec2.reboot_instances(
+                      InstanceIds=[
+                          instance_id,
+                      ],
+                  )
+
+                  time.sleep(60)
+
+                  print('Waiting for instance to come online in SSM...')
+                  ssm = boto3.client('ssm')
+                  for i in range(1, 60):
+                    response = ssm.describe_instance_information(Filters=[{'Key': 'InstanceIds', 'Values': [instance_id]}])
+                    if len(response["InstanceInformationList"]) == 0:
+                      print('No instances in SSM')
+                    elif len(response["InstanceInformationList"]) > 0 and \
+                          response["InstanceInformationList"][0]["PingStatus"] == "Online" and \
+                          response["InstanceInformationList"][0]["InstanceId"] == instance_id:
+                      print('Instance is online in SSM')
+                      break
+                    time.sleep(10)     
+                  print('Executing Command in SSM')
                   commands = '''
               su -l -c 'aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com' ec2-user
               curl 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o 'awscliv2.zip'
@@ -848,8 +932,8 @@ Resources:
                       account_id=event['ResourceProperties']['AccountId'],
                       cloud9environment_id=event['ResourceProperties']['Cloud9EnvironmentId'],
                   ).split("\n")
-                  client = boto3.client('ssm')
-                  client.send_command(
+
+                  ssm.send_command(
                       DocumentName='AWS-RunShellScript',
                       DocumentVersion='$LATEST',
                       InstanceIds=[instance_id],
@@ -887,10 +971,6 @@ Resources:
       GroupName: Codebuild Internet Group
       GroupDescription: CodeBuild SecurityGroup
       VpcId: !Ref VPC
-
-
-
-
 
 Outputs:
 
