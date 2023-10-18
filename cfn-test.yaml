@@ -1,65 +1,28 @@
-AWSTemplateFormatVersion: "2010-09-09"
+AWSTemplateFormatVersion: '2010-09-09'
 
 Parameters:
-
-  Cloud9EnvironmentName:
-    Description: How the name appears in the console
-    Type: String
-    Default: eks-security-workshop
-
-  WorkstationRoleName:
-    Description: Workshop Studio participant role arn
-    Type: String
-    Default: eks-security-workshop
-
-  C9EnvType:
-    Description: Environment type.
-    Default: 3rdParty
-    Type: String
-    AllowedValues:
-      - 3rdParty
-      - aws-event
-    ConstraintDescription: must specify aws-event or 3rdParty.
-
   EETeamRoleArn:
     Type: String
-    Description: The Arn of the Cloud9 Owner to be set if 3rdParty deployment.
-    Default: ''
-
-Metadata:
-  AWS::CloudFormation::Interface:
-    ParameterGroups:
-      - Label:
-          default: 'Cloud9 Configuration'
-        Parameters:
-          - Cloud9EnvironmentName
-          - WorkstationRoleName
-          - C9EnvType
-          - EETeamRoleArn
-
-Conditions:
-  Create3rdPartyResources: !Equals [!Ref C9EnvType, 3rdParty]
-  CreateAWSEventResources: !Equals [!Ref C9EnvType, aws-event]
+    Default: 'arn:aws:iam::228271304337:role/WSParticipantRole'
 
 Resources:
   VPC:
     Type: AWS::EC2::VPC
     Properties:
-      CidrBlock: "10.254.0.0/16"
+      CidrBlock: '10.254.0.0/16'
       EnableDnsHostnames: true
       EnableDnsSupport: true
       Tags:
         - Key: Name
           Value: EKSSecurityImmersionDay
-  
+
   InternetGateway:
     Type: AWS::EC2::InternetGateway
     Properties:
       Tags:
         - Key: Name
           Value: EKSSecurityImmersionDay
-  
-  
+
   InternetGatewayAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
@@ -83,20 +46,19 @@ Resources:
         - Key: Name
           Value: EKSSecurityImmersionDayPublic
 
-
   PublicDefaultRoute:
     Type: AWS::EC2::Route
     Properties:
       GatewayId: !Ref InternetGateway
-      DestinationCidrBlock: "0.0.0.0/0"
+      DestinationCidrBlock: '0.0.0.0/0'
       RouteTableId: !Ref PublicRouteTable
-  
+
   PublicSubnetA:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: !Sub "${AWS::Region}a"
-      CidrBlock: "10.254.0.0/24"
+      AvailabilityZone: !Sub '${AWS::Region}a'
+      CidrBlock: '10.254.0.0/24'
       Tags:
         - Key: Name
           Value: EKSSecurityImmersionDayPublicA
@@ -111,8 +73,8 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: !Sub "${AWS::Region}b"
-      CidrBlock: "10.254.1.0/24"
+      AvailabilityZone: !Sub '${AWS::Region}b'
+      CidrBlock: '10.254.1.0/24'
       Tags:
         - Key: Name
           Value: EKSSecurityImmersionDayPublicB
@@ -127,8 +89,8 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: !Sub "${AWS::Region}c"
-      CidrBlock: "10.254.2.0/24"
+      AvailabilityZone: !Sub '${AWS::Region}c'
+      CidrBlock: '10.254.2.0/24'
       Tags:
         - Key: Name
           Value: EKSSecurityImmersionDayPublicC
@@ -158,14 +120,14 @@ Resources:
     Type: AWS::EC2::Route
     Properties:
       NatGatewayId: !Ref NATGateway
-      DestinationCidrBlock: "0.0.0.0/0"
+      DestinationCidrBlock: '0.0.0.0/0'
       RouteTableId: !Ref PrivateRouteTable
   PrivateSubnetA:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: !Sub "${AWS::Region}a"
-      CidrBlock: "10.254.128.0/19"
+      AvailabilityZone: !Sub '${AWS::Region}a'
+      CidrBlock: '10.254.128.0/19'
       Tags:
         - Key: Name
           Value: EKSSecurityImmersionDayPrivateA
@@ -180,8 +142,8 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: !Sub "${AWS::Region}b"
-      CidrBlock: "10.254.160.0/19"
+      AvailabilityZone: !Sub '${AWS::Region}b'
+      CidrBlock: '10.254.160.0/19'
       Tags:
         - Key: Name
           Value: EKSSecurityImmersionDayPrivateB
@@ -196,8 +158,8 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: !Sub "${AWS::Region}c"
-      CidrBlock: "10.254.192.0/19"
+      AvailabilityZone: !Sub '${AWS::Region}c'
+      CidrBlock: '10.254.192.0/19'
       Tags:
         - Key: Name
           Value: EKSSecurityImmersionDayPrivateC
@@ -213,56 +175,46 @@ Resources:
     Type: AWS::Cloud9::EnvironmentEC2
     Properties:
       Description: Amazon EKS Security Immersion Day
-      Name: !Ref Cloud9EnvironmentName
       InstanceType: c5.large
       AutomaticStopTimeMinutes: 120
       SubnetId: !Ref PublicSubnetA
       ImageId: resolve:ssm:/aws/service/cloud9/amis/amazonlinux-2-x86_64
       OwnerArn: !Join
-        - ":"
+        - ':'
         - - arn
           - !Ref AWS::Partition
           - sts
-          - ""
-          - !Select [4, !Split [":", !Ref EETeamRoleArn]]
+          - ''
+          - !Select [4, !Split [':', !Ref EETeamRoleArn]]
           - !Join
-            - "/"
+            - '/'
             - - assumed-role
-              - !Select [
-                  1,
-                  !Split ["/", !Select [5, !Split [":", !Ref EETeamRoleArn]]],
-                ]
+              - !Select [1, !Split ['/', !Select [5, !Split [':', !Ref EETeamRoleArn]]]]
               - Participant
-      Tags:
-        - Key: SSMBootstrap
-          Value: Active
-        - Key: Environment
-          Value: !Sub ${Cloud9EnvironmentName}
 
   Cloud9InstanceRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Ref WorkstationRoleName
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Principal:
               Service:
-                - ec2.amazonaws.com
-                - codebuild.amazonaws.com
-                - ssm.amazonaws.com
-              AWS: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:root
-            Action:
-              - 'sts:AssumeRole'
+                - !Sub ec2.${AWS::URLSuffix}
+                - !Sub ssm.${AWS::URLSuffix}
+            Action: sts:AssumeRole
+          - Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'
+            Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AdministratorAccess
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
 
   Cloud9InstanceProfile:
     Type: AWS::IAM::InstanceProfile
-    DependsOn: [Cloud9InstanceRole]
     Properties:
-      InstanceProfileName: !Ref WorkstationRoleName
       Roles:
         - !Ref Cloud9InstanceRole
 
@@ -270,7 +222,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           Effect: Allow
           Principal:
@@ -280,7 +232,7 @@ Resources:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       Policies:
         - PolicyDocument:
-            Version: "2012-10-17"
+            Version: '2012-10-17'
             Statement:
               - Effect: Allow
                 Action:
@@ -288,7 +240,7 @@ Resources:
                   - ec2:DescribeIamInstanceProfileAssociations
                   - ec2:AssociateIamInstanceProfile
                   - ec2:DisassociateIamInstanceProfile
-                Resource: "*"
+                Resource: '*'
               - Effect: Allow
                 Action:
                   - iam:PassRole
@@ -309,6 +261,19 @@ Resources:
           import cfnresponse
           import boto3
           import json
+
+          def restart_instance(instance_id):
+            ec2 = boto3.client('ec2')
+
+            try:
+              response = ec2.reboot_instances(
+                InstanceIds=[
+                  instance_id
+                ]
+              )
+            except botocore.exceptions.ClientError as error:
+              raise error
+
 
           def handler(event, context):
               print("REQUEST RECEIVED: \n" + json.dumps(event))
@@ -351,6 +316,8 @@ Resources:
                       InstanceId=instance_id
                   )
 
+                  # Restart the instance
+                  restart_instance(instance['InstanceId'])                  
                   cfnresponse.send(event, context, cfnresponse.SUCCESS, {
                       'SecurityGroupId': security_group_id
                   })
@@ -369,7 +336,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           Effect: Allow
           Principal:
@@ -379,13 +346,13 @@ Resources:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       Policies:
         - PolicyDocument:
-            Version: "2012-10-17"
+            Version: '2012-10-17'
             Statement:
               Effect: Allow
               Action:
                 - ec2:CreateKeyPair
                 - ec2:DeleteKeyPair
-              Resource: "*"
+              Resource: '*'
           PolicyName: CreateKeyPair
 
   SSHKeyPairCreatorFunction:
@@ -432,324 +399,13 @@ Resources:
       Description: EKS Secrets Encryption Key
       EnableKeyRotation: true
       KeyPolicy:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           Effect: Allow
           Principal:
-            AWS: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:root"
-          Action: "kms:*"
-          Resource: "*"
-
-  EKSClusterRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          Effect: Allow
-          Principal:
-            Service: !Sub eks.${AWS::URLSuffix}
-          Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
-
-  EKSClusterCreatorRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          Effect: Allow
-          Principal:
-            Service: !Sub lambda.${AWS::URLSuffix}
-          Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-      Policies:
-        - PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - eks:DescribeCluster
-                  - eks:CreateCluster
-                  - eks:DeleteCluster
-                Resource: "*"
-              - Effect: Allow
-                Action:
-                  - sts:AssumeRole
-                Resource: !GetAtt Cloud9InstanceRole.Arn
-          PolicyName: CreateEKSCluster
-
-
-  EKSClusterCreatorFunction:
-    Type: AWS::Lambda::Function
-    Properties:
-      Role: !GetAtt EKSClusterCreatorRole.Arn
-      #Architectures:
-      #  - arm64
-      Runtime: python3.9
-      Handler: index.handler
-      Timeout: 900
-      Code:
-        ZipFile: |
-          import cfnresponse
-          import boto3
-          import json
-          import random
-          import string
-
-
-          def handler(event, context):
-              print("REQUEST RECEIVED: \n" + json.dumps(event))
-
-              try:
-                  if event['RequestType'] == 'Delete':
-                      eks = boto3.client('eks')
-                      eks.delete_cluster(name=event['PhysicalResourceId'])
-                      waiter = eks.get_waiter('cluster_deleted')
-                      waiter.wait(name=event['PhysicalResourceId'])
-                      cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
-                      return
-                  sts = boto3.client('sts')
-                  response = sts.assume_role(
-                      RoleArn=event['ResourceProperties']['CreatorRoleArn'],
-                      RoleSessionName='Creator'
-                  )
-                  eks = boto3.client('eks',
-                                    aws_access_key_id=response['Credentials']['AccessKeyId'],
-                                    aws_secret_access_key=response['Credentials']['SecretAccessKey'],
-                                    aws_session_token=response['Credentials']['SessionToken']
-                                    )
-
-                  #cluster_name = event['LogicalResourceId'] + '-' + \
-                  #    ''.join(random.choice(string.ascii_letters + string.digits)
-                  #            for i in range(12))
-                  cluster_name='eksworkshop-eksctl'
-
-                  print('Creating cluster ' + cluster_name)
-                  response = eks.create_cluster(
-                      name=cluster_name,
-                      version='1.28',
-                      roleArn=event['ResourceProperties']['ClusterRoleArn'],
-                      resourcesVpcConfig={
-                          'subnetIds': event['ResourceProperties']['SubnetIds'],
-                          'endpointPublicAccess': False,
-                          'endpointPrivateAccess': True
-                      },
-                      logging={
-                          'clusterLogging': [
-                              {
-                                  'types': [
-                                      'api', 'audit', 'authenticator', 'controllerManager', 'scheduler',
-                                  ],
-                                  'enabled': True
-                              },
-                          ]
-                      },
-                      encryptionConfig=[
-                          {
-                              'resources': [
-                                  'secrets',
-                              ],
-                              'provider': {
-                                  'keyArn': event['ResourceProperties']['KeyArn']
-                              }
-                          },
-                      ]
-                  )
-
-                  print('Waiting for cluster to become active...')
-                  waiter = eks.get_waiter('cluster_active')
-                  waiter.wait(name=cluster_name)
-                  response = eks.describe_cluster(name=cluster_name)
-                  cfnresponse.send(event, context, cfnresponse.SUCCESS, {
-                      'OpenIdConnectIssuerUrl': response['cluster']['identity']['oidc']['issuer'],
-                      'ClusterSecurityGroupId': response['cluster']['resourcesVpcConfig']['clusterSecurityGroupId'],
-                      'CertificateAuthorityData': response['cluster']['certificateAuthority']['data'],
-                      'Endpoint': response['cluster']['endpoint']
-                  }, cluster_name)
-              except Exception as err:
-                  print(err)
-                  cfnresponse.send(event, context, cfnresponse.FAILED, {})
-
-  EKSCluster:
-    Type: AWS::CloudFormation::CustomResource
-    Properties:
-      ServiceToken: !GetAtt EKSClusterCreatorFunction.Arn
-      CreatorRoleArn: !GetAtt Cloud9InstanceRole.Arn
-      ClusterRoleArn: !GetAtt EKSClusterRole.Arn
-      SubnetIds:
-        - !Ref PrivateSubnetA
-        - !Ref PrivateSubnetB
-        - !Ref PrivateSubnetC
-      KeyArn: !GetAtt SecretsEncryptionKey.Arn
-
-  EKSNodegroupRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          Effect: Allow
-          Principal:
-            Service: !Sub ec2.${AWS::URLSuffix}
-          Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
-        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
-        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
-        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
-        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
-        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
-        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
-      Policies:
-        - PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              Effect: Allow
-              Action:
-                - logs:DescribeLogGroups
-                - logs:CreateLogGroup
-                - logs:CreateLogStream
-                - logs:PutLogEvents
-              Resource: "*"
-          PolicyName: CWLogsAccessForCNINodeAgent
-
-  EKSNodegroup:
-    Type: AWS::EKS::Nodegroup
-    Properties:
-      ClusterName: !Ref EKSCluster
-      NodeRole: !GetAtt EKSNodegroupRole.Arn
-      Subnets:
-        - !Ref PrivateSubnetA
-        - !Ref PrivateSubnetB
-        - !Ref PrivateSubnetC
-      AmiType: AL2_x86_64
-      CapacityType: ON_DEMAND
-      NodegroupName: "mng-al2"
-      InstanceTypes:
-        - t3a.large
-        - t3.large
-        - m4.large
-        - m5a.large
-        - m5.large
-      RemoteAccess:
-        Ec2SshKey: !GetAtt SSHKeyPairCustomResource.KeyName
-        SourceSecurityGroups:
-          - !GetAtt Cloud9RoleAttacherCustomResource.SecurityGroupId
-      ScalingConfig:
-        DesiredSize: 3
-        MinSize: 3
-        MaxSize: 5
-
-  EKSNodegroupBottlerocket:
-    Type: AWS::EKS::Nodegroup
-    Properties:
-      ClusterName: !Ref EKSCluster
-      NodeRole: !GetAtt EKSNodegroupRole.Arn
-      Subnets:
-        - !Ref PrivateSubnetA
-        - !Ref PrivateSubnetB
-        - !Ref PrivateSubnetC
-      AmiType: BOTTLEROCKET_x86_64
-      CapacityType: ON_DEMAND
-      NodegroupName: "mng-br"
-      InstanceTypes:
-        - t3a.small
-      RemoteAccess:
-        Ec2SshKey: !GetAtt SSHKeyPairCustomResource.KeyName
-        SourceSecurityGroups:
-          - !GetAtt Cloud9RoleAttacherCustomResource.SecurityGroupId
-      ScalingConfig:
-        DesiredSize: 0
-        MinSize: 0
-        MaxSize: 5
-
-  # OIDC provider (for EKS IAM Roles for Service Accounts)
-  ThumbprintExtractorRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          Effect: Allow
-          Principal:
-            Service: !Sub lambda.${AWS::URLSuffix}
-          Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-
-  ThumbprintExtractorFunction:
-    Type: AWS::Lambda::Function
-    Properties:
-      Role: !GetAtt ThumbprintExtractorRole.Arn
-      Architectures:
-        - arm64
-      Runtime: nodejs16.x
-      Handler: index.handler
-      Timeout: 10
-      Code:
-        ZipFile: |
-          const response = require('cfn-response');
-          const tls = require('tls');
-          const url = require('url');
-
-          exports.handler = function (event, context) {
-              console.log("REQUEST RECEIVED:\n" + JSON.stringify(event));
-              if (event.RequestType === 'Delete') {
-                  response.send(event, context, 'SUCCESS');
-                  return;
-              }
-              const parsedUrl = url.parse(event.ResourceProperties.Url);
-              const socket = tls.connect({
-                  host: parsedUrl.host,
-                  port: parsedUrl.port || 443,
-                  rejectUnauthorized: false,
-              });
-              socket.on('secureConnect', () => {
-                  let cert = socket.getPeerCertificate(true);
-                  // Obtain the last **intermediate** certificate in the chain
-                  // See https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_create_oidc_verify-thumbprint.html
-                  while (cert.issuerCertificate.issuerCertificate !== cert.issuerCertificate) {
-                      cert = cert.issuerCertificate;
-                  }
-                  socket.destroy();
-                  response.send(event, context, 'SUCCESS', {
-                      Fingerprint: cert.fingerprint.replace(/:/g, '')
-                  });
-              });
-          }
-
-  ThumbprintExtractorCustomResource:
-    Type: AWS::CloudFormation::CustomResource
-    Properties:
-      ServiceToken: !GetAtt ThumbprintExtractorFunction.Arn
-      Url: !GetAtt EKSCluster.OpenIdConnectIssuerUrl
-
-  OIDCProvider:
-    Type: AWS::IAM::OIDCProvider
-    Properties:
-      Url: !GetAtt EKSCluster.OpenIdConnectIssuerUrl
-      ClientIdList:
-        - !Sub sts.${AWS::URLSuffix}
-      ThumbprintList:
-        - !GetAtt ThumbprintExtractorCustomResource.Fingerprint
-
-  #
-  # Prepare Cloud9 instance
-  #
-  AllowCloud9ToAccessCluster:
-    Type: AWS::EC2::SecurityGroupIngress
-    Properties:
-      Description: Allow connections from Cloud9 instance
-      IpProtocol: tcp
-      GroupId: !GetAtt EKSCluster.ClusterSecurityGroupId
-      SourceSecurityGroupId: !GetAtt Cloud9RoleAttacherCustomResource.SecurityGroupId
-      FromPort: 443
-      ToPort: 443
+            AWS: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'
+          Action: 'kms:*'
+          Resource: '*'
 
   RunCommandLogGroup:
     Type: AWS::Logs::LogGroup
@@ -762,7 +418,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           Effect: Allow
           Principal:
@@ -770,20 +426,20 @@ Resources:
           Action: sts:AssumeRole
       Policies:
         - PolicyDocument:
-            Version: "2012-10-17"
+            Version: '2012-10-17'
             Statement:
               - Effect: Allow
                 Action:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource: !Sub "${RunCommandLogGroup.Arn}:*"
+                Resource: !Sub '${RunCommandLogGroup.Arn}:*'
           PolicyName: Cloud9Initialize
 
   EC2InitializerRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           Effect: Allow
           Principal:
@@ -793,7 +449,7 @@ Resources:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       Policies:
         - PolicyDocument:
-            Version: "2012-10-17"
+            Version: '2012-10-17'
             Statement:
               - Effect: Allow
                 Action:
@@ -858,7 +514,7 @@ Resources:
                   instance = response['Reservations'][0]['Instances'][0]
                   instance_id = instance['InstanceId']
                   waiter = ec2.get_waiter('instance_running')
-                  waiter.wait(InstanceIds=[instance_id])
+                  waiter.wait(InstanceIds=[instance_id])  
 
 
                   # Reboot is required to avoid weird race condition with IAM role and SSM agent
@@ -883,7 +539,7 @@ Resources:
                           response["InstanceInformationList"][0]["InstanceId"] == instance_id:
                       print('Instance is online in SSM')
                       break
-                    time.sleep(10)     
+                    time.sleep(10)                  
                   print('Executing Command in SSM')
                   commands = '''
               su -l -c 'aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com' ec2-user
@@ -958,9 +614,9 @@ Resources:
       Cloud9EnvironmentId: !Ref Cloud9Environment
       SsmRoleArn: !GetAtt SSMRole.Arn
       LogGroupName: !Ref RunCommandLogGroup
-      EKSClusterName: !Ref EKSCluster
-      AccountId: !Sub "${AWS::AccountId}"
-      Region: !Sub "${AWS::Region}"
+      #EKSClusterName: !Ref EKSCluster
+      AccountId: !Sub '${AWS::AccountId}'
+      Region: !Sub '${AWS::Region}'
       InstanceRoleArn: !GetAtt Cloud9InstanceRole.Arn
       KeyMaterial: !GetAtt SSHKeyPairCustomResource.KeyMaterial
 
@@ -972,13 +628,11 @@ Resources:
       VpcId: !Ref VPC
 
 Outputs:
-
   VPC:
     Description: 'VPC'
     Value: !Ref VPC
     Export:
       Name: vpcId
-
 
   SubnetAPrivate:
     Description: 'Subnet A private'
