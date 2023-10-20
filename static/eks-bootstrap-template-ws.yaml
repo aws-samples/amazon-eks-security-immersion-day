@@ -5,7 +5,24 @@ Parameters:
   Cloud9EnvironmentName:
     Description: How the name appears in the console
     Type: String
-    Default: eks-security-workshop
+    Default: "none"
+
+  Cloud9IDEInstanceType:
+    Description: The type of instance to connect to the environment
+    Type: String
+    Default: c5.large
+    AllowedValues:
+      - t2.micro
+      - t3.micro
+      - t3.small
+      - t3.medium
+      - c5.large
+    ConstraintDescription: Must be a valid Cloud9 instance type
+
+  EksWorkshopC9InstanceVolumeSize: 
+    Type: Number
+    Description: The Size in GB of the Cloud9 Instance Volume. 
+    Default: 30
 
   WorkstationRoleName:
     Description: Workshop Studio participant role arn
@@ -24,7 +41,7 @@ Parameters:
   EETeamRoleArn:
     Type: String
     Description: The Arn of the Cloud9 Owner to be set if 3rdParty deployment.
-    Default: ''
+    Default: 'arn:aws:iam::[ChangeMe]:role/[ChangeMe]'
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -40,6 +57,7 @@ Metadata:
 Conditions:
   Create3rdPartyResources: !Equals [!Ref C9EnvType, 3rdParty]
   CreateAWSEventResources: !Equals [!Ref C9EnvType, aws-event]
+  IsCloud9NotNamed: !Equals [ !Ref Cloud9EnvironmentName, none ]
 
 Resources:
   VPC:
@@ -213,26 +231,12 @@ Resources:
     Type: AWS::Cloud9::EnvironmentEC2
     Properties:
       Description: Amazon EKS Security Immersion Day
-      Name: !Ref Cloud9EnvironmentName
-      InstanceType: c5.large
-      AutomaticStopTimeMinutes: 120
+      Name: !If [ IsCloud9NotNamed, !Ref AWS::StackName, !Ref Cloud9EnvironmentName ]
+      InstanceType: !Ref Cloud9IDEInstanceType
+      AutomaticStopTimeMinutes: 3600
       SubnetId: !Ref PublicSubnetA
       ImageId: resolve:ssm:/aws/service/cloud9/amis/amazonlinux-2-x86_64
-      OwnerArn: !Join
-        - ":"
-        - - arn
-          - !Ref AWS::Partition
-          - sts
-          - ""
-          - !Select [4, !Split [":", !Ref EETeamRoleArn]]
-          - !Join
-            - "/"
-            - - assumed-role
-              - !Select [
-                  1,
-                  !Split ["/", !Select [5, !Split [":", !Ref EETeamRoleArn]]],
-                ]
-              - Participant
+      OwnerArn: !Sub "arn:aws:sts::${AWS::AccountId}:assumed-role/${Cloud9InstanceRole}/MasterKey"
       Tags:
         - Key: SSMBootstrap
           Value: Active
@@ -257,6 +261,7 @@ Resources:
               - 'sts:AssumeRole'
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AdministratorAccess
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
 
   Cloud9InstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -265,166 +270,6 @@ Resources:
       InstanceProfileName: !Ref WorkstationRoleName
       Roles:
         - !Ref Cloud9InstanceRole
-
-  Cloud9RoleAttacherRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          Effect: Allow
-          Principal:
-            Service: !Sub lambda.${AWS::URLSuffix}
-          Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-      Policies:
-        - PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - ec2:DescribeInstances
-                  - ec2:DescribeIamInstanceProfileAssociations
-                  - ec2:AssociateIamInstanceProfile
-                  - ec2:DisassociateIamInstanceProfile
-                Resource: "*"
-              - Effect: Allow
-                Action:
-                  - iam:PassRole
-                Resource: !GetAtt Cloud9InstanceRole.Arn
-          PolicyName: UpdateEC2InstanceProfile
-
-  Cloud9RoleAttacherFunction:
-    Type: AWS::Lambda::Function
-    Properties:
-      Role: !GetAtt Cloud9RoleAttacherRole.Arn
-      #Architectures:
-      #  - arm64
-      Runtime: python3.9
-      Handler: index.handler
-      Timeout: 10
-      Code:
-        ZipFile: |
-          import cfnresponse
-          import boto3
-          import json
-
-          def handler(event, context):
-              print("REQUEST RECEIVED: \n" + json.dumps(event))
-              if event['RequestType'] == 'Delete':
-                  cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
-                  return
-
-              try:
-                  client = boto3.client('ec2')
-                  response = client.describe_instances(
-                      Filters=[{
-                          'Name': 'tag:aws:cloud9:environment',
-                          'Values': [
-                              event['ResourceProperties']['Cloud9EnvironmentId']
-                          ]
-                      }]
-                  )
-                  instance = response['Reservations'][0]['Instances'][0]
-                  instance_id = instance['InstanceId']
-                  security_group_id = instance['NetworkInterfaces'][0]['Groups'][0]['GroupId']
-                  print('Instance ID: ' + instance_id);
-                  print('Security Group ID: ' + security_group_id);
-
-                  response = client.describe_iam_instance_profile_associations(
-                      Filters=[{
-                          'Name': 'instance-id',
-                          'Values': [instance_id]
-                      }]
-                  )
-                  associations = response['IamInstanceProfileAssociations']
-                  if len(associations) == 1:
-                      association_id = associations[0]['AssociationId']
-                      response = client.disassociate_iam_instance_profile(
-                        AssociationId=association_id
-                      )
-                  client.associate_iam_instance_profile(
-                      IamInstanceProfile={
-                        'Arn': event['ResourceProperties']['InstanceProfileArn']
-                      },
-                      InstanceId=instance_id
-                  )
-
-                  cfnresponse.send(event, context, cfnresponse.SUCCESS, {
-                      'SecurityGroupId': security_group_id
-                  })
-              except Exception as err:
-                  print(err)
-                  cfnresponse.send(event, context, cfnresponse.FAILED, {})
-
-  Cloud9RoleAttacherCustomResource:
-    Type: AWS::CloudFormation::CustomResource
-    Properties:
-      ServiceToken: !GetAtt Cloud9RoleAttacherFunction.Arn
-      Cloud9EnvironmentId: !Ref Cloud9Environment
-      InstanceProfileArn: !GetAtt Cloud9InstanceProfile.Arn
-
-  SSHKeyPairCreatorRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          Effect: Allow
-          Principal:
-            Service: !Sub lambda.${AWS::URLSuffix}
-          Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-      Policies:
-        - PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              Effect: Allow
-              Action:
-                - ec2:CreateKeyPair
-                - ec2:DeleteKeyPair
-              Resource: "*"
-          PolicyName: CreateKeyPair
-
-  SSHKeyPairCreatorFunction:
-    Type: AWS::Lambda::Function
-    Properties:
-      Role: !GetAtt SSHKeyPairCreatorRole.Arn
-      Architectures:
-        - arm64
-      Runtime: python3.9
-      Handler: index.handler
-      Timeout: 10
-      Code:
-        ZipFile: |
-          import cfnresponse
-          import boto3
-          import json
-          import random
-          import string
-
-          def handler(event, context):
-              print("REQUEST RECEIVED: \n" + json.dumps(event))
-              client = boto3.client('ec2')
-              if event['RequestType'] == 'Delete':
-                  client.delete_key_pair(KeyName=event['PhysicalResourceId'])
-                  cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
-              else:
-                  key_pair_name = event['LogicalResourceId'] + '-' + \
-                      ''.join(random.choice(string.ascii_letters + string.digits)
-                              for i in range(12))
-                  response = client.create_key_pair(KeyName=key_pair_name, KeyType='rsa')
-                  cfnresponse.send(event, context, cfnresponse.SUCCESS, {
-                    'KeyName': response['KeyName'],
-                    'KeyMaterial': response['KeyMaterial']
-                  }, response['KeyName'], True)
-
-  SSHKeyPairCustomResource:
-    Type: AWS::CloudFormation::CustomResource
-    Properties:
-      ServiceToken: !GetAtt SSHKeyPairCreatorFunction.Arn
 
   SecretsEncryptionKey:
     Type: AWS::KMS::Key
@@ -481,7 +326,6 @@ Resources:
                 Resource: !GetAtt Cloud9InstanceRole.Arn
           PolicyName: CreateEKSCluster
 
-
   EKSClusterCreatorFunction:
     Type: AWS::Lambda::Function
     Properties:
@@ -522,9 +366,6 @@ Resources:
                                     aws_session_token=response['Credentials']['SessionToken']
                                     )
 
-                  #cluster_name = event['LogicalResourceId'] + '-' + \
-                  #    ''.join(random.choice(string.ascii_letters + string.digits)
-                  #            for i in range(12))
                   cluster_name='eksworkshop-eksctl'
 
                   print('Creating cluster ' + cluster_name)
@@ -636,10 +477,6 @@ Resources:
         - m4.large
         - m5a.large
         - m5.large
-      RemoteAccess:
-        Ec2SshKey: !GetAtt SSHKeyPairCustomResource.KeyName
-        SourceSecurityGroups:
-          - !GetAtt Cloud9RoleAttacherCustomResource.SecurityGroupId
       ScalingConfig:
         DesiredSize: 3
         MinSize: 3
@@ -659,10 +496,6 @@ Resources:
       NodegroupName: "mng-br"
       InstanceTypes:
         - t3a.small
-      RemoteAccess:
-        Ec2SshKey: !GetAtt SSHKeyPairCustomResource.KeyName
-        SourceSecurityGroups:
-          - !GetAtt Cloud9RoleAttacherCustomResource.SecurityGroupId
       ScalingConfig:
         DesiredSize: 0
         MinSize: 0
@@ -747,7 +580,7 @@ Resources:
       Description: Allow connections from Cloud9 instance
       IpProtocol: tcp
       GroupId: !GetAtt EKSCluster.ClusterSecurityGroupId
-      SourceSecurityGroupId: !GetAtt Cloud9RoleAttacherCustomResource.SecurityGroupId
+      SourceSecurityGroupId: !GetAtt Cloud9Initializer.SecurityGroupId
       FromPort: 443
       ToPort: 443
 
@@ -779,7 +612,7 @@ Resources:
                 Resource: !Sub "${RunCommandLogGroup.Arn}:*"
           PolicyName: Cloud9Initialize
 
-  EC2InitializerRole:
+  Cloud9InitializerRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -795,6 +628,12 @@ Resources:
         - PolicyDocument:
             Version: "2012-10-17"
             Statement:
+              - Effect: Allow
+                Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+                Resource: arn:aws:logs:*:*:*            
               - Effect: Allow
                 Action:
                   - cloudformation:DescribeStacks
@@ -815,50 +654,195 @@ Resources:
                   - ssm:DescribeInstanceInformation
                   - ssm:SendCommand
                   - ssm:GetCommandInvocation
+                  - ssm:UpdateDocument
                 Resource: '*'
               - Effect: Allow
                 Action:
                   - iam:PassRole
                 Resource: !GetAtt SSMRole.Arn
+              - Effect: Allow
+                Action:
+                - sts:AssumeRole
+                Resource: !GetAtt Cloud9InstanceRole.Arn                
           PolicyName: Cloud9Initialize
+
+  Cloud9Initializer:
+    Type: AWS::CloudFormation::CustomResource
+    DependsOn:
+    - Cloud9InitializerRole    
+    Properties:
+      ServiceToken: !GetAtt Cloud9InitializerFunction.Arn
+      Cloud9EnvironmentId: !Ref Cloud9Environment
+      LabIdeInstanceProfileName: !Ref Cloud9InstanceProfile
+      LabIdeInstanceProfileArn: !GetAtt Cloud9InstanceProfile.Arn
+      SsmRoleArn: !GetAtt SSMRole.Arn
+      LogGroupName: !Ref RunCommandLogGroup
+      EKSClusterName: !Ref EKSCluster
+      AccountId: !Sub "${AWS::AccountId}"
+      Region: !Sub "${AWS::Region}"
+      InstanceRoleArn: !GetAtt Cloud9InstanceRole.Arn
+      SsmDocument: !Ref EksWorkshopC9SSMDocument
+      Cloud9InstanceRole: !Ref Cloud9InstanceRole
 
   Cloud9InitializerFunction:
     Type: AWS::Lambda::Function
     DependsOn: [Cloud9Environment]
     Properties:
-      Role: !GetAtt EC2InitializerRole.Arn
-      #Architectures:
-      #  - arm64
+      Role: !GetAtt Cloud9InitializerRole.Arn
       Runtime: python3.9
-      Handler: index.handler
-      Timeout: 300
+      #Handler: index.handler
+      Handler: index.lambda_handler
+      Environment:
+        Variables:
+          DiskSize:
+            Ref: EksWorkshopC9InstanceVolumeSize
+      MemorySize: 256
+      Timeout: '900'
       Code:
         ZipFile: |
+          from __future__ import print_function        
           import cfnresponse
           import boto3
           import json
           import time
+          import os
+          import traceback
+          import logging
+          logger = logging.getLogger(__name__)          
 
-          def handler(event, context):
-              print("REQUEST RECEIVED: \n" + json.dumps(event))
+          def lambda_handler(event, context):
+              print(event)
+              print(event.values())
+              print('context: {}'.format(context))
+              responseData = {}
+
+              status = cfnresponse.SUCCESS
+
               if event['RequestType'] == 'Delete':
-                  cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
+                  print('Deleting Event')
+                  responseData = {'Success': 'Custom Resource removed'}
+                  cfnresponse.send(event, context, status, responseData, 'CustomResourcePhysicalID')  
                   return
 
+              print('Creating Event')
               try:
+                  # Open AWS clients
                   ec2 = boto3.client('ec2')
-                  response = ec2.describe_instances(
-                      Filters=[{
-                          'Name': 'tag:aws:cloud9:environment',
-                          'Values': [
-                              event['ResourceProperties']['Cloud9EnvironmentId']
-                          ]
-                      }]
+                  ssm = boto3.client('ssm')              
+                  sts_client = boto3.client('sts')
+                  session = boto3.session.Session()
+    
+                  account_id = session.client('sts').get_caller_identity()['Account']
+
+                  environmentId = event['ResourceProperties']['Cloud9EnvironmentId']
+
+                  print('Assume Role: ' + event['ResourceProperties']['InstanceRoleArn'] )
+                  assumed_role_object=sts_client.assume_role(
+                      RoleArn=event['ResourceProperties']['InstanceRoleArn'],
+                      RoleSessionName="MasterKey"
                   )
-                  instance = response['Reservations'][0]['Instances'][0]
+
+                  creds = assumed_role_object['Credentials']
+
+                  cloud9 = boto3.client('cloud9',
+                      aws_access_key_id=creds['AccessKeyId'],
+                      aws_secret_access_key=creds['SecretAccessKey'],
+                      aws_session_token=creds['SessionToken']
+                  )
+
+                  cloud9.create_environment_membership(
+                      environmentId=environmentId,
+                      permissions='read-write',
+                      userArn=f'arn:aws:sts::{account_id}:assumed-role/WSParticipantRole/Participant'
+                  )
+
+                  cloud9.create_environment_membership(
+                      environmentId=environmentId,
+                      permissions='read-write',
+                      userArn=f'arn:aws:sts::{account_id}:assumed-role/WSOpsRole/Ops',
+                  )
+                  # what about WSOpsRole?
+
+                  cloud9.update_environment(
+                      environmentId=environmentId,
+                      managedCredentialsAction='DISABLE'
+                  )
+
+                  # Get the InstanceId of the Cloud9 IDE
+                  instance = ec2.describe_instances(Filters=[{'Name': 'tag:aws:cloud9:environment','Values': [event['ResourceProperties']['Cloud9EnvironmentId']]}])['Reservations'][0]['Instances'][0]
+                  print('instance: {}'.format(instance))
                   instance_id = instance['InstanceId']
+
+                  # Get the Cloud9 SecurityGroup
+                  security_group_id = instance['NetworkInterfaces'][0]['Groups'][0]['GroupId']
+                  print('Instance ID: ' + instance_id);
+                  print('Security Group ID: ' + security_group_id);
+
+                  # Create the IamInstanceProfile request object
+                  iam_instance_profile = {
+                      'Arn': event['ResourceProperties']['LabIdeInstanceProfileArn'],
+                      'Name': event['ResourceProperties']['LabIdeInstanceProfileName']
+                  }
+                  print('Found IAM instance profile: {}'.format(iam_instance_profile))
+
+                  time.sleep(10)
+
+                  print('Waiting for the instance to be ready...')
+      
+                  # Wait for Instance to become ready before adding Role
+                  instance_state = instance['State']['Name']
+                  print('instance_state: {}'.format(instance_state))
                   waiter = ec2.get_waiter('instance_running')
                   waiter.wait(InstanceIds=[instance_id])
+                  instance_state = ec2.describe_instances(InstanceIds=[instance_id])
+                  print('instance_state: {}'.format(instance_state))
+
+                  print('Instance is ready')
+
+                  #Associate cloud9 with appropriate IAM Role
+                  associations = ec2.describe_iam_instance_profile_associations(
+                      Filters=[
+                          {
+                              'Name': 'instance-id',
+                              'Values': [instance_id],
+                          },
+                      ],
+                  )
+
+                  if len(associations['IamInstanceProfileAssociations']) > 0:
+                    print('Replacing existing IAM profile...')
+                    for association in associations['IamInstanceProfileAssociations']:
+                      if association['State'] == 'associated':
+                        print("{} is active with state {}".format(association['AssociationId'], association['State']))
+                        ec2.replace_iam_instance_profile_association(AssociationId=association['AssociationId'], IamInstanceProfile=iam_instance_profile)
+                  else:
+                    print('Associating IAM profile...')
+                    ec2.associate_iam_instance_profile(IamInstanceProfile=iam_instance_profile, InstanceId=instance_id)
+
+                  #Check Cloud9 instance volume size
+                  block_volume_id = instance['BlockDeviceMappings'][0]['Ebs']['VolumeId']
+
+                  block_device = ec2.describe_volumes(VolumeIds=[block_volume_id])['Volumes'][0]
+
+                  DiskSize = int(os.environ['DiskSize'])
+                  if block_device['Size'] < DiskSize:
+                    ec2.modify_volume(VolumeId=block_volume_id,Size=DiskSize)
+                    print('Modifying block volume: {}'.format(block_volume_id))
+                    time.sleep(10)
+
+                    for i in range(1, 30):
+                      response = ec2.describe_volumes_modifications(
+                        VolumeIds=[
+                          block_volume_id
+                        ]
+                      )
+                      modify_state = response['VolumesModifications'][0]['ModificationState']
+                      if modify_state != 'modifying':
+                        print('Volume has been resized')
+                        break
+                      time.sleep(10)
+                  else:
+                    print('Volume is already sized')    
 
 
                   # Reboot is required to avoid weird race condition with IAM role and SSM agent
@@ -873,7 +857,7 @@ Resources:
                   time.sleep(60)
 
                   print('Waiting for instance to come online in SSM...')
-                  ssm = boto3.client('ssm')
+
                   for i in range(1, 60):
                     response = ssm.describe_instance_information(Filters=[{'Key': 'InstanceIds', 'Values': [instance_id]}])
                     if len(response["InstanceInformationList"]) == 0:
@@ -884,85 +868,91 @@ Resources:
                       print('Instance is online in SSM')
                       break
                     time.sleep(10)     
-                  print('Executing Command in SSM')
-                  commands = '''
-              su -l -c 'aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com' ec2-user
-              curl 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o 'awscliv2.zip'
-              unzip awscliv2.zip -d /tmp
-              sudo /tmp/aws/install --update
-              rm -rf aws awscliv2.zip
-              curl -sSL -o /tmp/kubectl https://s3.us-west-2.amazonaws.com/amazon-eks/1.28.2/2023-10-12/bin/linux/amd64/kubectl
-              chmod +x /tmp/kubectl
-              mv /tmp/kubectl /usr/local/bin/kubectl
-              su -l -c 'aws eks update-kubeconfig --name {eks_cluster_name} --region {region} --role-arn {instance_role_arn}' ec2-user
-              su -l -c 'mkdir -p ~/.ssh && chmod 700 ~/.ssh' ec2-user
-              su -l -c 'echo "export AWS_ACCOUNT_ID={account_id}" >> ~/.bash_profile' ec2-user
-              su -l -c 'echo "export AWS_DEFAULT_REGION={region}" >> ~/.bash_profile' ec2-user
-              su -l -c 'echo "export AWS_REGION={region}" >> ~/.bash_profile' ec2-user
-              su -l -c 'echo "export EKS_CLUSTER={eks_cluster_name}" >> ~/.bash_profile' ec2-user
-              su -l -c 'echo "Found the Cloud9ID envs {cloud9environment_id}"' ec2-user
-              su -l -c 'echo "aws cloud9 update-environment  --environment-id {cloud9environment_id} --managed-credentials-action DISABLE > /dev/null 2>&1" |  tee -a ~/.bash_profile' ec2-user
-              su -l -c 'echo "{key_material}" > ~/.ssh/id_rsa' ec2-user
-              su -l -c 'chmod 600 ~/.ssh/id_rsa' ec2-user
-              curl -sSL "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-              chmod +x /tmp/eksctl
-              mv /tmp/eksctl /usr/local/bin
-              yum -y install jq gettext bash-completion moreutils
-              /usr/local/bin/kubectl completion bash > /etc/bash_completion.d/kubectl
-              /usr/local/bin/eksctl completion bash > /etc/bash_completion.d/eksctl
-              su -l -c 'echo "alias k=kubectl" >> ~/.bash_profile' ec2-user
-              su -l -c 'echo "complete -F __start_kubectl k" >> ~/.bash_profile' ec2-user
-              curl -fsSL -o /tmp/helm.tgz https://get.helm.sh/helm-v3.7.1-linux-amd64.tar.gz
-              tar -C /tmp -xzf /tmp/helm.tgz
-              mv /tmp/linux-amd64/helm /usr/local/bin/helm
-              rm -rf /tmp/helm.tgz /tmp/linux-amd64
-              su -l -c 'helm repo add eks https://aws.github.io/eks-charts' ec2-user
-              su -l -c 'helm repo update' ec2-user
-              volume_id=$(aws --region {region} ec2 describe-volumes --filters Name=attachment.instance-id,Values={instance_id} --query 'Volumes[0].VolumeId' --output text)
-              aws --region {region} ec2 modify-volume --volume-id $volume_id --size 30
-              # This must be the last line - do not add any lines after this!
-              shutdown -r 1
-              '''.format(
-                      eks_cluster_name=event['ResourceProperties']['EKSClusterName'],
-                      region=event['ResourceProperties']['Region'],
-                      instance_role_arn=event['ResourceProperties']['InstanceRoleArn'],
-                      key_material=event['ResourceProperties']['KeyMaterial'],
-                      instance_id=instance_id,
-                      account_id=event['ResourceProperties']['AccountId'],
-                      cloud9environment_id=event['ResourceProperties']['Cloud9EnvironmentId'],
-                  ).split("\n")
 
-                  ssm.send_command(
-                      DocumentName='AWS-RunShellScript',
-                      DocumentVersion='$LATEST',
-                      InstanceIds=[instance_id],
-                      TimeoutSeconds=60,
-                      ServiceRoleArn=event['ResourceProperties']['SsmRoleArn'],
-                      CloudWatchOutputConfig={
-                          'CloudWatchLogGroupName': event['ResourceProperties']['LogGroupName'],
-                          'CloudWatchOutputEnabled': True
-                      },
-                      Parameters={
-                          'commands': commands
-                      }
+                  ssm_document = event['ResourceProperties']['SsmDocument']
+                  print('Sending SSM command...')
+
+                  response = ssm.send_command(
+                    InstanceIds=[instance_id],
+                    DocumentName=ssm_document)
+            
+                  command_id = response['Command']['CommandId']
+
+                  waiter = ssm.get_waiter('command_executed')
+
+                  waiter.wait(
+                    CommandId=command_id,
+                    InstanceId=instance_id,
+                    WaiterConfig={
+                      'Delay': 10,
+                      'MaxAttempts': 30
+                    }
                   )
-                  cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
-              except Exception as err:
-                  print(err)
-                  cfnresponse.send(event, context, cfnresponse.FAILED, {})
 
-  Cloud9Initializer:
-    Type: AWS::CloudFormation::CustomResource
-    Properties:
-      ServiceToken: !GetAtt Cloud9InitializerFunction.Arn
-      Cloud9EnvironmentId: !Ref Cloud9Environment
-      SsmRoleArn: !GetAtt SSMRole.Arn
-      LogGroupName: !Ref RunCommandLogGroup
-      EKSClusterName: !Ref EKSCluster
-      AccountId: !Sub "${AWS::AccountId}"
-      Region: !Sub "${AWS::Region}"
-      InstanceRoleArn: !GetAtt Cloud9InstanceRole.Arn
-      KeyMaterial: !GetAtt SSHKeyPairCustomResource.KeyMaterial
+                  print(response)
+                  responseData = {
+                    'Success': 'Started bootstrapping for instance: '+instance_id,
+                    'SecurityGroupId': security_group_id,
+                    'additional': 'output2'
+                  }
+                  cfnresponse.send(event, context, status, responseData, 'CustomResourcePhysicalID')
+
+              except Exception as e:
+                  status = cfnresponse.FAILED
+                  print(traceback.format_exc())
+                  responseData = {'Error': traceback.format_exc(e)}
+              finally:
+                  cfnresponse.send(event, context, status, responseData, 'CustomResourcePhysicalID')
+              print('end init')                     
+
+  EksWorkshopC9SSMDocument: 
+    Type: AWS::SSM::Document
+    Properties: 
+      DocumentType: Command
+      DocumentFormat: YAML
+      Content: 
+        schemaVersion: '2.2'
+        description: Bootstrap Cloud9 Instance
+        mainSteps:
+        - action: aws:runShellScript
+          name: EksWorkshopC9bootstrap
+          inputs:
+            runCommand:
+            - !Sub |
+                set -e
+
+                su -l -c 'aws ecr get-login-password --region ${AWS::Region} | docker login --username AWS --password-stdin ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com' ec2-user
+                curl 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o 'awscliv2.zip'
+                unzip -o awscliv2.zip -d /tmp
+                sudo /tmp/aws/install --update
+                rm -rf aws awscliv2.zip
+                curl -sSL -o /tmp/kubectl https://s3.us-west-2.amazonaws.com/amazon-eks/1.28.2/2023-10-12/bin/linux/amd64/kubectl
+                chmod +x /tmp/kubectl
+                mv /tmp/kubectl /usr/local/bin/kubectl
+                su -l -c 'aws eks update-kubeconfig --name ${EKSCluster} --region ${AWS::Region} --role-arn ${Cloud9InstanceRole.Arn}' ec2-user
+                su -l -c 'echo "export AWS_ACCOUNT_ID=${AWS::AccountId}" >> ~/.bash_profile' ec2-user
+                su -l -c 'echo "export AWS_DEFAULT_REGION=${AWS::Region}" >> ~/.bash_profile' ec2-user
+                su -l -c 'echo "export AWS_REGION=${AWS::Region}" >> ~/.bash_profile' ec2-user
+                su -l -c 'echo "export EKS_CLUSTER=${EKSCluster}" >> ~/.bash_profile' ec2-user
+                su -l -c 'echo "Found the Cloud9ID envs ${Cloud9Environment}"' ec2-user
+                su -l -c 'echo "aws cloud9 update-environment  --environment-id ${Cloud9Environment} --managed-credentials-action DISABLE > /dev/null 2>&1" |  tee -a ~/.bash_profile' ec2-user
+                curl -sSL "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+                chmod +x /tmp/eksctl
+                mv /tmp/eksctl /usr/local/bin
+                yum -y install jq gettext bash-completion moreutils
+                /usr/local/bin/kubectl completion bash > /etc/bash_completion.d/kubectl
+                /usr/local/bin/eksctl completion bash > /etc/bash_completion.d/eksctl
+                su -l -c 'echo "alias k=kubectl" >> ~/.bash_profile' ec2-user
+                su -l -c 'echo "complete -F __start_kubectl k" >> ~/.bash_profile' ec2-user
+                curl -fsSL -o /tmp/helm.tgz https://get.helm.sh/helm-v3.7.1-linux-amd64.tar.gz
+                tar -C /tmp -xzf /tmp/helm.tgz
+                mv /tmp/linux-amd64/helm /usr/local/bin/helm
+                rm -rf /tmp/helm.tgz /tmp/linux-amd64
+                su -l -c 'helm repo add eks https://aws.github.io/eks-charts' ec2-user
+                su -l -c 'helm repo update' ec2-user
+                su -l -c 'curl -sS https://webinstall.dev/k9s | bash' ec2-user
+                # This must be the last line - do not add any lines after this!
+                shutdown -r 1
 
   CodeBuildSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -986,8 +976,3 @@ Outputs:
     Export:
       Name: SubnetAPrivate
 
-  CodeBuildSecurityGroup:
-    Description: 'Security group for codebuild'
-    Value: !GetAtt Cloud9RoleAttacherCustomResource.SecurityGroupId
-    Export:
-      Name: CodeBuildSecurityGroup
