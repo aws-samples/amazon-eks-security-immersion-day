@@ -42,8 +42,6 @@ ServicenetworkAccessPolicy=
 Run below commands to get the Access Auth policies for Service  `rates-default`
 
 ```bash
-
-
 ratesdns=$(kubectl get httproute rates -o json | jq -r '.status.parents[].conditions[0].message')
 prefix="DNS Name: "
 ratesFQDN=${ratesdns#$prefix}
