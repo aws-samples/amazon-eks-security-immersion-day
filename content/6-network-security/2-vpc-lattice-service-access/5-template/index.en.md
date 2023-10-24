@@ -65,7 +65,24 @@ spec:
         from: Selector
         selector:
           matchLabels:
-            allow-attachment-to-infra-gw: "true"            
+            allow-attachment-to-infra-gw: "true"
+  - name: https-listener-with-custom-domain
+    port: 443
+    protocol: HTTPS
+    allowedRoutes:
+      kinds:
+      - kind: HTTPRoute
+      namespaces:
+        #from: Same
+        #from: All
+        from: Selector
+        selector:
+          matchLabels:
+            allow-attachment-to-infra-gw: "true"    
+    tls:
+      mode: Terminate
+      options:
+        application-networking.k8s.aws/certificate-arn: $CERTIFICATE_ARN                  
 EOF
 kubectl apply -f $GATEWAY_NAME-gw.yaml
 ```
@@ -130,7 +147,7 @@ EOF
 ### Create Template for Simple Routing
 
 ```bash
-cat > simple-route-template.yaml <<EOF
+cat > route-template-simple-no-tls-custom-domain.yaml <<EOF
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: HTTPRoute
 metadata:
@@ -159,7 +176,7 @@ EOF
 ### Create Template for Weighted Routing
 
 ```bash
-cat > weighted-route-template.yaml <<EOF
+cat > route-template-weighted-no-tls-custom-domain.yaml  <<EOF
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: HTTPRoute
 metadata:
@@ -202,7 +219,7 @@ EOF
 ### Create Template for Simple Routing with TLS
 
 ```bash
-cat > simple-route-tls-template.yaml <<EOF
+cat > route-template-simple-tls-default-domain.yaml  <<EOF
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: HTTPRoute
 metadata:
@@ -229,6 +246,42 @@ spec:
           value: /      
 EOF
 ```
+
+### Create Template for Simple Routing with TLS with Custom Domain
+
+```bash
+cat > route-template-simple-tls-custom-domain.yaml  <<EOF
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: HTTPRoute
+metadata:
+  name: \$APPNAME
+  namespace: \$APPNAME
+spec:
+  hostnames:
+  - \$APPNAME.\$CUSTOM_DOMAIN_NAME
+  parentRefs:
+  - kind: Gateway
+    name: \$GATEWAY_NAME
+    namespace: \$GATEWAY_NAMESPACE  
+    sectionName: http-listener
+  - kind: Gateway
+    name: \$GATEWAY_NAME
+    namespace: \$GATEWAY_NAMESPACE  
+    sectionName: https-listener-with-custom-domain   
+  rules:
+  - backendRefs:
+    - name: \$APPNAME-\$VERSION1
+      kind: Service
+      port: 80
+    matches:
+      - path:
+          type: PathPrefix
+          value: /      
+EOF
+```
+
+
+
 ### Deploy app1 Version v1
 
 ```bash
@@ -797,3 +850,205 @@ Requsting to Pod(app2-v1-55c4d97b8d-k2qwm): Helloo from app2-v1
 ```
 ::::
 
+### Deploy app4 Version v1
+
+```bash
+export APPNAME=app4
+export VERSION=v1
+envsubst < app-template.yaml > $APPNAME-$VERSION-deploy.yaml
+kubectl apply -f $APPNAME-$VERSION-deploy.yaml
+```
+
+::::expand{header="Check Output"}
+```bash
+namespace/app4 created
+deployment.apps/app4-v1 created
+service/app4-v1 created
+```
+::::
+
+
+```bash
+kubectl -n $APPNAME get all
+```
+
+::::expand{header="Check Output"}
+```bash
+NAME                           READY   STATUS    RESTARTS   AGE
+pod/app4-v1-7b49c75b74-swpbw   1/1     Running   0          17s
+
+NAME              TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
+service/app4-v1   ClusterIP   10.100.247.222   <none>        80/TCP    17s
+
+NAME                      READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/app4-v1   1/1     1            1           17s
+
+NAME                                 DESIRED   CURRENT   READY   AGE
+replicaset.apps/app4-v1-7b49c75b74   1         1         1       17s
+```
+::::
+
+### Deploy Simple Route for TLS with Custom Domain for app4
+
+```bash
+export GATEWAY_NAME=my-hotel
+export GATEWAY_NAMESPACE=default
+export APPNAME=app4
+export VERSION1=v1
+export CUSTOM_DOMAIN_NAME="vpc-lattice-custom-domain.io"
+envsubst < route-template-simple-tls-custom-domain.yaml > $APPNAME-simple-tls-custom-domain.yaml
+kubectl apply -f $APPNAME-simple-tls-custom-domain.yaml
+```
+
+::::expand{header="Check Output"}
+```bash
+httproute.gateway.networking.k8s.io/app4 created
+```
+::::
+
+
+## Create CNAME record for `app4.vpc-lattice-custom-domain.io`
+
+```bash
+export APPNAME=app4
+appDNS=$(kubectl -n $APPNAME get httproute $APPNAME -o json | jq -r '.status.parents[].conditions[0].message')
+prefix="DNS Name: "
+appFQDN=${appDNS#$prefix}
+echo "appFQDN=$appFQDN"
+```
+
+::::expand{header="Check Output"}
+```bash
+appFQDN=app4-app4-092f6af45b33e1e7d.7d67968.vpc-lattice-svcs.us-east-1.on.aws
+```
+::::
+
+
+```bash
+export APPNAME=app4
+export CUSTOM_DOMAIN_NAME="vpc-lattice-custom-domain.io"
+export HOSTED_ZONE_ID=$(aws route53 list-hosted-zones-by-name \
+    --dns-name $CUSTOM_DOMAIN_NAME \
+    --max-items 1 | \
+  jq -r ' .HostedZones | first | .Id');
+echo "HOSTED_ZONE_ID=$HOSTED_ZONE_ID"
+
+cat <<-EOF > $APPNAME-create-r53-record.json
+{
+  "Comment": "CREATE CNAME for $APPNAME.$CUSTOM_DOMAIN_NAME",
+  "Changes": [
+    {
+      "Action": "CREATE",
+      "ResourceRecordSet": {
+        "Name": "$APPNAME.$CUSTOM_DOMAIN_NAME",
+        "Type": "CNAME",
+        "TTL": 300,
+        "ResourceRecords": [
+          { 
+            "Value": "$appFQDN" 
+          }
+        ]
+      }
+    }
+  ]
+}
+EOF
+# Change route53 record set
+aws route53 change-resource-record-sets \
+  --hosted-zone-id $HOSTED_ZONE_ID \
+  --change-batch file://$APPNAME-create-r53-record.json
+```
+
+::::expand{header="Check Output"}
+```json
+{
+    "ChangeInfo": {
+        "Id": "/change/C0179382AFRGFZ1R4A6H",
+        "Status": "PENDING",
+        "SubmittedAt": "2023-10-24T06:56:02.878000+00:00",
+        "Comment": "CREATE CNAME for app4.vpc-lattice-custom-domain.io"
+    }
+}
+```
+::::
+
+![cname_app4.png](/static/images/6-network-security/2-vpc-lattice-service-access/cname_app4.png)
+
+
+### Test Access from app1 to app4
+
+
+Run the `nslookup` command in the app1 Pod to resolve the **app4.vpc-lattice-custom-domain.io**
+
+```bash
+export appFQDN=app4.vpc-lattice-custom-domain.io
+kubectl -n app1 exec -it deploy/app1-v1 -- nslookup $appFQDN
+
+kubectl cp /<path-to-your-file>/<file-name> <pod-name>:<fully-qualified-file-name> -c <container-name>
+
+ RUN yum install -y tar
+
+kubectl -n app1 exec -it deploy/app1-v1 -- yum install tar -y
+
+jp:~/.../vpclattice/workshop (main) $ kubectl -n app1 exec -it deploy/app1-v1 -- bash
+bash-4.2# ls /app
+http-servers  root_cert.pem
+bash-4.2# ls -l /app
+total 6044
+-rwxrwxr-x. 1 root root 6182155 Sep 20  2021 http-servers
+-rw-rw-r--. 1 1000 1000    1387 Oct 24 07:35 root_cert.pem
+bash-4.2# exit
+exit
+jp:~/.../vpclattice/workshop (main)
+
+
+kubectl -n app1 cp ./root_cert.pem app1-v1-79bbb5bb49-hc4gx:/app -c app1-v1
+
+```
+
+::::expand{header="Check Output"}
+```bash
+Server:         10.100.0.10
+Address:        10.100.0.10#53
+
+Non-authoritative answer:
+app4.vpc-lattice-custom-domain.io       canonical name = app4-app4-092f6af45b33e1e7d.7d67968.vpc-lattice-svcs.us-east-1.on.aws.
+Name:   app4-app4-092f6af45b33e1e7d.7d67968.vpc-lattice-svcs.us-east-1.on.aws
+Address: 169.254.171.96
+Name:   app4-app4-092f6af45b33e1e7d.7d67968.vpc-lattice-svcs.us-east-1.on.aws
+Address: fd00:ec2:80::a9fe:ab60
+```
+::::
+
+Notice that the IP `169.254.171.96` for **appFQDN** is from `MANAGED_PREFIX=169.254.171.0/24` we saw in the earlier section.
+
+
+4. Exec into an `app1` pod to check connectivity to `app4` service.
+
+```bash
+kubectl -n app1 exec -it deploy/app1-v1 -- curl $appFQDN
+Requsting to Pod(app4-v1-7b49c75b74-swpbw): Helloo from app4-v1
+
+curl.exe --cacert ca-bundle.crt https://www.google.com
+
+
+kubectl -n app1 exec -it deploy/app1-v1 -- curl https://$appFQDN:443
+
+kubectl -n app1 exec -it deploy/app1-v1 -- curl --cacert /app/root_cert.pem https://$appFQDN:443
+
+Requsting to Pod(app4-v1-7b49c75b74-swpbw): Helloo from app4-v1
+
+```
+
+::::expand{header="Check Output"}
+```bash
+Requsting to Pod(app2-v1-55c4d97b8d-k2qwm): Helloo from app2-v1
+curl: (60) SSL certificate problem: self signed certificate in certificate chain
+More details here: https://curl.se/docs/sslcerts.html
+
+curl failed to verify the legitimacy of the server and therefore could not
+establish a secure connection to it. To learn more about this situation and
+how to fix it, please visit the web page mentioned above.
+command terminated with exit code 60
+```
+::::
