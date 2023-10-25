@@ -29,7 +29,8 @@ weight : 24
 # Create a new Gateway Class for AWS VPC lattice provider
 export GATEWAY_NAME=my-hotel
 export GATEWAY_NAMESPACE=default
-cat > $GATEWAY_NAME-gw.yaml <<EOF
+export CERTIFICATE_ARN=arn:aws:acm:us-east-1:000474600478:certificate/9b4d1c8e-2a94-4a29-b8c1-d1a51e1105fa
+cat > manifests/$GATEWAY_NAME-gw.yaml <<EOF
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: Gateway
 metadata:
@@ -84,7 +85,7 @@ spec:
       options:
         application-networking.k8s.aws/certificate-arn: $CERTIFICATE_ARN                  
 EOF
-kubectl apply -f $GATEWAY_NAME-gw.yaml
+kubectl apply -f manifests/$GATEWAY_NAME-gw.yaml
 ```
 
 ::::expand{header="Check Output"}
@@ -96,7 +97,7 @@ gateway.gateway.networking.k8s.io/project1-svc-network created
 
 
 ```bash
-cat > app-template.yaml <<EOF
+cat > templates/app-template.yaml <<EOF
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -147,7 +148,7 @@ EOF
 ### Create Template for Simple Routing
 
 ```bash
-cat > route-template-simple-no-tls-custom-domain.yaml <<EOF
+cat > templates/route-template-simple-no-tls-custom-domain.yaml <<EOF
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: HTTPRoute
 metadata:
@@ -176,7 +177,7 @@ EOF
 ### Create Template for Weighted Routing
 
 ```bash
-cat > route-template-weighted-no-tls-custom-domain.yaml  <<EOF
+cat > templates/route-template-weighted-no-tls-custom-domain.yaml  <<EOF
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: HTTPRoute
 metadata:
@@ -250,7 +251,7 @@ EOF
 ### Create Template for Simple Routing with TLS with Custom Domain
 
 ```bash
-cat > route-template-simple-tls-custom-domain.yaml  <<EOF
+cat > templates/route-template-simple-tls-custom-domain.yaml  <<EOF
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: HTTPRoute
 metadata:
