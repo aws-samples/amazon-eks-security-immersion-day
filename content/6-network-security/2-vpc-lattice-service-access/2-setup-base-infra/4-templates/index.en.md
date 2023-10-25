@@ -9,6 +9,11 @@ In this section, we will create multiple template files, which we will be using 
 
 ```bash
 cat > templates/gateway-template.yaml <<EOF
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: \$GATEWAY_NAMESPACE
+---
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: Gateway
 metadata:
