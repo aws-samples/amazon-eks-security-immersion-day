@@ -4,6 +4,34 @@ weight : 24
 ---
 
 
+Introduction to Architecture
+Setup the Infrastructure 
+   Create 2nd cluster
+   Create Private Hosted zone
+   Setup ACM PCA Infra 
+   Create the Templates
+Single Cluster Usecases
+   Deploy API controller 
+   IAM Authentication 
+   
+
+
+1st cluster
+Deploy API GW Controller
+app1 - http
+app2 - http https default domain split
+app3 - https custom domain
+
+app1 to app2 authentication
+app1 to app3 custom domain 
+
+2nd cluster
+shared tls custom domain 
+app4 tls custom domain 
+
+
+
+
 ::::expand{header="Check Output"}
 ```bash
 
@@ -128,7 +156,6 @@ spec:
         env:
         - name: PodName
           value: "Hello from \$APPNAME-\$VERSION"
-
 
 ---
 apiVersion: v1

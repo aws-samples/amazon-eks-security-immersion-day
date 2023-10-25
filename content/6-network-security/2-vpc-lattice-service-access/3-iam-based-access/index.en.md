@@ -238,7 +238,7 @@ Go to VPC Lattice Service `rates-default` under **Access** tab in the [Amazon VP
 
 ![enable-iam-type.png](/static/images/6-network-security/2-vpc-lattice-service-access/enable-iam-type.png)
 
-E
+
 
 2. Then, configure the Access Auth policy for for Service 
 
