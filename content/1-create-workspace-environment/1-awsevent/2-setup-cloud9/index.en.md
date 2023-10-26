@@ -22,13 +22,7 @@ Once you have logged into the AWS Management Console from your Workshop Studio, 
 - Your workspace should now look like this
   ![c9after](/static/images/create-workspace/cloud9-4.png)
 
-#### A. Add execution permissions to kubectl
-
-```bash
-sudo chmod +x /usr/bin/kubectl
-```
-
-#### B. Install yq for yaml processing
+#### A. Install yq for yaml processing
 
 ```bash
 echo 'yq() {
@@ -45,7 +39,7 @@ for command in kubectl jq envsubst aws
   done
 ```
 
-#### C. Confirm Amazon EKS Setup
+#### B. Confirm Amazon EKS Setup
 
 Set below environment variables
 
@@ -69,7 +63,7 @@ ip-10-254-180-171.us-west-2.compute.internal   Ready    <none>   88m   v1.28.1-e
 ip-10-254-217-72.us-west-2.compute.internal    Ready    <none>   88m   v1.28.1-eks-43840fb
 ```
 
-#### D. Install [k9s](https://k9scli.io/)
+#### C. Install [k9s](https://k9scli.io/)
 
 ```bash
 curl -sS https://webinstall.dev/k9s | bash
