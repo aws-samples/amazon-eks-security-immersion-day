@@ -84,6 +84,11 @@ i-0cc5291b1d346659f@eksworkshop-eksctl-2.us-west-2.eksctl.io
 Let us setup environment variables for the second EKS Cluster `eksworkshop-eksctl-2`
 
 ```bash
+export EKS_CLUSTER2_NAME=eksworkshop-eksctl-2
+export EKS_CLUSTER2_VPC_ID=$(eksctl get cluster $EKS_CLUSTER2_NAME -ojson | jq -r '.[0]["ResourcesVpcConfig"]["VpcId"]')
+echo "EKS_CLUSTER2_VPC_ID=$EKS_CLUSTER2_VPC_ID"
+echo "export EKS_CLUSTER2_VPC_ID=$EKS_CLUSTER2_VPC_ID" >> ~/.bash_profile
+
 export EKS_CLUSTER2_CONTEXT=$(kubectl config current-context)
 echo "export EKS_CLUSTER2_CONTEXT=$EKS_CLUSTER2_CONTEXT" >> ~/.bash_profile
 kubectl  --context $EKS_CLUSTER2_CONTEXT get node

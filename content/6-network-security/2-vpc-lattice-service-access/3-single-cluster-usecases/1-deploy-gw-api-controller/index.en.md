@@ -478,3 +478,21 @@ The `status` conditions contains the ARN of the Amazon VPC Lattice Service Netwo
 View the VPC Lattice Service network `app-services-gw` in the [Amazon VPC Console](https://us-west-2.console.aws.amazon.com/vpc/home?ServiceNetwork=&region=us-west-2#ServiceNetworks:)
 
 ![app-services-gw.png](/static/images/6-network-security/2-vpc-lattice-service-access/app-services-gw.png)
+
+Let us the Gateway ARN and store it in an environment variable for later use.
+
+```bash
+gatewayARNMessage=$(kubectl  --context $EKS_CLUSTER1_CONTEXT get gateway $GATEWAY_NAME -n $GATEWAY_NAMESPACE -o json | jq -r '.status.conditions[1].message')
+echo "gatewayARNMessage=$gatewayARNMessage"
+prefix="aws-gateway-arn: "
+gatewayARN=${gatewayARNMessage#$prefix}
+echo "gatewayARN=$gatewayARN"
+echo "export gatewayARN=$gatewayARN" >> ~/.bash_profile
+```
+
+::::expand{header="Check Output"}
+```bash
+gatewayARNMessage=aws-gateway-arn: arn:aws:vpc-lattice:us-west-2:ACCOUNT_ID:servicenetwork/sn-0cc73287505ac121a
+gatewayARN=arn:aws:vpc-lattice:us-west-2:ACCOUNT_ID:servicenetwork/sn-0cc73287505ac121a
+```
+::::

@@ -95,6 +95,8 @@ spec:
       app: \$APPNAME-\$VERSION
   template:
     metadata:
+      annotations:
+       vpc-lattices-svcs.amazonaws.com/agent-inject: "true"
       labels:
         app: \$APPNAME-\$VERSION
     spec:

@@ -72,6 +72,7 @@ export AZS=($(aws ec2 describe-availability-zones --query 'AvailabilityZones[].Z
 echo "AZS=${AZS[@]}"
 export EKS_CLUSTER1_VPC_ID=$(eksctl get cluster $EKS_CLUSTER1_NAME -ojson | jq -r '.[0]["ResourcesVpcConfig"]["VpcId"]')
 echo "EKS_CLUSTER1_VPC_ID=$EKS_CLUSTER1_VPC_ID"
+echo "export EKS_CLUSTER1_VPC_ID=$EKS_CLUSTER1_VPC_ID" >> ~/.bash_profile
 export EKS_CLUSTER1_VPC_CIDR=$(aws ec2 describe-vpcs --vpc-ids $EKS_CLUSTER1_VPC_ID \
   --query "Vpcs[].CidrBlock" \
   --region $AWS_REGION \
