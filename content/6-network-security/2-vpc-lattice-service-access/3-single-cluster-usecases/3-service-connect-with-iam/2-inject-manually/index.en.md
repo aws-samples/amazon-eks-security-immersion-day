@@ -1,7 +1,8 @@
 ---
 title : "Inject manually"
-weight : 21
+weight : 11
 ---
+
 
 In this section, let us re-deploy the client Service `app1-v1` Deployment by manually adding Init and SIGV4 Proxy containers.
 

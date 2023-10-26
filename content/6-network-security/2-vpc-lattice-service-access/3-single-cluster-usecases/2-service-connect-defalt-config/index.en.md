@@ -1,5 +1,5 @@
 ---
-title : "Service Connectivity in Default VPC Lattice Configuration"
+title : "Usecase 1: Service Connectivity in Default Configuration"
 weight : 11
 ---
 
@@ -52,7 +52,6 @@ export GATEWAY_NAME=app-services-gw
 export GATEWAY_NAMESPACE=app-services-gw
 export APPNAME=app1
 export VERSION1=v1
-export CUSTOM_DOMAIN_NAME="vpc-lattice-custom-domain.io"
 envsubst < templates/route-template-http-default-domain.yaml > manifests/$APPNAME-http-default-domain.yaml
 kubectl --context $EKS_CLUSTER1_CONTEXT apply -f manifests/$APPNAME-http-default-domain.yaml
 ```

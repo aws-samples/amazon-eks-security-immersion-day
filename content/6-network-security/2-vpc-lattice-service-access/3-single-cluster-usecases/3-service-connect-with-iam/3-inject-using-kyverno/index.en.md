@@ -1,6 +1,6 @@
 ---
 title : "Inject using Kyverno"
-weight : 22
+weight : 12
 ---
 
 ## Install Kyvernon Policy Engine
@@ -368,4 +368,44 @@ WSParticipantRole:~/environment $
 ::::
 
 From the above logs, we can verify sigv4proxy container sign the request and adds the headers `Authorization`, `x-amz-content-sha256`, `x-amz-date` and `x-amz-security-token`
+
+Before moving to the next section, let us undo the manual changes to the `app1-v1` deployment by deleting the deployment and the re-deploy the original configuration.
+
+```bash
+kubectl --context $EKS_CLUSTER1_CONTEXT delete deploy app1-v1 -n app1
+```
+
+::::expand{header="Check Output"}
+```bash
+deployment.apps "app1-v1" deleted
+```
+::::
+
+Re-deploy the `app-v1` deployment.
+
+```bash
+cd ~/environment
+kubectl --context $EKS_CLUSTER1_CONTEXT apply -f manifests/app1-v1-deploy.yaml
+```
+
+::::expand{header="Check Output"}
+```bash
+namespace/app1 unchanged
+deployment.apps/app1-v1 created
+service/app1-v1 unchanged
+```
+::::
+
+Ensure that `app1-v1` service pods now has only one main application containers.
+
+```bash
+kubectl --context $EKS_CLUSTER1_CONTEXT get pod -n app1
+```
+
+::::expand{header="Check Output"}
+```bash
+NAME                       READY   STATUS    RESTARTS   AGE
+app1-v1-5cc757c998-9trw5   1/1     Running   0          31s
+```
+::::
 
