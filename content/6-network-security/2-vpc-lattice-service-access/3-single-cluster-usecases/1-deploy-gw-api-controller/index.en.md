@@ -101,6 +101,8 @@ export VPCLatticeControllerIAMPolicyArn=$(aws iam create-policy \
    --policy-name VPCLatticeControllerIAMPolicy \
    --policy-document file://recommended-inline-policy.json --output text --query Policy.Arn)
 echo "VPCLatticeControllerIAMPolicyArn=$VPCLatticeControllerIAMPolicyArn"
+echo "export VPCLatticeControllerIAMPolicyArn=$VPCLatticeControllerIAMPolicyArn" >> ~/.bash_profile
+
 ```
 ::::expand{header="Check Output"}
 ```bash
@@ -238,7 +240,7 @@ gatewayclass.gateway.networking.k8s.io/amazon-vpc-lattice created
 
 ## Deploy `Gateway` Resource in First EKS Cluster `eksworkshop-eksctl`
 
-1. Create the Kubernetes `Gateway` object **my-hotel**
+1. Create the Kubernetes `Gateway` object **app-services-gw**
 
 Let us see how the configuration looks like.
 

@@ -51,7 +51,7 @@ replicaset.apps/app1-v1-5cc757c998   1         1         1       31s
 export GATEWAY_NAME=app-services-gw
 export GATEWAY_NAMESPACE=app-services-gw
 export APPNAME=app1
-export VERSION1=v1
+export VERSION=v1
 envsubst < templates/route-template-http-default-domain.yaml > manifests/$APPNAME-http-default-domain.yaml
 kubectl --context $EKS_CLUSTER1_CONTEXT apply -f manifests/$APPNAME-http-default-domain.yaml
 ```
@@ -142,7 +142,7 @@ replicaset.apps/app2-v1-c6978fdbc   1         1         1       36s
 export GATEWAY_NAME=app-services-gw
 export GATEWAY_NAMESPACE=app-services-gw
 export APPNAME=app2
-export VERSION1=v1
+export VERSION=v1
 export CUSTOM_DOMAIN_NAME="vpc-lattice-custom-domain.io"
 envsubst < templates/route-template-http-default-domain.yaml > manifests/$APPNAME-http-default-domain.yaml
 kubectl --context $EKS_CLUSTER1_CONTEXT apply -f manifests/$APPNAME-http-default-domain.yaml

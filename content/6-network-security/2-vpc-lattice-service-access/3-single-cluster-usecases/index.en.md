@@ -1,4 +1,4 @@
 ---
-title : "VPC Lattice Use cases in a Single Cluster "
+title : "Single Cluster VPC Lattice Use cases"
 weight : 12
 ---

@@ -52,7 +52,7 @@ replicaset.apps/app3-v1-c6f47948   1         1         1       11s
 export GATEWAY_NAME=app-services-gw
 export GATEWAY_NAMESPACE=app-services-gw
 export APPNAME=app3
-export VERSION1=v1
+export VERSION=v1
 envsubst < templates/route-template-https-default-domain.yaml > manifests/$APPNAME-https-default-domain.yaml
 kubectl --context $EKS_CLUSTER1_CONTEXT apply -f manifests/$APPNAME-https-default-domain.yaml
 ```
@@ -199,7 +199,7 @@ app3FQDN=app3-app3-0d04ef71e25199b39.7d67968.vpc-lattice-svcs.us-west-2.on.aws
 kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -c app1-v1 -n app1 -- yum install tar bind-utils -y
 ```
 
-Run the `nslookup` command in the Inventory Pod to resolve the **app3FQDN**
+Run the `nslookup` command in the `app1-v1` Pod to resolve the **app3FQDN**
 
 ```bash
 kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -n app1 -- nslookup $app3FQDN

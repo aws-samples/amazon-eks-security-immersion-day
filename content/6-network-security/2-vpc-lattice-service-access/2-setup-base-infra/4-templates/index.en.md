@@ -140,7 +140,7 @@ spec:
     sectionName: http-listener
   rules:
   - backendRefs:
-    - name: \$APPNAME-\$VERSION1
+    - name: \$APPNAME-\$VERSION
       kind: Service
       port: 80
     matches:
@@ -169,7 +169,7 @@ spec:
     sectionName: http-listener
   rules:
   - backendRefs:
-    - name: \$APPNAME-\$VERSION1
+    - name: \$APPNAME-\$VERSION
       kind: Service
       port: 80
     matches:
