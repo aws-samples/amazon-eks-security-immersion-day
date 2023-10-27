@@ -1,5 +1,5 @@
 ---
-title : "Implementing IAM based Service Authentication with Amazon VPC Lattice"
+title : "Implementing IAM Auth, TLS, Custom Domains and Multi Cluster Connectivity with Amazon VPC Lattice"
 weight : 40
 ---
 

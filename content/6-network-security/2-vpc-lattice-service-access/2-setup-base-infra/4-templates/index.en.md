@@ -287,3 +287,32 @@ spec:
 EOF
 ```
 
+
+## Create Template for HTTPRoute for ServiceImport with HTTP and Custom Domain
+
+```bash
+cat > templates/route-template-http-custom-domain-service-import.yaml <<EOF
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: HTTPRoute
+metadata:
+  name: \$APPNAME
+  namespace: \$APPNAME
+spec:
+  hostnames:
+  - \$APPNAME.\$CUSTOM_DOMAIN_NAME
+  parentRefs:
+  - kind: Gateway
+    name: \$GATEWAY_NAME
+    namespace: \$GATEWAY_NAMESPACE  
+    sectionName: http-listener
+  rules:
+  - backendRefs:
+    - name: \$APPNAME-\$VERSION
+      kind: ServiceImport
+      port: 80
+    matches:
+      - path:
+          type: PathPrefix
+          value: /      
+EOF
+```
