@@ -21,9 +21,9 @@ Use the following procedure to generate sample findings. This process generates 
 
 ::alert[Note the above step generate Sample Findings for all the resource types. Let us apply some filters to see Findings for Amazon EKS]{header="Note"}
 
-5. In the folters list, select key **Resource Type**, select **EKS Cluster** and Click **Apply**
+5. In the filters list, select key **Resource Type**, select **EKS Cluster** and Click **Apply**
 
-![GDSampleFindingsforEKS](/static/images/detective-controls/GDSampleFindingsforEKS.png)
+![GDSampleFindingsforEKS](/static/images/detective-controls/GDSampleFindingsforEKSResource.png)
 
 6. Select one of the sample Findings and click on it. You will see Finding Summary details on the right side.
 

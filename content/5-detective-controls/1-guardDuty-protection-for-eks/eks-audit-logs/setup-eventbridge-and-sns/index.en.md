@@ -91,7 +91,7 @@ The output looks like below
 Finally, EventBridge must be granted permissions to publish messages to SNS. Run the following command to update the resource policy for the SNS topic:
 
 ```bash
-    aws sns set-topic-attributes —topic-arn $SNS_TOPIC_ARN \
+    aws sns set-topic-attributes --topic-arn $SNS_TOPIC_ARN \
     --attribute-name Policy \
     --attribute-value "{\"Version\":\"2012-10-17\",\"Id\":\"__default_policy_ID\",\"Statement\":[{\"Sid\":\"__default_statement_ID\",\"Effect\":\"Allow\",\"Principal\":{\"AWS\":\"*\"},\"Action\":[\"SNS:GetTopicAttributes\",\"SNS:SetTopicAttributes\",\"SNS:AddPermission\",\"SNS:RemovePermission\",\"SNS:DeleteTopic\",\"SNS:Subscribe\",\"SNS:ListSubscriptionsByTopic\",\"SNS:Publish\"],\"Resource\":\"$SNS_TOPIC_ARN\"}, {\"Sid\":\"PublishEventsToMyTopic\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"events.amazonaws.com\"},\"Action\":\"sns:Publish\",\"Resource\":\"$SNS_TOPIC_ARN\"}]}"
 ```
