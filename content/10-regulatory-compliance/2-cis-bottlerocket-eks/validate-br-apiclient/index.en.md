@@ -102,4 +102,53 @@ By default, the guidelines being checked comply with Level 1 of the CIS Benchmar
 apiclient report cis -l 2
 ```
 
+The output looks like this:
+
+```
+bash-5.1# apiclient report cis -l 2
+Benchmark name:  CIS Bottlerocket Benchmark
+Version:         v1.0.0
+Reference:       https://www.cisecurity.org/benchmark/bottlerocket
+Benchmark level: 2
+Start time:      2023-11-20T20:28:52.890911718Z
+
+[PASS] 1.1.1.1   Ensure mounting of udf filesystems is disabled (Automatic)
+[SKIP] 1.2.1     Ensure software update repositories are configured (Manual)
+[PASS] 1.3.1     Ensure dm-verity is configured (Automatic)
+[PASS] 1.4.1     Ensure setuid programs do not create core dumps (Automatic)
+[PASS] 1.4.2     Ensure address space layout randomization (ASLR) is enabled (Automatic)
+[PASS] 1.4.3     Ensure unprivileged eBPF is disabled (Automatic)
+[PASS] 1.4.4     Ensure user namespaces are disabled (Automatic)
+[PASS] 1.5.1     Ensure SELinux is configured (Automatic)
+[PASS] 1.5.2     Ensure Lockdown is configured (Automatic)
+[SKIP] 1.6       Ensure updates, patches, and additional security software are installed (Manual)
+[PASS] 2.1.1.1   Ensure chrony is configured (Automatic)
+[PASS] 3.1.1     Ensure packet redirect sending is disabled (Automatic)
+[PASS] 3.2.1     Ensure source routed packets are not accepted (Automatic)
+[PASS] 3.2.2     Ensure ICMP redirects are not accepted (Automatic)
+[PASS] 3.2.3     Ensure secure ICMP redirects are not accepted (Automatic)
+[PASS] 3.2.4     Ensure suspicious packets are logged (Automatic)
+[PASS] 3.2.5     Ensure broadcast ICMP requests are ignored (Automatic)
+[PASS] 3.2.6     Ensure bogus ICMP responses are ignored (Automatic)
+[PASS] 3.2.7     Ensure TCP SYN Cookies is enabled (Automatic)
+[PASS] 3.3.1     Ensure SCTP is disabled (Automatic)
+[FAIL] 3.4.1.1   Ensure IPv4 default deny firewall policy (Automatic)
+[PASS] 3.4.1.2   Ensure IPv4 loopback traffic is configured (Automatic)
+[SKIP] 3.4.1.3   Ensure IPv4 outbound and established connections are configured (Manual)
+[PASS] 3.4.2.1   Ensure IPv6 default deny firewall policy (Automatic)
+[PASS] 3.4.2.2   Ensure IPv6 loopback traffic is configured (Automatic)
+[SKIP] 3.4.2.3   Ensure IPv6 outbound and established connections are configured (Manual)
+[PASS] 4.1.1.1   Ensure journald is configured to write logs to persistent disk (Automatic)
+[PASS] 4.1.2     Ensure permissions on journal files are configured (Automatic)
+
+Passed:          23
+Failed:          1
+Skipped:         4
+Total checks:    28
+
+Compliance check result: FAIL
+```
+
+**Please note** - For Kubernetes Bottlerocket variants, [the iptables -P FORWARD DROP command will be unconditionally overwritten when the kubelet starts](https://github.com/bottlerocket-os/bottlerocket/blob/52ea5b5c8d788f3e9d7a76e329cd2c766150cf59/packages/kubernetes-1.24/kubelet.service#L13). This is because Kubernetes relies on iptables rules to forward connections to any node in the cluster to the correct set of nodes where a nodePort service is running. Hence the check sees the **ACCEPT** instead of **DROP** for the ForwardChain and therefore the check fails. This is automatically accounted for in the previous bootstrap container example. 
+
 To view more details about the CIS benchmarks, you can follow the `Reference` links in the above output. 
