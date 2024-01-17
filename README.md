@@ -1,33 +1,39 @@
-# Aws-workshop-template
+# Amazon EKS Security Immersion Workshop
 
-## Repo structure
+Welcome to the repository for the [Amazon Elastic Kubernetes Services Security Immersion Workshop](https://catalog.workshops.aws/eks-security-immersionday/en-US). This contains the source for the website content as well as the accompanying infrastructure-as-code to set up a workshop lab environment in your AWS account. Please review the [Introduction](https://catalog.workshops.aws/eks-security-immersionday/en-US/introduction) chapter of the workshop for more details.
 
-```bash
-.
-├── contentspec.yaml                  <-- Specifies the version of the content
-├── README.md                         <-- This instructions file
-├── static                            <-- Directory for static assets to be hosted alongside the workshop (ie. images, scripts, documents, etc) 
-└── content                           <-- Directory for workshop content markdown
-    └── index.en.md                   <-- At the root of each directory, there must be at least one markdown file
-    └── introduction                  <-- Directory for workshop content markdown
-        └── index.en.md               <-- Markdown file that would be render 
-```
 
-## What's Included
+## Introduction
 
-This project contains the following folders:
-* `static`: This folder contains static assets to be hosted alongside the workshop (ie. images, scripts, documents, etc) 
-* `content`: This is the core workshop folder. This is generated as HTML and hosted for presentation for customers.
+The intent of this workshop is to use real-world services and demonstrate features of Amazon EKS Security showcasing end-to-end functionality of each feature from application developer and Devops/SRE persona perspective.
 
-## How to create content
+This workshop is the outcome of experience we had from past Immersion workshops that we did for our customers at AWS. The topics in this workshop is catered towards commonly asked Amazon EKS Security features by customers, and will help you to quickly get-started with Amazon EKS Security.
 
-Under the `content` folder, Each folder requires at least one `index.<lang>.md` file. The file will have a header
+This workshop is catered towards use cases, requirement and ask that most of our customers have demanded as part of Amazon EKS Immersions done in the past.
 
-```aidl
-+++
-title = "AWS Workshop Template"
-weight = 0
-+++
-```
+Click on any of the topics to get more details and see relevant best practices as per [Amazon EKS Best Practices Guide for Security](https://aws.github.io/aws-eks-best-practices/security/docs/)  :
+- [Identity and Access Management](https://aws.github.io/aws-eks-best-practices/security/docs/iam/)
+- [Pod Security](https://aws.github.io/aws-eks-best-practices/security/docs/pods/)
+- [Tenant Isolation](https://aws.github.io/aws-eks-best-practices/security/docs/multitenancy/)
+- [Auditing and logging](https://aws.github.io/aws-eks-best-practices/security/docs/detective/)
+- [Network security](https://aws.github.io/aws-eks-best-practices/security/docs/network/)
+- [Data encryption and secrets management](https://aws.github.io/aws-eks-best-practices/security/docs/data/)
+- [Runtime security](https://aws.github.io/aws-eks-best-practices/security/docs/runtime/)
+- [Infrastructure Security](https://aws.github.io/aws-eks-best-practices/security/docs/hosts/)
+- [Regulatory Compliance](https://aws.github.io/aws-eks-best-practices/security/docs/compliance/)
+- [Incident response and forensics](https://aws.github.io/aws-eks-best-practices/security/docs/incidents/)
+- [Image security](https://aws.github.io/aws-eks-best-practices/security/docs/image/)
 
-The title will be the title on navigation panel on the left. The weight determines the order the page appears in the navigation panel.
+## Community
+
+### Contributing content
+
+To learn how to author content on this repository, read [CONTRIBUTING.md](CONTRIBUTING.md) and docs/[authoring_content.md](docs/authoring_content.md).
+
+## Security
+
+See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
+
+## License
+
+This library is licensed under the MIT-0 License. See the LICENSE file.
