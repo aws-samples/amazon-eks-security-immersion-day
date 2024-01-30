@@ -33,7 +33,8 @@ fi
 
 ::::expand{header="Check Output"}
 ```bash
-IAM Group k8sAdmin created. IAM_GROUP_ARN=arn:aws:iam::ACCOUNT_ID:group/k8sClusterAdmin
+An error occurred (NoSuchEntity) when calling the GetGroup operation: The group with name k8sClusterAdmin cannot be found.
+IAM Group k8sClusterAdmin created. IAM_GROUP_ARN=arn:aws:iam::ACCOUNT_ID:group/k8sClusterAdmin
 ```
 ::::
 
@@ -79,6 +80,7 @@ fi
 
 ::::expand{header="Check Output"}
 ```bash
+An error occurred (NoSuchEntity) when calling the GetGroup operation: The group with name k8sTeamADev cannot be found.
 IAM Group k8sDev created. IAM_GROUP_ARN=arn:aws:iam::ACCOUNT_ID:group/k8sTeamADev
 ```
 ::::
@@ -121,6 +123,7 @@ fi
 ```
 ::::expand{header="Check Output"}
 ```json
+An error occurred (NoSuchEntity) when calling the GetGroup operation: The group with name k8sTeamATest cannot be found.
 IAM Group k8sInteg created. IAM_GROUP_ARN=arn:aws:iam::ACCOUNT_ID:group/k8sTeamATest
 ```
 ::::

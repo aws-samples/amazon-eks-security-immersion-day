@@ -1,10 +1,10 @@
 ---
-title : "Amazon EKS Cluster IAM Access Management Controls"
+title : "Amazon EKS Cluster Access Management Controls"
 weight : 35
 ---
 
 
-## Access Methods for sAmazon EKS cluster
+## Access Methods for Amazon EKS cluster
 
 There are 2 types of identities to allow access to Amazon EKS cluster:
 
@@ -23,19 +23,6 @@ Nodes join cluster by assuming an IAM role. The ability to access cluster using 
 
 You can use both types of identities with cluster. Users need to configure their kubectl config file to access Kubernetes objects on cluster.
 
-
-## Cluster authentication modes
-
-
-The authentication mode determines methods to allow IAM principals to access Kubernetes objects on cluster. There are 3 cluster `authentication modes`. 
-
-1. **CONFIG_MAP**: `aws-auth ConfigMap` Only. This is the original authentication mode for Amazon EKS clusters. The IAM principal that created the cluster is the initial user that can access the cluster by using kubectl.
-
-2. **API_AND_CONFIG_MAP**: With this, you can use both methods (i.e. EKS API and ConfigMap) to add IAM principals to the cluster. Note that each method stores separate entries. 
-
-3. **API**: `Access entries` only. With this, you can use the EKS API, AWS Command Line Interface, AWS SDKs, AWS CloudFormation, and AWS Management Console to manage access to the cluster for IAM principals.
-
-Each access entry has a `type` and you can use the combination of an `access scope` to limit the principal to a specific namespace and an `access policy` to set preconfigured reusable permissions policies. Alternatively, you can use the Standard type and Kubernetes RBAC groups to assign custom permissions.
 
 ## Introduction to Amazon EKS Cluster IAM Access Management Controls
 
@@ -116,6 +103,16 @@ With the cluster access management controls, only AWS IAM principals with the ap
 
 ![workflow](/static/images/iam/eks-access-management/workflow.png)
 
+## Cluster authentication modes
 
 
+The authentication mode determines methods to allow IAM principals to access Kubernetes objects on cluster. There are 3 cluster `authentication modes`. 
+
+1. **CONFIG_MAP**: `aws-auth ConfigMap` Only. This is the original authentication mode for Amazon EKS clusters. The IAM principal that created the cluster is the initial user that can access the cluster by using kubectl.
+
+2. **API_AND_CONFIG_MAP**: With this, you can use both methods (i.e. EKS API and ConfigMap) to add IAM principals to the cluster. Note that each method stores separate entries. 
+
+3. **API**: `Access entries` only. With this, you can use the EKS API, AWS Command Line Interface, AWS SDKs, AWS CloudFormation, and AWS Management Console to manage access to the cluster for IAM principals.
+
+Each access entry has a `type` and you can use the combination of an `access scope` to limit the principal to a specific namespace and an `access policy` to set preconfigured reusable permissions policies. Alternatively, you can use the Standard type and Kubernetes RBAC groups to assign custom permissions.
 

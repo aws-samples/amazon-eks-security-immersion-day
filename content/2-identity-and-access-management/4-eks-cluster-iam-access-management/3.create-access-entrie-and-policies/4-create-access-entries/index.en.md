@@ -23,49 +23,46 @@ aws eks   create-access-entry --cluster-name $EKS_CLUSTER_NAME --principal-arn $
 ```
 
 ::::expand{header="Expand for Output"}
-```bash
+```json
 {
     "accessEntry": {
         "clusterName": "eksworkshop-eksctl",
         "principalArn": "arn:aws:iam::ACCOUNT_ID:role/k8sClusterAdmin",
         "kubernetesGroups": [],
-        "accessEntryArn": "arn:aws:eks:us-east-1:ACCOUNT_ID:access-entry/eksworkshop-eksctl/role/ACCOUNT_ID/k8sClusterAdmin/10c647a6-4797-031a-9d4c-0f7ede79b940",
-        "createdAt": 1703211208.652,
-        "modifiedAt": 1703211208.652,
+        "accessEntryArn": "arn:aws:eks:us-west-2:ACCOUNT_ID:access-entry/eksworkshop-eksctl/role/ACCOUNT_ID/k8sClusterAdmin/90c6ad21-e9df-a837-6b39-6ef67f1bd03d",
+        "createdAt": "2024-01-30T12:06:51.206000+00:00",
+        "modifiedAt": "2024-01-30T12:06:51.206000+00:00",
         "tags": {},
         "username": "arn:aws:sts::ACCOUNT_ID:assumed-role/k8sClusterAdmin/{{SessionName}}",
         "type": "STANDARD"
     }
 }
-
 {
     "accessEntry": {
         "clusterName": "eksworkshop-eksctl",
         "principalArn": "arn:aws:iam::ACCOUNT_ID:role/k8sTeamADev",
         "kubernetesGroups": [],
-        "accessEntryArn": "arn:aws:eks:us-east-1:ACCOUNT_ID:access-entry/eksworkshop-eksctl/role/ACCOUNT_ID/k8sTeamADev/cac647d3-d5da-cdfe-eb1e-a90c0d2204f8",
-        "createdAt": 1703217179.7,
-        "modifiedAt": 1703217179.7,
+        "accessEntryArn": "arn:aws:eks:us-west-2:ACCOUNT_ID:access-entry/eksworkshop-eksctl/role/ACCOUNT_ID/k8sTeamADev/f8c6ad21-ebb9-d2aa-335c-d8af833bb77e",
+        "createdAt": "2024-01-30T12:06:52.268000+00:00",
+        "modifiedAt": "2024-01-30T12:06:52.268000+00:00",
         "tags": {},
         "username": "arn:aws:sts::ACCOUNT_ID:assumed-role/k8sTeamADev/{{SessionName}}",
         "type": "STANDARD"
     }
 }
-
 {
     "accessEntry": {
         "clusterName": "eksworkshop-eksctl",
         "principalArn": "arn:aws:iam::ACCOUNT_ID:role/k8sTeamATest",
         "kubernetesGroups": [],
-        "accessEntryArn": "arn:aws:eks:us-east-1:ACCOUNT_ID:access-entry/eksworkshop-eksctl/role/ACCOUNT_ID/k8sTeamATest/b8c647d4-0370-57b3-3372-e71eddb1e27d",
-        "createdAt": 1703217203.098,
-        "modifiedAt": 1703217203.098,
+        "accessEntryArn": "arn:aws:eks:us-west-2:ACCOUNT_ID:access-entry/eksworkshop-eksctl/role/ACCOUNT_ID/k8sTeamATest/96c6ad21-edac-ba70-daaf-bd4f626d04d0",
+        "createdAt": "2024-01-30T12:06:53.092000+00:00",
+        "modifiedAt": "2024-01-30T12:06:53.092000+00:00",
         "tags": {},
         "username": "arn:aws:sts::ACCOUNT_ID:assumed-role/k8sTeamATest/{{SessionName}}",
         "type": "STANDARD"
     }
 }
-
 ```
 ::::
 
@@ -86,6 +83,7 @@ aws eks associate-access-policy --cluster-name $EKS_CLUSTER_NAME \
   --policy-arn $ACCESS_POLICY_ARN \
   --access-scope type=$ACCESS_SCOPE
 
+# Associate AmazonEKSAdminPolicy access policy to IAM Role k8sTeamADev
 export IAM_PRINCIPAL_ARN="arn:aws:iam::${ACCOUNT_ID}:role/k8sTeamADev"
 export ACCESS_SCOPE="namespace"
 export NAMESPACES="team-a"
@@ -95,6 +93,7 @@ aws eks associate-access-policy --cluster-name $EKS_CLUSTER_NAME \
   --policy-arn $ACCESS_POLICY_ARN \
   --access-scope type=$ACCESS_SCOPE,namespaces=$NAMESPACES
 
+# Associate AmazonEKSViewPolicy access policy to IAM Role k8sTeamATest
 export IAM_PRINCIPAL_ARN="arn:aws:iam::${ACCOUNT_ID}:role/k8sTeamATest"
 export ACCESS_SCOPE="namespace"
 export NAMESPACES="team-a"

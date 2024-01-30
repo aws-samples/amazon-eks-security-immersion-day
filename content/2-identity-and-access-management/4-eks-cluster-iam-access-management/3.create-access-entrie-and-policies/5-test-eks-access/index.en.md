@@ -19,16 +19,16 @@ sudo cp kubectl-whoami /usr/local/bin/
 Run the command to see who is currently authenticating to EKS cluster.
 
 ```bash
-kubectl whomai  
+kubectl whoami  
 ```
 
 ::::expand{header="Check Output"}
 ```bash
-arn:aws:sts::ACCOUNT_ID:assumed-role/eksworkshop-admin/i-0d45e819f38a652ea
+arn:aws:sts::ACCOUNT_ID:assumed-role/eks-security-workshop/EKSGetTokenAuth
 ```
 ::::
 
-As expected we are currently using the IAM Role `eksworkshop-admin` which is used to create the EKS cluster.
+As expected we are currently using the IAM Role `eks-security-workshop` which is used to create the EKS cluster.
 
 
 ## Automate Assume Role with AWS CLI
@@ -97,9 +97,9 @@ The output looks like below.
 
 ```json
 {
-    "UserId": "AROAQAHCJ2QPK2HMSDOCN:botocore-session-1703471700",
+    "UserId": "AROA26YVAA7XXGCMO6D5W:botocore-session-1706617342",
     "Account": "ACCOUNT_ID",
-    "Arn": "arn:aws:sts::ACCOUNT_ID:assumed-role/k8sClusterAdmin/botocore-session-1703471700"
+    "Arn": "arn:aws:sts::ACCOUNT_ID:assumed-role/k8sClusterAdmin/botocore-session-1706617342"
 }
 ```
 
@@ -113,17 +113,24 @@ aws sts get-caller-identity --profile dev
 
 The output looks like below.
 
-```bash
+```json
 {
-    "UserId": "AROAQAHCJ2QPJXZGQTPAF:botocore-session-1703475768",
+    "UserId": "AROA26YVAA7X4JDJXGLQX:botocore-session-1706617378",
     "Account": "ACCOUNT_ID",
-    "Arn": "arn:aws:sts::ACCOUNT_ID:assumed-role/k8sTeamADev/botocore-session-1703475768"
+    "Arn": "arn:aws:sts::ACCOUNT_ID:assumed-role/k8sTeamADev/botocore-session-1706617378"
 }
 ```
 
 > When specifying the **\--profile dev** parameter we automatically ask for temporary credentials for the role k8sTeamADev
 
 ## Using AWS profiles with the Kubectl config file
+
+### Install yq for yaml processing
+```bash
+echo 'yq() {
+  docker run --rm -i -v "${PWD}":/workdir mikefarah/yq "$@"
+}' | tee -a ~/.bashrc && source ~/.bashrc
+```
 
 It is also possible to specify the AWS\_PROFILE to use with the aws-iam-authenticator in the `~/.kube/config` file, so that it will use the appropriate profile.
 

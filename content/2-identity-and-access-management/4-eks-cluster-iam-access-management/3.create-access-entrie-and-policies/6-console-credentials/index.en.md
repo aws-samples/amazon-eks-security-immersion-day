@@ -11,32 +11,14 @@ By default, the credentials used to create the cluster are automatically granted
 
 #### Import your EKS Console credentials to your new cluster:
 
-IAM Users and Roles are bound to an EKS Kubernetes cluster via a ConfigMap named `aws-auth`. We can use `eksctl` to do this with one command.
+Set the environment variable for the IAM role used to login into the AWS Console.
 
-You'll need to determine the correct credential to add for your AWS Console access. If you know this already, you can skip ahead to the `eksctl create iamidentitymapping` step below.
-
-If you've built your cluster from Cloud9 as part of this tutorial, invoke the following within your environment to determine your IAM Role or User ARN. 
 
 ```bash
-c9builder=$(aws cloud9 describe-environment-memberships --environment-id=$C9_PID | jq -r '.memberships[].userArn')
-if echo ${c9builder} | grep -q user; then
-	rolearn=${c9builder}
-        echo Role ARN: ${rolearn}
-elif echo ${c9builder} | grep -q assumed-role; then
-        assumedrolename=$(echo ${c9builder} | awk -F/ '{print $(NF-1)}')
-        rolearn=$(aws iam get-role --role-name ${assumedrolename} --query Role.Arn --output text) 
-        echo Role ARN: ${rolearn}
-fi
+export rolearn="arn:aws:iam::$ACCOUNT_ID:role/WSParticipantRole"
 ```
 
-::::expand{header="Check Output"}
-```bash
-Role ARN: arn:aws:iam::XXXXXXXXXXX:role/WSParticipantRole
-```
-::::
-
-
-With your ARN in hand, you can issue the command to create the identity mapping within the cluster.
+With your ARN in hand, you can issue the command to associate access policy for the above IAM role. 
 
 ```bash
 export EKS_CLUSTER_NAME="eksworkshop-eksctl"
@@ -54,30 +36,16 @@ aws eks associate-access-policy --cluster-name $EKS_CLUSTER_NAME \
 ::::expand{header="Check Output"}
 ```json
 {
-    "accessEntry": {
-        "clusterName": "eksworkshop-eksctl",
-        "principalArn": "arn:aws:iam::ACCOUNT_ID:user/jp",
-        "kubernetesGroups": [],
-        "accessEntryArn": "arn:aws:eks:us-east-1:ACCOUNT_ID:access-entry/eksworkshop-eksctl/user/ACCOUNT_ID/jp/c4c64fde-7398-0694-afcf-55762dd1273c",
-        "createdAt": 1703487006.702,
-        "modifiedAt": 1703487006.702,
-        "tags": {},
-        "username": "arn:aws:iam::ACCOUNT_ID:user/jp",
-        "type": "STANDARD"
-    }
-}
-
-{
     "clusterName": "eksworkshop-eksctl",
-    "principalArn": "arn:aws:iam::ACCOUNT_ID:user/jp",
+    "principalArn": "arn:aws:iam::ACCOUNT_ID:role/WSOpsRole",
     "associatedAccessPolicy": {
         "policyArn": "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy",
         "accessScope": {
             "type": "cluster",
             "namespaces": []
         },
-        "associatedAt": 1703487066.012,
-        "modifiedAt": 1703487066.012
+        "associatedAt": "2024-01-30T13:03:45.241000+00:00",
+        "modifiedAt": "2024-01-30T13:03:45.241000+00:00"
     }
 }
 ```

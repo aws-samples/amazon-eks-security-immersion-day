@@ -22,8 +22,11 @@ done
 
 ::::expand{header="Check Output"}
 ```bash
+An error occurred (NoSuchEntity) when calling the GetUser operation: The user with name User1Admin cannot be found.
 IAM User User1Admin created. IAM_USER_ARN=arn:aws:iam::ACCOUNT_ID:user/User1Admin
+An error occurred (NoSuchEntity) when calling the GetUser operation: The user with name User1TeamADev cannot be found.
 IAM User User1TeamADev created. IAM_USER_ARN=arn:aws:iam::ACCOUNT_ID:user/User1TeamADev
+An error occurred (NoSuchEntity) when calling the GetUser operation: The user with name User1TeamATest cannot be found.
 IAM User User1TeamATest created. IAM_USER_ARN=arn:aws:iam::ACCOUNT_ID:user/User1TeamATest
 ```
 ::::

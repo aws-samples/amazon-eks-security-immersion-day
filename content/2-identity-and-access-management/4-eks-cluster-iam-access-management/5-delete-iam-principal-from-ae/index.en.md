@@ -18,7 +18,7 @@ echo "ACCESS_ENTRY_ARN=$ACCESS_ENTRY_ARN"
 
 ::::expand{header="Check Output"}
 ```bash
-ACCESS_ENTRY_ARN=arn:aws:eks:us-east-1:ACCOUNT_ID:access-entry/eksworkshop-eksctl/role/ACCOUNT_ID/k8sTeamADev/a2c64ff4-f10f-08c2-4e54-b1ea2b0468b1
+ACCESS_ENTRY_ARN=arn:aws:eks:us-west-2:ACCOUNT_ID:access-entry/eksworkshop-eksctl/role/ACCOUNT_ID/k8sTeamADev/f8c6ad21-ebb9-d2aa-335c-d8af833bb77e
 ```
 ::::
 
@@ -168,9 +168,9 @@ aws eks   create-access-entry --cluster-name $EKS_CLUSTER_NAME --principal-arn $
         "clusterName": "eksworkshop-eksctl",
         "principalArn": "arn:aws:iam::ACCOUNT_ID:role/k8sTeamADev",
         "kubernetesGroups": [],
-        "accessEntryArn": "arn:aws:eks:us-east-1:ACCOUNT_ID:access-entry/eksworkshop-eksctl/role/ACCOUNT_ID/k8sTeamADev/d8c65022-b943-703a-4dc3-7ea66a5b5a59",
-        "createdAt": 1703495955.158,
-        "modifiedAt": 1703495955.158,
+        "accessEntryArn": "arn:aws:eks:us-west-2:ACCOUNT_ID:access-entry/eksworkshop-eksctl/role/ACCOUNT_ID/k8sTeamADev/00c6ad42-1fed-ba20-0c0a-3e40f6d0e5eb",
+        "createdAt": "2024-01-30T13:17:13.189000+00:00",
+        "modifiedAt": "2024-01-30T13:17:13.189000+00:00",
         "tags": {},
         "username": "arn:aws:sts::ACCOUNT_ID:assumed-role/k8sTeamADev/{{SessionName}}",
         "type": "STANDARD"

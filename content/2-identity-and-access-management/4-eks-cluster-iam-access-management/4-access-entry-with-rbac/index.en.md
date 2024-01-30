@@ -70,9 +70,9 @@ aws eks   update-access-entry --cluster-name $EKS_CLUSTER_NAME --principal-arn $
         "kubernetesGroups": [
             "k8s-rbac-group-admin"
         ],
-        "accessEntryArn": "arn:aws:eks:us-east-1:ACCOUNT_ID:access-entry/eksworkshop-eksctl/role/ACCOUNT_ID/k8sClusterAdmin/90c64ff4-ef0b-8aa1-0152-39a0f56117f6",
-        "createdAt": 1703489953.533,
-        "modifiedAt": 1703491655.547,
+        "accessEntryArn": "arn:aws:eks:us-west-2:ACCOUNT_ID:access-entry/eksworkshop-eksctl/role/ACCOUNT_ID/k8sClusterAdmin/90c6ad21-e9df-a837-6b39-6ef67f1bd03d",
+        "createdAt": "2024-01-30T12:06:51.206000+00:00",
+        "modifiedAt": "2024-01-30T12:54:00.663000+00:00",
         "tags": {},
         "username": "arn:aws:sts::ACCOUNT_ID:assumed-role/k8sClusterAdmin/{{SessionName}}",
         "type": "STANDARD"

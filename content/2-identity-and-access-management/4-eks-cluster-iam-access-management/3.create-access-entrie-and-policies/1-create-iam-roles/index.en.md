@@ -75,8 +75,11 @@ fi
 
 ::::expand{header="Check Output"}
 ```bash
+An error occurred (NoSuchEntity) when calling the GetRole operation: The role with name k8sClusterAdmin cannot be found.
 IAM Role k8sClusterAdmin created. IAM_ROLE_ARN=arn:aws:iam::ACCOUNT_ID:role/k8sClusterAdmin
+An error occurred (NoSuchEntity) when calling the GetRole operation: The role with name k8sTeamADev cannot be found.
 IAM Role k8sTeamADev created. IAM_ROLE_ARN=arn:aws:iam::ACCOUNT_ID:role/k8sTeamADev
+An error occurred (NoSuchEntity) when calling the GetRole operation: The role with name k8sTeamATest cannot be found.
 IAM Role k8sTeamATest created. IAM_ROLE_ARN=arn:aws:iam::ACCOUNT_ID:role/k8sTeamATest
 ```
 ::::

@@ -14,36 +14,16 @@ Now, with authentication modes `API_AND_CONFIG_MAP` and `API`, it is possible to
 
 In this section, let us test removing Kubernetes cluster-admin privileges from the IAM principal and re-attaching it.
 
-Let us first describe the access entry `arn:aws:iam::ACCOUNT_ID:role/eksworkshop-admin` and see what access policy is assigned to it.
+Let us first describe the access entry for the EKS cluster creation role `eks-security-workshop` and see what access policy is assigned to it.
+
 
 ```bash
-export ACCESS_ENTRY=$(aws eks list-access-entries --cluster-name $EKS_CLUSTER_NAME --query 'accessEntries[0]' --output text)
+export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
+export ACCESS_ENTRY="arn:aws:iam::$ACCOUNT_ID:role/eks-security-workshop"
 echo "ACCESS_ENTRY=$ACCESS_ENTRY"
 ```
-
-::::expand{header="Check Output"}
-```bash
-ACCESS_ENTRY=arn:aws:iam::ACCOUNT_ID:role/eksworkshop-admin
-```
-::::
 
 Let us describe the access entry.
-
-```bash
-export ACCESS_ENTRY=$(aws eks list-access-entries --cluster-name $EKS_CLUSTER_NAME --query 'accessEntries[0]' --output text)
-echo "ACCESS_ENTRY=$ACCESS_ENTRY"
-
-aws eks  describe-access-entry --cluster-name $EKS_CLUSTER_NAME --principal-arn $ACCESS_ENTRY
-```
-
-::::expand{header="Check Output"}
-```bash
-ACCESS_ENTRY=arn:aws:iam::ACCOUNT_ID:role/eksworkshop-admin
-```
-::::
-
-Run the below command to describe the access entry.
-
 
 ```bash
 aws eks  describe-access-entry --cluster-name $EKS_CLUSTER_NAME --principal-arn $ACCESS_ENTRY
@@ -54,13 +34,13 @@ aws eks  describe-access-entry --cluster-name $EKS_CLUSTER_NAME --principal-arn 
 {
     "accessEntry": {
         "clusterName": "eksworkshop-eksctl",
-        "principalArn": "arn:aws:iam::ACCOUNT_ID:role/eksworkshop-admin",
+        "principalArn": "arn:aws:iam::ACCOUNT_ID:role/eks-security-workshop",
         "kubernetesGroups": [],
-        "accessEntryArn": "arn:aws:eks:us-east-1:ACCOUNT_ID:access-entry/eksworkshop-eksctl/role/ACCOUNT_ID/eksworkshop-admin/dec64590-4960-97f0-b3b4-e2ddd5600a32",
-        "createdAt": 1703141217.018,
-        "modifiedAt": 1703141217.018,
+        "accessEntryArn": "arn:aws:eks:us-west-2:ACCOUNT_ID:access-entry/eksworkshop-eksctl/role/ACCOUNT_ID/eks-security-workshop/cec6a258-37a5-8a88-c509-d66bf99078c9",
+        "createdAt": "2024-01-26T07:33:50.099000+00:00",
+        "modifiedAt": "2024-01-26T07:33:50.099000+00:00",
         "tags": {},
-        "username": "arn:aws:sts::ACCOUNT_ID:assumed-role/eksworkshop-admin/i-0d45e819f38a652ea",
+        "username": "arn:aws:sts::ACCOUNT_ID:assumed-role/eks-security-workshop/{{SessionName}}",
         "type": "STANDARD"
     }
 }
@@ -79,16 +59,16 @@ echo "ACCESS_POLICY_ARN=$ACCESS_POLICY_ARN"
 
 ::::expand{header="Check Output"}
 ```bash
-IAM_PRINCIPAL_ARN=arn:aws:iam::ACCOUNT_ID:role/eksworkshop-admin
+IAM_PRINCIPAL_ARN=arn:aws:iam::ACCOUNT_ID:role/eks-security-workshop
 ACCESS_POLICY_ARN=arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy
 ```
 ::::
 
 
-As you see the IAM primcipal `arn:aws:iam::ACCOUNT_ID:role/eksworkshop-admin` is associated with access policy `AmazonEKSClusterAdminPolicy` which is mapped to Kubernetes `cluster-admin` role.
+As you see the IAM principal `arn:aws:iam::ACCOUNT_ID:role/eks-security-workshop` is associated with access policy `AmazonEKSClusterAdminPolicy` which is mapped to Kubernetes `cluster-admin` role.
 
 
-Before removing Kubernetes cluster-admin privileges from the IAM principal `arn:aws:iam::ACCOUNT_ID:role/eksworkshop-admin`, Let us list Kubernetes permissions for authenticated user.
+Before removing Kubernetes cluster-admin privileges from the IAM principal `arn:aws:iam::ACCOUNT_ID:role/eks-security-workshop`, Let us list Kubernetes permissions for authenticated user.
 
 Test cluster access now.
 
@@ -104,6 +84,7 @@ ip-192-168-158-255.ec2.internal   Ready    <none>   172m   v1.28.3-eks-e71965b
 ip-192-168-184-154.ec2.internal   Ready    <none>   172m   v1.28.3-eks-e71965b
 ```
 ::::
+
 ### Remove the access policy
 
 Run the below command to disassociate the access policy from the IAM principal.
@@ -123,7 +104,7 @@ aws eks list-associated-access-policies --cluster-name $EKS_CLUSTER_NAME --princ
 {
     "associatedAccessPolicies": [],
     "clusterName": "eksworkshop-eksctl",
-    "principalArn": "arn:aws:iam::ACCOUNT_ID:role/eksworkshop-admin"
+    "principalArn": "arn:aws:iam::ACCOUNT_ID:role/eks-security-workshop"
 }
 ```
 ::::
@@ -143,9 +124,8 @@ aws eks list-access-entries --cluster-name $EKS_CLUSTER_NAME
 ```json
 {
     "accessEntries": [
-        "arn:aws:iam::ACCOUNT_ID:role/eksworkshop-admin",
-        "arn:aws:iam::ACCOUNT_ID:role/kafka1-eks-node-group-20231221064656609300000014",
-        "arn:aws:iam::ACCOUNT_ID:role/platform-eks-node-group-20231221064656599700000013"
+        "arn:aws:iam::ACCOUNT_ID:role/eks-bootstrap-template-ws-EKSNodegroupRole-E1potkq4Auqa",
+        "arn:aws:iam::ACCOUNT_ID:role/eks-security-workshop"
     ]
 }
 ```
@@ -155,7 +135,6 @@ You can also view these access entries in the EKS Console under the **Access** T
 
 ![access_entries1](/static/images/iam/eks-access-management/access_entries1.png)
 
-
 Test cluster access now.
 
 ```bash
@@ -164,11 +143,11 @@ kubectl get node
 
 ::::expand{header="Check Output"}
 ```bash
-Error from server (Forbidden): nodes is forbidden: User "arn:aws:sts::ACCOUNT_ID:assumed-role/eksworkshop-admin/i-0d45e819f38a652ea" cannot list resource "nodes" in API group "" at the cluster scope
+Error from server (Forbidden): nodes is forbidden: User "arn:aws:sts::ACCOUNT_ID:assumed-role/eks-security-workshop/EKSGetTokenAuth" cannot list resource "nodes" in API group "" at the cluster scope
 ```
 ::::
 
-This indicates the IAM principal, which originally created the EKS cluster does not have any Kubernetes permissions assigned now.
+This indicates that the IAM principal, which originally created the EKS cluster does not have any Kubernetes permissions assigned now.
 
 ### Add the access policy 
 
@@ -180,18 +159,18 @@ aws eks associate-access-policy --cluster-name $EKS_CLUSTER_NAME --principal-arn
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```json
 {
     "clusterName": "eksworkshop-eksctl",
-    "principalArn": "arn:aws:iam::ACCOUNT_ID:role/eksworkshop-admin",
+    "principalArn": "arn:aws:iam::ACCOUNT_ID:role/eks-security-workshop",
     "associatedAccessPolicy": {
         "policyArn": "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy",
         "accessScope": {
             "type": "cluster",
             "namespaces": []
         },
-        "associatedAt": 1703152245.437,
-        "modifiedAt": 1703152245.437
+        "associatedAt": "2024-01-30T11:43:51.815000+00:00",
+        "modifiedAt": "2024-01-30T11:43:51.815000+00:00"
     }
 }
 ```
@@ -214,12 +193,12 @@ aws eks list-associated-access-policies --cluster-name $EKS_CLUSTER_NAME --princ
                 "type": "cluster",
                 "namespaces": []
             },
-            "associatedAt": 1703152245.437,
-            "modifiedAt": 1703152245.437
+            "associatedAt": "2024-01-30T11:43:51.815000+00:00",
+            "modifiedAt": "2024-01-30T11:43:51.815000+00:00"
         }
     ],
     "clusterName": "eksworkshop-eksctl",
-    "principalArn": "arn:aws:iam::ACCOUNT_ID:role/eksworkshop-admin"
+    "principalArn": "arn:aws:iam::ACCOUNT_ID:role/eks-security-workshop"
 }
 ```
 ::::
@@ -239,4 +218,4 @@ ip-192-168-184-154.ec2.internal   Ready    <none>   172m   v1.28.3-eks-e71965b
 ```
 ::::
 
-::alert[clusters can be created with the AWS IAM principal with no cluster administrator access permissions at all using bootstrapClusterCreatorAdminPermissions flag. For example, `aws eks create-cluster --name CLUSTER_NAME --role-arn CLUSTER_ROLE_ARN --resources-vpc-config subnetIds=value,securityGroupIds=value --access-config authenticationMode=API_AND_CONFIG_MAP,bootstrapClusterCreatorAdminPermissions=false`]{header="Note"}
+::alert[EKS clusters can be created with the AWS IAM principal with no cluster administrator access permissions at all using bootstrapClusterCreatorAdminPermissions flag. For example, `aws eks create-cluster --name CLUSTER_NAME --role-arn CLUSTER_ROLE_ARN --resources-vpc-config subnetIds=value,securityGroupIds=value --access-config authenticationMode=API_AND_CONFIG_MAP,bootstrapClusterCreatorAdminPermissions=false`]{header="Note"}

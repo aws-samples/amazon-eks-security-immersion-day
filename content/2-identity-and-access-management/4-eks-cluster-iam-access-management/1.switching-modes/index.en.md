@@ -6,7 +6,7 @@ weight : 21
 
 ## Switching between Authentication Modes
 
-In this section, let us explore possible options to switch betweem different Authentication modes.
+In this section, let us explore possible options to switch between different Authentication modes.
 
 ### Prerequisites
 
@@ -100,28 +100,19 @@ k -n kube-system get cm aws-auth -oyaml
 ```yaml
 apiVersion: v1
 data:
-  mapAccounts: |
-    []
   mapRoles: |
-    - "groups":
-      - "system:bootstrappers"
-      - "system:nodes"
-      "rolearn": "arn:aws:iam::ACCOUNT_ID:role/kafka1-eks-node-group-20231221064656609300000014"
-      "username": "system:node:{{EC2PrivateDNSName}}"
-    - "groups":
-      - "system:bootstrappers"
-      - "system:nodes"
-      "rolearn": "arn:aws:iam::ACCOUNT_ID:role/platform-eks-node-group-20231221064656599700000013"
-      "username": "system:node:{{EC2PrivateDNSName}}"
-  mapUsers: |
-    []
+    - groups:
+      - system:bootstrappers
+      - system:nodes
+      rolearn: arn:aws:iam::ACCOUNT_ID:role/eks-bootstrap-template-ws-EKSNodegroupRole-E1potkq4Auqa
+      username: system:node:{{EC2PrivateDNSName}}
 kind: ConfigMap
 metadata:
-  creationTimestamp: "2023-12-21T06:58:55Z"
+  creationTimestamp: "2024-01-26T07:46:50Z"
   name: aws-auth
   namespace: kube-system
-  resourceVersion: "2425"
-  uid: f348b69b-a08e-449f-a391-c1cee8fb3ce5
+  resourceVersion: "1400"
+  uid: 58b427de-975b-4b37-8b5e-e64e736ac4ed
 ```
 ::::
 
@@ -199,9 +190,8 @@ aws eks list-access-entries --cluster-name $EKS_CLUSTER_NAME
 ```json
 {
     "accessEntries": [
-        "arn:aws:iam::ACCOUNT_ID:role/eksworkshop-admin",
-        "arn:aws:iam::ACCOUNT_ID:role/kafka1-eks-node-group-20231221064656609300000014",
-        "arn:aws:iam::ACCOUNT_ID:role/platform-eks-node-group-20231221064656599700000013"
+        "arn:aws:iam::ACCOUNT_ID:role/eks-bootstrap-template-ws-EKSNodegroupRole-E1potkq4Auqa",
+        "arn:aws:iam::ACCOUNT_ID:role/eks-security-workshop"
     ]
 }
 ```
@@ -212,7 +202,7 @@ You can also view these access entries in the EKS Console under the **Access** T
 
 ![access_entries](/static/images/iam/eks-access-management/access_entries.png)
 
-Notice there are 3 access entries in the above output. The first one `arn:aws:iam::ACCOUNT_ID:role/eksworkshop-admin` is the IAM Role used to create the EKS cluster.  Note this IAM Role cannot be seen anywhere in the default Authentication Mode `CONFIG_MAP`
+Notice there are 2 access entries in the above output. The first one `arn:aws:iam::ACCOUNT_ID:role/eks-security-workshop` is the IAM Role used to create the EKS cluster.  Note this IAM Role cannot be seen anywhere in the default Authentication Mode `CONFIG_MAP`
 
 Run the below command to see the current IAM Role assigned to the Cloud9 EC2 Instance. This will be the same IAM Role as first access entry listed above.
 
@@ -220,13 +210,12 @@ Run the below command to see the current IAM Role assigned to the Cloud9 EC2 Ins
 aws sts get-caller-identity
 ```
 
-
 ::::expand{header="Check Output"}
 ```json
 {
-    "UserId": "AROAQAHCJ2QPAE3TBRGHQ:i-08b0a08412575c115",
+    "UserId": "AROA26YVAA7X6WCNE47I3:i-0099e96934253a907",
     "Account": "ACCOUNT_ID",
-    "Arn": "arn:aws:sts::ACCOUNT_ID:assumed-role/eksworkshop-admin/i-08b0a08412575c115"
+    "Arn": "arn:aws:sts::ACCOUNT_ID:assumed-role/eks-security-workshop/i-0099e96934253a907"
 }
 ```
 ::::
