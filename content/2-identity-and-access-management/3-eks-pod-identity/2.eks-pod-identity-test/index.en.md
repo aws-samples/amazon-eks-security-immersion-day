@@ -17,7 +17,6 @@ export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
 export AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
 export S3_BUCKET="ekspodidentity-$ACCOUNT_ID-$AWS_REGION"
 aws s3 mb s3://$S3_BUCKET --region $AWS_REGION
-#aws s3 mb s3://eksworkshop-$AWS_REGION-`date +%s` --region $AWS_REGION
 ```
 
 ::::expand{header="Check Output"}
@@ -69,7 +68,7 @@ kubectl -n $NS exec -it $APP -- aws s3 ls
 
 ::::expand{header="Check Output"}
 ```bash
-2023-12-12 05:28:12 ekspodidentity-ACCOUNT_ID-us-east-1
+2023-12-12 05:28:12 ekspodidentity-ACCOUNT_ID-us-west-2
 ```
 ::::
 

@@ -55,11 +55,11 @@ As part of this workshop we will cover the following modules:
 
 |  | EKS Pod Identity | IRSA | 
 | --- | --- | --- | 
-| **Role extensibility**| no need to update the role's trust policy for each new cluster. | need to update role's trust policy with new EKS cluster OIDC provider endpoint| 
-| **Cluster scalability** | no need to setup IAM OIDC provider | need to setup IAM OIDC provider. default global limit of 100 OIDC providers for AWS account applies| 
-| **Role scalability**| no need to define trust relationship between IAM role and service account in the trust policy | need to define trust relationship between IAM role and service account in the trust policy. max of 8 trust relationships within a single trust policy applies due to limit on trust policy size |
+| **Role extensibility**| No need to update the role's trust policy for each new cluster. | Need to update role's trust policy with new EKS cluster OIDC provider endpoint| 
+| **Cluster scalability** | No need to setup IAM OIDC provider | Need to setup IAM OIDC provider. default global limit of 100 OIDC providers for AWS account applies| 
+| **Role scalability**| No need to define trust relationship between IAM role and service account in the trust policy | Need to define trust relationship between IAM role and service account in the trust policy. max of 8 trust relationships within a single trust policy applies due to limit on trust policy size |
 | **Role reusability**| AWS STS temporary credentials supplied by EKS Pod Identity include role session tags, such as cluster name, namespace, service account name. | AWS STS session tags are not supported. You can reuse a role between clusters but every pod receives all of the permissions of the role |
-| **Environments supported**| only available on Amazon EKS | IRSA can be used such as Amazon EKS, Amazon EKS Anywhere, Red Hat OpenShift Service on AWS, and self managed Kubernetes clusters on Amazon EC2 instances. |
+| **Environments supported**| Only available on Amazon EKS | IRSA can be used such as Amazon EKS, Amazon EKS Anywhere, Red Hat OpenShift Service on AWS, and self managed Kubernetes clusters on Amazon EC2 instances. |
 | **EKS versions supported** | EKS Kubernetes versions 1.24 or later. | All of the supported EKS cluster versions. | 
 
 

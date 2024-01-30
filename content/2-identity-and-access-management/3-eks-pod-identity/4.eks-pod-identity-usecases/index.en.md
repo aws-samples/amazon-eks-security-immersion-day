@@ -14,19 +14,14 @@ By default the IAM Role `arn:aws:iam::ACCOUNT_ID:role/eks-pod-s3-read-access-rol
 
 We can restrict the access to the IAM Role to specific EKS Clusters in this AWS Account by modifying the IAM Role Trust Policy.
 
-Let us say we want to restrict access to the IAM Role to only two EKS Clusters say `eksworkshop-eksctl` and eks-ref-nw-1
-
+Let us say we want to restrict access to the IAM Role to only two EKS Clusters which do not exist, say `eks-cluster1-does-not-exist` and `eks-cluster2-does-not-exist`
 
 Let us update the IAM Role Trust policy document as below.
 
 ```bash
-#cd ~/environment
-cd /home/ec2-user/environment/code-samples/aws_services/eks/security/eks-pod-identity/ws
+cd ~/environment
 export IAM_ROLE="eks-pod-s3-read-access-role"
 export IAM_ROLE_TRUST_POLICY_CLUSTER="eks-pod-s3-read-access-trust-policy-cluster"
-export EKS_CLUSTER1_NAME="eksworkshop-eksctl"
-export EKS_CLUSTER2_NAME="eks-ref-nw-1"
-
 
 cat > $IAM_ROLE_TRUST_POLICY_CLUSTER.json << EOF
 {
@@ -44,8 +39,8 @@ cat > $IAM_ROLE_TRUST_POLICY_CLUSTER.json << EOF
             "Condition": {
                 "StringEquals": {
                     "aws:RequestTag/eks-cluster-name": [
-                        "$EKS_CLUSTER1_NAME",
-                        "$EKS_CLUSTER2_NAME"
+                        "eks-cluster1-does-not-exist",
+                        "eks-cluster2-does-not-exist"
                     ]
                 }
             }
@@ -54,7 +49,6 @@ cat > $IAM_ROLE_TRUST_POLICY_CLUSTER.json << EOF
 }
 EOF
 ```
-
 Let us update the IAM Role with the new Trust policy.
 
 ```bash
@@ -65,53 +59,72 @@ aws iam update-assume-role-policy \
 
 ### Test Access to IAM Role from clusters
 
-Now, if we test EKS Pod Identity feature in any other cluster say `eksworkshop-eksctl-3`, apart from  the above two EKS Clusters, we will get below error when we run `aws s3 ls` from the Application.
+Now, let us test access to S3 from the Pod. Since the Pod may already have cached the temporary credentials, we will delete and re-create it.
 
-Please note we did not create second EKS Cluster i.e. `eks-ref-nw-1` in this workshop. The IAM Role Trust policy is updated to demonostrate how to control access to an IAM Role to specific EKS Clusters.
+Delete the Pod and re-create it.
 
 ```bash
-Error when retrieving credentials from container-role: Error retrieving metadata: Received non 200 response 500 from container metadata: unable to fetch credentials from EKS Auth: operation error EKS Auth: AssumeRoleForPodIdentity, https response error StatusCode: 400, RequestID: a17127a3-acb1-4531-8926-614944e87e57, AccessDeniedException: Unauthorized Exception! EKS does not have permissions to assume the associated role.
+kubectl -n $NS delete pod $APP
+kubectl  apply -f $APP.yaml
+```
+
+::::expand{header="Check Output"}
+```bash
+namespace/ns-a unchanged
+serviceaccount/sa1 unchanged
+pod/app1 created
+```
+::::
+
+
+Test the S3 access again.
+
+```bash
+kubectl -n $NS exec -it $APP -- aws s3 ls
+```
+
+::::expand{header="Check Output"}
+```bash
+Error when retrieving credentials from container-role: Error retrieving metadata: Received non 200 response 400 from container metadata: [b69b1279-d140-4eee-b7ea-b124286f544c]: (AccessDeniedException): Unauthorized Exception! EKS does not have permissions to assume the associated role., fault: client
 
 command terminated with exit code 255
 ```
+::::
 
-Note that above error is coming from the EKS Auth API Service and NOT the AWS STS Service. The EKS Auth API Service, extracts the IAM Role from token and validates the current Cluster name i.e. `eksworkshop-eksctl-3` with the allowed cluster names in the IAM Trust Polocy and rejects request.
+The error indicates that the our EKS cluster `eksworkshop-eksctl` is not allowed to assume the IAM Role.
 
-We can see this from the CloudTrail log.
+You can also lookup for the CloudTrail event for the above call.
 
 ```bash
 EVENT_NAME="AssumeRoleForPodIdentity"
 aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,AttributeValue=$EVENT_NAME --max-items=1
 ```
 
-
 ::::expand{header="Check Output"}
-
 ```json
 {
-  "Events": [
-    {
-      "EventId": "3d93c2b6-7baa-497d-a6f1-48288a2a8db3",
-      "EventName": "AssumeRoleForPodIdentity",
-      "ReadOnly": "true",
-      "AccessKeyId": "ASIAQAHCJ2QPPFCSM6XX",
-      "EventTime": "2023-12-13T05:13:13+00:00",
-      "EventSource": "eks-auth.amazonaws.com",
-      "Username": "i-0f6f119f5ab3da4d2",
-      "Resources": [
+    "Events": [
         {
-          "ResourceType": "AWS::EKS::Cluster",
-          "ResourceName": "eks-ref-cluster1"
+            "EventId": "d647586b-b713-46af-b7f9-512c7f5145dd",
+            "EventName": "AssumeRoleForPodIdentity",
+            "ReadOnly": "true",
+            "AccessKeyId": "ASIA26YVAA7XWZTLILHG",
+            "EventTime": "2024-01-30T07:52:08+00:00",
+            "EventSource": "eks-auth.amazonaws.com",
+            "Username": "i-02930ce60274d87a7",
+            "Resources": [
+                {
+                    "ResourceType": "AWS::EKS::Cluster",
+                    "ResourceName": "eksworkshop-eksctl"
+                }
+            ],
+            "CloudTrailEvent": "{\"eventVersion\":\"1.09\",\"userIdentity\":{\"type\":\"AssumedRole\",\"principalId\":\"AROA26YVAA7X3XEV3BAHM:i-02930ce60274d87a7\",\"arn\":\"arn:aws:sts::753273931759:assumed-role/eks-bootstrap-template-ws-EKSNodegroupRole-E1potkq4Auqa/i-02930ce60274d87a7\",\"accountId\":\"753273931759\",\"accessKeyId\":\"ASIA26YVAA7XWZTLILHG\",\"sessionContext\":{\"sessionIssuer\":{\"type\":\"Role\",\"principalId\":\"AROA26YVAA7X3XEV3BAHM\",\"arn\":\"arn:aws:iam::753273931759:role/eks-bootstrap-template-ws-EKSNodegroupRole-E1potkq4Auqa\",\"accountId\":\"753273931759\",\"userName\":\"eks-bootstrap-template-ws-EKSNodegroupRole-E1potkq4Auqa\"},\"attributes\":{\"creationDate\":\"2024-01-30T06:57:57Z\",\"mfaAuthenticated\":\"false\"},\"ec2RoleDelivery\":\"2.0\"}},\"eventTime\":\"2024-01-30T07:52:08Z\",\"eventSource\":\"eks-auth.amazonaws.com\",\"eventName\":\"AssumeRoleForPodIdentity\",\"awsRegion\":\"us-west-2\",\"sourceIPAddress\":\"100.20.39.202\",\"userAgent\":\"aws-sdk-go-v2/1.21.2 os/linux lang/go#1.19.13 md/GOOS#linux md/GOARCH#amd64 api/eksauth#1.0.0-zeta.e49712bf27d5\",\"errorCode\":\"AccessDenied\",\"errorMessage\":\"Unauthorized Exception! EKS does not have permissions to assume the associated role.\",\"requestParameters\":{\"clusterName\":\"eksworkshop-eksctl\",\"token\":\"HIDDEN_DUE_TO_SECURITY_REASONS\"},\"responseElements\":null,\"requestID\":\"b69b1279-d140-4eee-b7ea-b124286f544c\",\"eventID\":\"d647586b-b713-46af-b7f9-512c7f5145dd\",\"readOnly\":true,\"eventType\":\"AwsApiCall\",\"managementEvent\":true,\"recipientAccountId\":\"753273931759\",\"eventCategory\":\"Management\",\"tlsDetails\":{\"tlsVersion\":\"TLSv1.3\",\"cipherSuite\":\"TLS_AES_128_GCM_SHA256\",\"clientProvidedHostHeader\":\"eks-auth.us-west-2.api.aws\"}}"
         }
-      ],
-      "CloudTrailEvent": "{\"eventVersion\":\"1.09\",\"userIdentity\":{\"type\":\"AssumedRole\",\"principalId\":\"AROAQAHCJ2QPNQIOQLNKH:i-0f6f119f5ab3da4d2\",\"arn\":\"arn:aws:sts::ACCOUNT_ID:assumed-role/platform-eks-node-group-20231029075055821400000001/i-0f6f119f5ab3da4d2\",\"accountId\":\"ACCOUNT_ID\",\"accessKeyId\":\"ASIAQAHCJ2QPPFCSM6XX\",\"sessionContext\":{\"sessionIssuer\":{\"type\":\"Role\",\"principalId\":\"AROAQAHCJ2QPNQIOQLNKH\",\"arn\":\"arn:aws:iam::ACCOUNT_ID:role/platform-eks-node-group-20231029075055821400000001\",\"accountId\":\"ACCOUNT_ID\",\"userName\":\"platform-eks-node-group-20231029075055821400000001\"},\"attributes\":{\"creationDate\":\"2023-12-13T04:14:36Z\",\"mfaAuthenticated\":\"false\"},\"ec2RoleDelivery\":\"2.0\"}},\"eventTime\":\"2023-12-13T05:13:13Z\",\"eventSource\":\"eks-auth.amazonaws.com\",\"eventName\":\"AssumeRoleForPodIdentity\",\"awsRegion\":\"us-east-1\",\"sourceIPAddress\":\"52.73.68.55\",\"userAgent\":\"aws-sdk-go-v2/1.21.2 os/linux lang/go#1.19.13 md/GOOS#linux md/GOARCH#amd64 api/eksauth#1.0.0-zeta.e49712bf27d5\",\"errorCode\":\"AccessDenied\",\"errorMessage\":\"Unauthorized Exception! EKS does not have permissions to assume the associated role.\",\"requestParameters\":{\"clusterName\":\"eks-ref-cluster1\",\"token\":\"HIDDEN_DUE_TO_SECURITY_REASONS\"},\"responseElements\":null,\"requestID\":\"08537417-1ee7-4f76-822d-9dbee6ab7e00\",\"eventID\":\"3d93c2b6-7baa-497d-a6f1-48288a2a8db3\",\"readOnly\":true,\"eventType\":\"AwsApiCall\",\"managementEvent\":true,\"recipientAccountId\":\"ACCOUNT_ID\",\"eventCategory\":\"Management\",\"tlsDetails\":{\"tlsVersion\":\"TLSv1.3\",\"cipherSuite\":\"TLS_AES_128_GCM_SHA256\",\"clientProvidedHostHeader\":\"eks-auth.us-east-1.api.aws\"}}"
-    }
-  ],
-  "NextToken": "eyJOZXh0VG9rZW4iOiBudWxsLCAiYm90b190cnVuY2F0ZV9hbW91bnQiOiAxfQ=="
+    ],
+    "NextToken": "eyJOZXh0VG9rZW4iOiBudWxsLCAiYm90b190cnVuY2F0ZV9hbW91bnQiOiAxfQ=="
 }
 ```
 ::::
-
 
 ## Control access to IAM Role to specific Namespaces in a cluster.
 
@@ -123,11 +136,9 @@ Let us update the IAM Role Trust policy document to restrict access to only two 
 
 
 ```bash
-#cd ~/environment
-cd /home/ec2-user/environment/code-samples/aws_services/eks/security/eks-pod-identity/ws
+cd ~/environment
 export IAM_ROLE="eks-pod-s3-read-access-role"
 export IAM_ROLE_TRUST_POLICY_NAMESPACE="eks-pod-s3-read-access-trust-policy-namespace"
-export EKS_CLUSTER1_NAME="eksworkshop-eksctl"
 export NS1="ns-a"
 export NS2="ns-b"
 
@@ -147,7 +158,7 @@ cat > $IAM_ROLE_TRUST_POLICY_NAMESPACE.json << EOF
             ],
             "Condition": {
                 "StringEquals": {
-                    "aws:RequestTag/eks-cluster-name": "$EKS_CLUSTER1_NAME",
+                    "aws:RequestTag/eks-cluster-name": "$EKS_CLUSTER_NAME",
                     "aws:RequestTag/kubernetes-namespace": [
                         "$NS1",
                         "$NS2"
@@ -178,15 +189,15 @@ export NS="ns-b"
 export SA="sa2"
 
 aws eks create-pod-identity-association \
-  --cluster-name $EKS_CLUSTER1_NAME \
+  --cluster-name $EKS_CLUSTER_NAME \
   --namespace $NS \
   --service-account $SA \
   --role-arn $IAM_ROLE_ARN
 ```
 
-### Deploy a Sample App `app2` in Namespace `ns-b`
+#### Deploy a Sample App `app2` in Namespace `ns-b`
 
-Run below command to deploy a Sample App `app2` with a Kubernetes Service account `sa2` in Namspace `ns-a`.  
+Run below command to deploy a Sample App `app2` with a Kubernetes Service account `sa2` in Namspace `ns-b`.  
 
 ```bash
 export APP=app2
@@ -226,13 +237,13 @@ kubectl -n $NS exec -it $APP -- aws s3 ls
 
 ::::expand{header="Check Output"}
 ```bash
-2023-12-12 05:28:12 ekspodidentity-ACCOUNT_ID-us-east-1
+2023-12-12 05:28:12 ekspodidentity-ACCOUNT_ID-us-west-2
 ```
 ::::
 
 As you can see, the App `app2` in Namespace `ns-b` can list S3 buckets.
 
-Similarly, you ca also restrict access to the IAM Role to a specific Service account and a Pod.
+Similarly, you can also restrict access to the IAM Role to a specific Service account and a Pod.
 
 ## Control access to AWS Service (S3 Bucket) to specific Cluster/Namespaces/Service account in a cluster.
 
@@ -240,11 +251,9 @@ In this section, we will explore how to control access to S3 Bucket and Objects 
 
 ### Update IAM Policy for fine grained acecss control
 
-Earlier we created one S3 Bucket `ekspodidentity-ACCOUNT_ID-us-east-1`
+Earlier we created one S3 Bucket `ekspodidentity-ACCOUNT_ID-us-west-2`
 
 We will create two S3 objects say `customer1.txt` and `customer2.txt` in this S3 bucket. We want to provide access for the S3 object `customer1.txt` for only a specific Service account say `sa1` in Namespace `ns-a` based on S3 Objects tags. Similarly, we want to provide access for the S3 object `customer2.txt` for only a specific Service account say `sa2` in Namespace `ns-b` based on S3 Objects tags.
-
-Let us first create an updated IAM 
 
 Let us create a custom IAM Policy for S3 read access role to configure the granular IAM permissions.
 
@@ -300,7 +309,7 @@ aws iam  attach-role-policy  --role-name $IAM_ROLE --policy-arn $s3policyArn
 
 ### Create S3 Objects in the S3 Bucket
 
-Let us create a file 3 S3 Objects named `customer1.txt`, `customer2.txt` and `common.txt`and upload them to the S3 bucket.
+Let us create 3 S3 objects named `customer1.txt`, `customer2.txt` and `common.txt`and upload them to the S3 bucket.
 
 Let us create a simple text file `customer1.txt` and upload it to the S3 bucket by tagging custom Resource Tags with key/value pairs such as `my-namespace=ns-a` and  `my-service-account=sa1` to reflect that this Object needs to be accessed only by that specific Service account and Namespace.
 
@@ -356,12 +365,10 @@ Let us try to access the S3 Objects `customer1.txt` and `customer2.txt` from Ser
 export APP="app1"
 export NS="ns-a"
 export SA="sa1"
-export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
-export AWS_REGION="us-east-1"
 export S3_BUCKET="ekspodidentity-$ACCOUNT_ID-$AWS_REGION"
 export S3_OBJECT="customer1.txt"
-kubectl -n $NS exec -it $APP -- bash
-aws s3api get-object --bucket "${S3_BUCKET}" --key "${S3_OBJECT}" "${S3_OBJECT}"
+
+kubectl -n $NS exec -it $APP -- aws s3api get-object --bucket "${S3_BUCKET}" --key "${S3_OBJECT}" "${S3_OBJECT}"
 ```
 
 ::::expand{header="Check Output"}
@@ -385,7 +392,7 @@ Let us try accessing S3 Object `customer2.txt`
 
 ```bash
 export S3_OBJECT="customer2.txt"
-aws s3api get-object --bucket "${S3_BUCKET}" --key "${S3_OBJECT}" "${S3_OBJECT}"
+kubectl -n $NS exec -it $APP -- aws s3api get-object --bucket "${S3_BUCKET}" --key "${S3_OBJECT}" "${S3_OBJECT}"
 ```
 
 ::::expand{header="Check Output"}
@@ -402,12 +409,10 @@ Let us now try to access the S3 Objects `customer1.txt` and `customer2.txt` from
 export APP="app2"
 export NS="ns-b"
 export SA="sa2"
-export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
-export AWS_REGION="us-east-1"
 export S3_BUCKET="ekspodidentity-$ACCOUNT_ID-$AWS_REGION"
 export S3_OBJECT="customer1.txt"
-kubectl -n $NS exec -it $APP -- bash
-aws s3api get-object --bucket "${S3_BUCKET}" --key "${S3_OBJECT}" "${S3_OBJECT}"
+
+kubectl -n $NS exec -it $APP -- aws s3api get-object --bucket "${S3_BUCKET}" --key "${S3_OBJECT}" "${S3_OBJECT}"
 ```
 
 ::::expand{header="Check Output"}
@@ -423,7 +428,7 @@ Let us try accessing S3 Object `customer2.txt`
 
 ```bash
 export S3_OBJECT="customer2.txt"
-aws s3api get-object --bucket "${S3_BUCKET}" --key "${S3_OBJECT}" "${S3_OBJECT}"
+kubectl -n $NS exec -it $APP -- aws s3api get-object --bucket "${S3_BUCKET}" --key "${S3_OBJECT}" "${S3_OBJECT}"
 ```
 
 ::::expand{header="Check Output"}

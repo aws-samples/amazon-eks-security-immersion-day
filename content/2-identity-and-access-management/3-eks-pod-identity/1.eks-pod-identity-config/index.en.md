@@ -13,8 +13,7 @@ Before we configure the EKS Pod Identity feature, let us first deploy a Sample A
 Run below command to generate a App template file, which we will be using throughout this workshop module.
 
 ```bash
-#cd ~/environment
-cd /home/ec2-user/environment/code-samples/aws_services/eks/security/eks-pod-identity/ws
+cd ~/environment
 cat > app-template.yaml <<EOF
 apiVersion: v1
 kind: Namespace
@@ -92,7 +91,7 @@ command terminated with exit code 254
 ```
 ::::
 
-The `AccessDenied` error is expected the since Pod is not confugured with any IAM permissions to list S3 Buckets.
+The `AccessDenied` error is expected since the Pod is not confugured with any IAM permissions to list S3 Buckets.
 
 
 ## Configure Amazon EKS Pod Identity
@@ -102,8 +101,7 @@ The `AccessDenied` error is expected the since Pod is not confugured with any IA
 Create a trust policy and configure the principal to `pods.eks.amazonaws.com`
 
 ```bash
-#cd ~/environment
-cd /home/ec2-user/environment/code-samples/aws_services/eks/security/eks-pod-identity/ws
+cd ~/environment
 export IAM_ROLE="eks-pod-s3-read-access-role"
 export IAM_ROLE_TRUST_POLICY="eks-pod-s3-read-access-trust-policy"
 export IAM_POLICY="eks-pod-s3-read-access-policy"
@@ -151,6 +149,7 @@ fi
 ::::expand{header="Check Output"}
 
 ```bash
+An error occurred (NoSuchEntity) when calling the GetRole operation: The role with name eks-pod-s3-read-access-role cannot be found.
 IAM Role eks-pod-s3-read-access-role created. IAM_ROLE_ARN=arn:aws:iam::ACCOUNT_ID:role/eks-pod-s3-read-access-role
 ```
 ::::
@@ -216,7 +215,6 @@ Look at the trust policy.
 ```bash
 export EKS_POD_IDENTITY_ADDON_NAME="eks-pod-identity-agent"
 export EKS_CLUSTER_NAME="eksworkshop-eksctl"
-#export EKS_CLUSTER_NAME="eksworkshop-eksctl"
 aws eks  create-addon --cluster-name $EKS_CLUSTER_NAME --addon-name $EKS_POD_IDENTITY_ADDON_NAME
 ```
 
@@ -241,7 +239,7 @@ aws eks  create-addon --cluster-name $EKS_CLUSTER_NAME --addon-name $EKS_POD_IDE
 ::::
 
 
-Go to EKs Console and view the eks-pod-identity-agent.
+Go to EKS Console and view the eks-pod-identity-agent under the **Add-on** tab.
 
 ![add-on](/static/images/iam/eks-pod-identity/add-on.png)
 
@@ -278,14 +276,14 @@ aws eks create-pod-identity-association \
 ::::
 
 
-Go to EKs Console and view Pod Identity associations under the **Access** tab.
+Go to EKS Console and view the Pod Identity associations under the **Access** tab.
 
 ![access](/static/images/iam/eks-pod-identity/access.png)
 
 We can get the list of current EKS Pod Identity associations using below API.
 
 ```bash
-aws eks list-pod-identity-associations -cluster-name $EKS_CLUSTER_NAME
+aws eks list-pod-identity-associations --cluster-name $EKS_CLUSTER_NAME
 ```
 
 ::::expand{header="Check Output"}
@@ -304,6 +302,6 @@ aws eks list-pod-identity-associations -cluster-name $EKS_CLUSTER_NAME
 ```
 ::::
 
-EKS also provides few more [commands](https://docs.aws.amazon.com/cli/latest/reference/eks/#cli-aws-eks) to manage the Pod Identity association such `delete-pod-identity-association`, `describe-pod-identity-association` and `update-pod-identity-association`.  You can use the `update-pod-identity-association` anytime to update the IAM Role anytime. 
+EKS also provides few more [commands](https://docs.aws.amazon.com/cli/latest/reference/eks/#cli-aws-eks) to manage the Pod Identity association such `delete-pod-identity-association`, `describe-pod-identity-association` and `update-pod-identity-association`.  You can use the `update-pod-identity-association` to update the IAM Role anytime. 
 
 The namespace and service account cannot be edited. To change them, delete the association and create a new association.
