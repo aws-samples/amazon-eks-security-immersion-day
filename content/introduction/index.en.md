@@ -33,6 +33,7 @@ As part of this workshop we will cover the following modules:
 | **Identity and Access Management**| [Using AWS IAM Groups and Roles to Manage Kubernetes Cluster Access](/2-identity-and-access-management/1-iam-groups-roles-to-manage-eks-access) | 60 mins | N/A |
 | | [IAM Role for service account (IRSA)](/2-identity-and-access-management/2-irsa) | 45 mins | N/A |
 | | [Amazon EKS Pod Identity](/2-identity-and-access-management/3-eks-pod-identity) | 45 mins | N/A |
+| | [Amazon EKS Cluster Access Management Controls](/2-identity-and-access-management/4-eks-cluster-iam-access-management) | 60 mins | N/A |
 | **Pod Security**| [Pod Security Standards](/3-pod-security/1-psa-pss) | 45 mins | N/A |
 | | [Using Open Policy Agent (OPA) and Gatekeeper for policy-based control in Amazon EKS](/3-pod-security/2-opa) | 45 mins | N/A |
 | **Detective Controls** | [Amazon GuardDuty Protection for EKS - Audit Log Monitoring](/5-detective-controls/1-guardDuty-protection-for-eks/eks-audit-logs) | 45 mins | N/A |
