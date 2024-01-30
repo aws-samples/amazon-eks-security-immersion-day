@@ -3,7 +3,7 @@ title : "Create AWS IAM Groups"
 weight : 23
 ---
 
-In this section let's create 3 IAM groups and attach IAM permission policy on these IAM groups to be assume the IAM roles created earlier for Kubernetes role.
+In this section let's create 3 IAM groups and attach IAM permission policy on these IAM groups to assume the IAM roles created earlier for Kubernetes role.
 
 We want to have different IAM users which will be added to specific IAM groups in order to have different rights in the kubernetes cluster.
 

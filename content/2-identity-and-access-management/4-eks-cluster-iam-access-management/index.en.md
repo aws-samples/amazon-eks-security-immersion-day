@@ -43,7 +43,7 @@ This functionality relies on two new concepts:
 
 1.  **access entries**: An access entry is a cluster identity and is directly linked to an AWS IAM principal user or role, that is used to authenticate to an Amazon EKS cluster.
 
-2.  **access policies**: Access policies are Amazon EKS-specific policies that authorizes an access entry to perform specific cluster actions. At launch, Amazon EKS supports only predefined and AWS managed policies. Access policies are not AWS IAM entities and are defined and managed by Amazon EKS. Amazon EKS access policies include permission sets that support common use cases of administration, editing, or read-only access to Kubernetes resources.
+2.  **access policies**: Access policies are Amazon EKS-specific policies that authorizes an access entry to perform specific cluster actions. At launch, Amazon EKS supports only predefined AWS managed policies. Access policies are not AWS IAM entities and are defined and managed by Amazon EKS. Amazon EKS access policies include permission sets that support common use cases of administration, editing, or read-only access to Kubernetes resources.
 
 Run the following command and output provide an up-to-date list of supported access policies for managing cluster access.
 

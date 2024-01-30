@@ -119,7 +119,7 @@ ROLE_ID=AROAQAHCJ2QPOIJYQ2RTT
 ```
 ::::
 
-Note that the current Role Id `AROAQAHCJ2QPOIJYQ2RTT` from the earlier one `AROAQAHCJ2QPJTOAB3E4V` even for same Role ARN.
+Note that the current Role Id `AROAQAHCJ2QPOIJYQ2RTT` is different from the earlier one `AROAQAHCJ2QPJTOAB3E4V` even for same Role ARN.
 
 Let us test access to EKS cluster.
 

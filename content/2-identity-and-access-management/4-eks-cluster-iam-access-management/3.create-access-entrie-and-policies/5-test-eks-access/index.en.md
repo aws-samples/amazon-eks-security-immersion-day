@@ -143,12 +143,6 @@ export KUBECONFIG=/tmp/kubeconfig-admin && eksctl utils write-kubeconfig -c eksw
 cat $KUBECONFIG | yq e '.users.[].user.exec.args += ["--profile", "admin"]' - -- | sed 's/eksworkshop-eksctl./eksworkshop-eksctl-admin./g' | sponge $KUBECONFIG
 ```
 
-::::expand{header="Check Output"}
-```bash
-
-```
-::::
-
 
 > Note: this assume you uses yq >= version 4. you can reference to [this page](https://mikefarah.gitbook.io/yq/upgrading-from-v3)  to adapt this command for another version.
 
