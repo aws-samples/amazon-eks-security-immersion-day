@@ -761,7 +761,6 @@ Resources:
                       permissions='read-write',
                       userArn=f'arn:aws:sts::{account_id}:assumed-role/WSOpsRole/Ops',
                   )
-                  # what about WSOpsRole?
 
                   cloud9.update_environment(
                       environmentId=environmentId,
@@ -786,7 +785,6 @@ Resources:
                   print('Found IAM instance profile: {}'.format(iam_instance_profile))
 
                   time.sleep(10)
-
                   print('Waiting for the instance to be ready...')
       
                   # Wait for Instance to become ready before adding Role
@@ -923,7 +921,7 @@ Resources:
 
                 su -l -c 'aws ecr get-login-password --region ${AWS::Region} | docker login --username AWS --password-stdin ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com' ec2-user
                 curl 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o 'awscliv2.zip'
-                unzip -o awscliv2.zip -d /tmp
+                unzip -o -q awscliv2.zip -d /tmp
                 sudo /tmp/aws/install --update
                 rm -rf aws awscliv2.zip
                 curl -sSL -o /tmp/kubectl https://s3.us-west-2.amazonaws.com/amazon-eks/1.28.2/2023-10-12/bin/linux/amd64/kubectl
@@ -931,6 +929,7 @@ Resources:
                 mv /tmp/kubectl /usr/local/bin/kubectl
                 su -l -c 'aws eks update-kubeconfig --name ${EKSCluster} --region ${AWS::Region} --role-arn ${Cloud9InstanceRole.Arn}' ec2-user
                 su -l -c 'echo "export AWS_ACCOUNT_ID=${AWS::AccountId}" >> ~/.bash_profile' ec2-user
+                su -l -c 'echo "export ACCOUNT_ID=${AWS::AccountId}" >> ~/.bash_profile' ec2-user
                 su -l -c 'echo "export AWS_DEFAULT_REGION=${AWS::Region}" >> ~/.bash_profile' ec2-user
                 su -l -c 'echo "export AWS_REGION=${AWS::Region}" >> ~/.bash_profile' ec2-user
                 su -l -c 'echo "export EKS_CLUSTER=${EKSCluster}" >> ~/.bash_profile' ec2-user
@@ -939,7 +938,10 @@ Resources:
                 curl -sSL "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
                 chmod +x /tmp/eksctl
                 mv /tmp/eksctl /usr/local/bin
-                yum -y install jq gettext bash-completion moreutils
+                yum -y install jq envsubst gettext bash-completion moreutils
+                echo 'yq() {
+                  docker run --rm -i -v "${PWD}":/workdir mikefarah/yq "$@"
+                  }' | tee -a /home/ec2-user/bashrc
                 /usr/local/bin/kubectl completion bash > /etc/bash_completion.d/kubectl
                 /usr/local/bin/eksctl completion bash > /etc/bash_completion.d/eksctl
                 su -l -c 'echo "alias k=kubectl" >> ~/.bash_profile' ec2-user
@@ -951,6 +953,7 @@ Resources:
                 su -l -c 'helm repo add eks https://aws.github.io/eks-charts' ec2-user
                 su -l -c 'helm repo update' ec2-user
                 su -l -c 'curl -sS https://webinstall.dev/k9s | bash' ec2-user
+                /home/ec2-user/.nvm/versions/node/`node -v`/bin/npm  i -g c9
                 # This must be the last line - do not add any lines after this!
                 shutdown -r 1
 
