@@ -3,7 +3,7 @@ title : "Accessing Bottlerocket host"
 weight : 21
 ---
 
-In this section of the workshop, you will scale the pre-existing EKS Bottlerocket Managed Node Group (MNG) and access the node. Bottlerocket improves security posture is by removing all shells from the Bottlerocket image. Bottlerocket’s API-first/container-centric approach also helps simplify fleet management. For example, Bottlerocket integrates with AWS Systems Manager, which is collection of services that you can use to view and control your infrastructure on AWS, including Bottlerocket instances.
+In this section of the workshop, you will scale the pre-existing EKS Bottlerocket Managed Node Group (MNG) and access the node. Bottlerocket improves security posture by removing all shells from the Bottlerocket image. Bottlerocket’s API-first/container-centric approach also helps simplify fleet management. For example, Bottlerocket integrates with AWS Systems Manager, which is collection of services that you can use to view and control your infrastructure on AWS, including Bottlerocket instances.
 
 1. Environment variables used across different sections of this workshop module are saved into a file `~/.br_security`, as we progress through this module. If you start a new terminal in the Cloud9 workspace, source the file or copy/run the export commands from the file `~/.br_security` to rebuild the environment variables.
 
