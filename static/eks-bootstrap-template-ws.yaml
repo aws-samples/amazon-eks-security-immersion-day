@@ -945,6 +945,7 @@ Resources:
                 /usr/local/bin/kubectl completion bash > /etc/bash_completion.d/kubectl
                 /usr/local/bin/eksctl completion bash > /etc/bash_completion.d/eksctl
                 su -l -c 'echo "alias k=kubectl" >> ~/.bash_profile' ec2-user
+                su -l -c 'echo "alias ll=ls -la" >> ~/.bash_profile' ec2-user
                 su -l -c 'echo "complete -F __start_kubectl k" >> ~/.bash_profile' ec2-user
                 curl -fsSL -o /tmp/helm.tgz https://get.helm.sh/helm-v3.7.1-linux-amd64.tar.gz
                 tar -C /tmp -xzf /tmp/helm.tgz
