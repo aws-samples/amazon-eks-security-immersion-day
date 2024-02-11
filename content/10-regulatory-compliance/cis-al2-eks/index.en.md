@@ -69,4 +69,12 @@ You’ll also need to configure the following environment variables:
 export AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
 export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
 export EKS_VERSION=$(aws eks describe-cluster --name $EKS_CLUSTER  --region $AWS_REGION --query "cluster.version")
+echo $EKS_VERSION
 ```
+Make sure you see EKS_VERSION populated before proceeding
+
+::::expand{header="Check Output"}
+```bash
+"1.28"
+```
+::::

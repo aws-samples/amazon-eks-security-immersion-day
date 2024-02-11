@@ -103,15 +103,15 @@ The output looks like the following:
 /docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
 /docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
 /docker-entrypoint.sh: Configuration complete; ready for start up
-2023/09/28 20:24:39 [notice] 1#1: using the "epoll" event method
-2023/09/28 20:24:39 [notice] 1#1: nginx/1.25.2
-2023/09/28 20:24:39 [notice] 1#1: built by gcc 12.2.0 (Debian 12.2.0-14) 
-2023/09/28 20:24:39 [notice] 1#1: OS: Linux 5.10.192-183.736.amzn2.x86_64
-2023/09/28 20:24:39 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
-2023/09/28 20:24:39 [notice] 1#1: start worker processes
-2023/09/28 20:24:39 [notice] 1#1: start worker process 29
-2023/09/28 20:24:39 [notice] 1#1: start worker process 30
-127.0.0.1 - - [28/Sep/2023:20:25:31 +0000] "GET / HTTP/1.1" 200 615 "-" "curl/7.88.1" "-"
+2024/02/10 20:39:16 [notice] 1#1: using the "epoll" event method
+2024/02/10 20:39:16 [notice] 1#1: nginx/1.25.3
+2024/02/10 20:39:16 [notice] 1#1: built by gcc 12.2.0 (Debian 12.2.0-14) 
+2024/02/10 20:39:16 [notice] 1#1: OS: Linux 5.10.205-195.807.amzn2.x86_64
+2024/02/10 20:39:16 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2024/02/10 20:39:16 [notice] 1#1: start worker processes
+2024/02/10 20:39:16 [notice] 1#1: start worker process 29
+2024/02/10 20:39:16 [notice] 1#1: start worker process 30
+127.0.0.1 - - [10/Feb/2024:20:40:51 +0000] "GET / HTTP/1.1" 200 615 "-" "curl/7.88.1" "-"
 ^C
 ```
 

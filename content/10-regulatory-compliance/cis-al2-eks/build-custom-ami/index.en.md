@@ -1,6 +1,6 @@
 ---
-title : "Building a Custom AMI hadrdend with CIS specification hardening script"
-weight : 21
+title : "Building Amazon EKS CIS AL2 Hardened Custom AMI"
+weight : 22
 ---
 
 In this section we will walk through the process of building custom ami hardened as per CIS specification benchmark using community provided script. We will be using Hasihcorp [packer](https://www.packer.io/) to build the ami.
@@ -17,7 +17,7 @@ Clone the repo for building a custom Amazon EKS AMI with CIS hardening script. T
 
 ```bash
 cd ~/environment
-git clone https://github.com/preetamrebello/amazon-eks-custom-amis
+git clone https://github.com/aws-samples/amazon-eks-custom-amis.git
 cd ~/environment/amazon-eks-custom-amis
 ```
 
@@ -31,6 +31,13 @@ SUBNET_ID=`sed -e 's/^"//' -e 's/"$//' <<<"$SUBNET_ID"`
 echo $SUBNET_ID
 
 ```
+::::expand{header="Check Output"}
+```bash
+vpc-0d1c5a474503e75cf
+subnet-009649a8332d30b9e
+```
+
+
 Set the variables to AWS Regions and EKS version in packer variables file. The ami is built using the private ip address.
 
 ```bash
@@ -53,32 +60,35 @@ This will be the output after completion of the build (Output is truncated)
 
 ::::expand{header="Check Output"}
 ```bash
+==> amazon-eks.amazon-ebs.this: Waiting for the instance to stop...
+==> amazon-eks.amazon-ebs.this: Creating AMI amazon-eks-1.28-20240210201813 from instance i-04450a38165430927
+    amazon-eks.amazon-ebs.this: AMI: ami-072199f45f5ae588d
 ==> amazon-eks.amazon-ebs.this: Waiting for AMI to become ready...
 ==> amazon-eks.amazon-ebs.this: Skipping Enable AMI deprecation...
-==> amazon-eks.amazon-ebs.this: Modifying attributes on AMI (ami-0aafe4768c171cf05)...
+==> amazon-eks.amazon-ebs.this: Modifying attributes on AMI (ami-072199f45f5ae588d)...
     amazon-eks.amazon-ebs.this: Modifying: description
     amazon-eks.amazon-ebs.this: Modifying: imds_support
-==> amazon-eks.amazon-ebs.this: Modifying attributes on snapshot (snap-05545f085bec892a1)...
-==> amazon-eks.amazon-ebs.this: Modifying attributes on snapshot (snap-0e7b3720f052a5d65)...
-==> amazon-eks.amazon-ebs.this: Adding tags to AMI (ami-0aafe4768c171cf05)...
-==> amazon-eks.amazon-ebs.this: Tagging snapshot: snap-05545f085bec892a1
-==> amazon-eks.amazon-ebs.this: Tagging snapshot: snap-0e7b3720f052a5d65
+==> amazon-eks.amazon-ebs.this: Modifying attributes on snapshot (snap-027f4e2da4c7805fb)...
+==> amazon-eks.amazon-ebs.this: Modifying attributes on snapshot (snap-09eceef5fd2b00b84)...
+==> amazon-eks.amazon-ebs.this: Adding tags to AMI (ami-072199f45f5ae588d)...
+==> amazon-eks.amazon-ebs.this: Tagging snapshot: snap-027f4e2da4c7805fb
+==> amazon-eks.amazon-ebs.this: Tagging snapshot: snap-09eceef5fd2b00b84
 ==> amazon-eks.amazon-ebs.this: Creating AMI tags
-    amazon-eks.amazon-ebs.this: Adding tag: "SourceAMI": "ami-02b4071bb2bda80f3"
-    amazon-eks.amazon-ebs.this: Adding tag: "Name": "amazon-eks-1.25-20230928195858"
+    amazon-eks.amazon-ebs.this: Adding tag: "SourceAMI": "ami-0bffb2287b5685a74"
+    amazon-eks.amazon-ebs.this: Adding tag: "Name": "amazon-eks-1.28-20240210201813"
 ==> amazon-eks.amazon-ebs.this: Creating snapshot tags
 ==> amazon-eks.amazon-ebs.this: Terminating the source AWS instance...
 ==> amazon-eks.amazon-ebs.this: Cleaning up any extra volumes...
 ==> amazon-eks.amazon-ebs.this: No volumes to clean up, skipping
 ==> amazon-eks.amazon-ebs.this: Deleting temporary security group...
 ==> amazon-eks.amazon-ebs.this: Deleting temporary keypair...
-Build 'amazon-eks.amazon-ebs.this' finished after 7 minutes 13 seconds.
+Build 'amazon-eks.amazon-ebs.this' finished after 7 minutes 27 seconds.
 
-==> Wait completed after 7 minutes 13 seconds
+==> Wait completed after 7 minutes 27 seconds
 
 ==> Builds finished. The artifacts of successful builds are:
 --> amazon-eks.amazon-ebs.this: AMIs were created:
-us-west-2: ami-0aafe4768c171cf05
+us-west-2: ami-072199f45f5ae588d
 ```
 ::::
 
@@ -87,4 +97,7 @@ Set an environment variable with the above custom Amazon EKS AMI. This will be u
 export EKS_AMI_ID=$(aws ec2 describe-images    --filters 'Name=tag:Name,Values="amazon-eks*"'  --owners $AWS_ACCOUNT_ID --query 'Images[*].[ImageId]'  --output text)
 echo $EKS_AMI_ID
 ```
-
+::::expand{header="Check Output"}
+```bash
+ami-072199f45f5ae588d
+```
