@@ -32,32 +32,52 @@ When it comes up, customize the environment by:
 
 ```bash
 pip3 install --user --upgrade boto3
-export instance_id=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
-python -c "import boto3
+export instance_id=$(ec2-metadata --instance-id | cut -d " " -f 2)
+
+python3 -c "import boto3
 import os
-from botocore.exceptions import ClientError 
+from botocore.exceptions import ClientError
+
 ec2 = boto3.client('ec2')
-volume_info = ec2.describe_volumes(
-    Filters=[
-        {
-            'Name': 'attachment.instance-id',
-            'Values': [
-                os.getenv('instance_id')
-            ]
-        }
-    ]
-)
-volume_id = volume_info['Volumes'][0]['VolumeId']
+
 try:
-    resize = ec2.modify_volume(    
-            VolumeId=volume_id,    
-            Size=30
+    # Retrieve volumes attached to the specified instance
+    volume_info = ec2.describe_volumes(
+        Filters=[
+            {
+                'Name': 'attachment.instance-id',
+                'Values': [
+                    os.getenv('instance_id')
+                ]
+            }
+        ]
     )
-    print(resize)
+
+    print (volume_info)
+    # Check if there are volumes attached to the instance
+    if not volume_info['Volumes']:
+        print('No volumes attached to the specified instance.')
+    else:
+        # Get the volume ID of the first volume (assuming there's at least one)
+        volume_id = volume_info['Volumes'][0]['VolumeId']
+
+        try:
+            # Attempt to resize the volume
+            resize = ec2.modify_volume(    
+                VolumeId=volume_id,    
+                Size=30
+            )
+            print(resize)
+            # Print a message indicating successful resize
+            print(f'Volume {volume_id} resized successfully.')
+
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'InvalidParameterValue':
+                print('ERROR MESSAGE: {}'.format(e))
 except ClientError as e:
-    if e.response['Error']['Code'] == 'InvalidParameterValue':
-        print('ERROR MESSAGE: {}'.format(e))"
+    print('Error retrieving volume information: {}'.format(e))"
 if [ $? -eq 0 ]; then
+    echo "reboot to take change into account"
     sudo reboot
 fi
 ```
@@ -95,30 +115,39 @@ aws cloud9 update-environment  --environment-id $C9_PID --managed-credentials-ac
 rm -vf ${HOME}/.aws/credentials
 ```
 
+<!-- amazon linux 2023 already have recent enough aws cli
 #### Install latest awscli
 ```bash
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 unzip awscliv2.zip
 sudo ./aws/install
 ```
-
-Run below commands to set few environment variables.
-
-::alert[If you are [at an AWS event](/1-create-workspace-environment/awsevent), ask your instructor which **AWS region** to use.]{header="Note"}
+-->
 
 Install the `jq` utility.
 
 ```bash
-sudo yum -y install jq
+sudo yum -y install jq gettext bash-completion
+```
+
+Install the `c9` utility.
+
+```bash
+npm install -g c9
 ```
 
 Run below commands to set few environment variables.
 
 ```bash
 export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
-export AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
+export AWS_REGION=$(ec2-metadata --availability-zone | cut -d " " -f 2 | rev | cut -c 2- | rev)
 export AZS=($(aws ec2 describe-availability-zones --query 'AvailabilityZones[].ZoneName' --output text --region $AWS_REGION))
+```
 
+Check if ACCOUNT_ID is set 
+
+```bash
+test -n "$ACCOUNT_ID" || echo ACCOUNT_ID is not set
 ```
 
 Check if AWS_REGION is set to desired region
@@ -131,10 +160,12 @@ test -n "$AWS_REGION" && echo AWS_REGION is "$AWS_REGION" || echo AWS_REGION is 
 
 ```bash
 echo "export ACCOUNT_ID=${ACCOUNT_ID}" | tee -a ~/.bash_profile
+echo "export AWS_ACCOUNT_ID=${ACCOUNT_ID}" | tee -a ~/.bash_profile
 echo "export AWS_REGION=${AWS_REGION}" | tee -a ~/.bash_profile
 echo "export AZS=(${AZS[@]})" | tee -a ~/.bash_profile
 aws configure set default.region ${AWS_REGION}
 aws configure get default.region
+aws configure set cli_pager ""
 ```
 
 **Validate the IAM role**

@@ -16,7 +16,7 @@ kubectl  --context $EKS_CLUSTER2_CONTEXT apply -f manifests/$APPNAME-$VERSION-de
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 namespace/app6 created
 deployment.apps/app6-v1 created
 service/app6-v1 created
@@ -29,7 +29,7 @@ kubectl --context $EKS_CLUSTER2_CONTEXT -n $APPNAME get all
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 NAME                           READY   STATUS    RESTARTS   AGE
 pod/app6-v1-7c98dc8c57-ssgxz   1/1     Running   0          109s
 
@@ -63,7 +63,7 @@ kubectl --context $EKS_CLUSTER2_CONTEXT apply -f manifests/$APPNAME-service-expo
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 serviceexport.multicluster.x-k8s.io/app6-v1 created
 ```
 ::::
@@ -73,7 +73,7 @@ kubectl --context $EKS_CLUSTER2_CONTEXT -n $APPNAME get serviceexport app6-v1 -n
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 NAME      AGE
 app6-v1   44s
 ```
@@ -107,7 +107,7 @@ kubectl --context $EKS_CLUSTER1_CONTEXT apply -f manifests/$APPNAME-service-impo
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 namespace/app6 created
 erviceimport.multicluster.x-k8s.io/app6-v1 created
 ```
@@ -118,7 +118,7 @@ kubectl --context $EKS_CLUSTER1_CONTEXT get serviceimport -n app6
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 NAME      TYPE           IP    AGE
 app6-v1   ClusterSetIP         3m20s
 ```
@@ -137,7 +137,7 @@ kubectl --context $EKS_CLUSTER1_CONTEXT apply -f manifests/$APPNAME-http-custom-
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 httproute.gateway.networking.k8s.io/app6 created
 ```
 ::::
@@ -149,7 +149,7 @@ kubectl --context $EKS_CLUSTER1_CONTEXT  wait --for=jsonpath='{.status.parents[-
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 httproute.gateway.networking.k8s.io/app6 condition met
 ```
 ::::
@@ -247,7 +247,7 @@ echo "app6DNS=$app6DNS"
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 app6DNS=DNS Name: app6-app6-075dc0ad6d3159ffb.7d67968.vpc-lattice-svcs.us-west-2.on.aws
 ```
 ::::
@@ -262,7 +262,7 @@ echo "export app6FQDN=$app6FQDN" >> ~/.bash_profile
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 app6FQDN=app6-app6-094b5ffecc2aa5d85.7d67968.vpc-lattice-svcs.us-west-2.on.aws
 ```
 ::::
@@ -332,7 +332,7 @@ kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/$CLIENT_APP-$VERSION -c 
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 Server:         172.20.0.10
 Address:        172.20.0.10#53
 
@@ -353,7 +353,7 @@ kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/$CLIENT_APP-$VERSION -c 
 Note that domain name `app6.vpc-lattice-custom-domain.io` resolves to `app6` default VPC Lattice generated domain as per the `CNAME` record configuration in the Private Hosted Zone.
 
 ::::expand{header="Check Output"}
-```bash
+```
 Server:         172.20.0.10
 Address:        172.20.0.10#53
 
@@ -374,7 +374,7 @@ kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/$CLIENT_APP-$VERSION -c 
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 Requsting to Pod(app6-v1-7c98dc8c57-ssgxz): Hello from app6-v1
 ```
 ::::

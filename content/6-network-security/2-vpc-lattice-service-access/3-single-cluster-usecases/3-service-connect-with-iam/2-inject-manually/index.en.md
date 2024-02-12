@@ -1,10 +1,60 @@
 ---
-title : "Inject manually"
+title : "Use a Proxy to implement SIGv4"
 weight : 11
 ---
 
+**AWS SIGv4 Proxy container**: It will automatically sign requests using the credentials obtained by AWS IAM role of Pod Identity in Amazon EKS. It provides various configuration options including `--name vpc-lattice-svcs`, `--unsigned-payload` flag and logging options. 
+
+The proxy container will listen to port 8080 and run as user `101`. The YAML snippet will look like below.
+
+```yaml
+      - name: sigv4proxy
+        image: public.ecr.aws/aws-observability/aws-sigv4-proxy:latest
+        args: [
+          "--unsigned-payload",
+          "--log-failed-requests",
+          "-v", "--log-signing-process",
+          "--name", "vpc-lattice-svcs",
+          "--region", "us-west-2",
+          "--upstream-url-scheme", "http"
+        ]
+        ports:
+        - containerPort: 8080
+          name: proxy
+          protocol: TCP
+        securityContext:
+          runAsUser: 101 
+```
+
+**Init container**: It configures the iptables to intercept any traffic from `app1` Service going to Amazon VPC Lattice services and redirect traffic to the AWS SigV4 Proxy.
+
+It uses `iptables` utility to route the traffic connecting to Amazon VPC Lattice CIDR `169.254.171.0/24` to `EGRESS_PROXY` chain, and redirect the traffic to local port 8080. To avoid infinite loops when the traffic is sent by the proxy container, it is identified by checking whether the UID is `101` to ensure that it won’t be redirect again. The YAML snippet will look like below.
+
+We uses an ini container to setup the appropriate iptables routing rules:
+
+```yaml
+      initContainers: # IPTables rules are updated in init container
+      - image: public.ecr.aws/d2c6w7a3/iptables
+        name: iptables-init
+        securityContext:
+          capabilities:
+            add:
+            - NET_ADMIN
+        command: # Adding --uid-owner 101 here to prevent traffic from envoy proxy itself from being redirected, which prevents an infinite loop
+        - /bin/sh
+        - -c
+        - >
+          iptables -t nat -N EGRESS_PROXY;
+          iptables -t nat -A OUTPUT -p tcp -d 169.254.171.0/24 -j EGRESS_PROXY;
+          iptables -t nat -A EGRESS_PROXY -m owner --uid-owner 101 -j RETURN;
+          iptables -t nat -A EGRESS_PROXY -p tcp -j REDIRECT --to-ports 8080;
+```
+
+## Inject manually
 
 In this section, let us re-deploy the client Service `app1-v1` Deployment by manually adding Init and SIGV4 Proxy containers.
+
+![](/static/images/6-network-security/2-vpc-lattice-service-access/lattice-usecase3-2.png)
 
 ```yaml
 cat > manifests/app1-v1-deploy-manual-update.yaml <<EOF
@@ -51,12 +101,12 @@ spec:
           iptables -t nat -A EGRESS_PROXY -p tcp -j REDIRECT --to-ports 8080;    
       containers:
       - name: app1-v1
-        image: public.ecr.aws/x2j8p8w7/http-server:latest
+        image: public.ecr.aws/seb-demo/http-server:latest
         env:
         - name: PodName
           value: "Hello from app1-v1"
       - name: sigv4proxy
-        image: public.ecr.aws/aws-observability/aws-sigv4-proxy:latest
+        image: public.ecr.aws/seb-demo/aws-sigv4-proxy
         args: [
           "--unsigned-payload",
           "--log-failed-requests",
@@ -89,160 +139,32 @@ kubectl --context $EKS_CLUSTER1_CONTEXT apply -f manifests/app1-v1-deploy-manual
 ```
 
 ::::expand{header="Check Output"}
-```bash
-deployment.apps/inventory-ver1 configured
+```
+deployment.apps/app1-v1 configured
 ```
 ::::
 
-Ensure that client Service `inventory-ver1` pods are re-deployed with Init and SIGV4 Proxy containers.
+Ensure that client Service `app1-v1` pods are re-deployed with Init and SIGV4 Proxy containers.
 
 ```bash
 kubectl --context $EKS_CLUSTER1_CONTEXT -n app1 get pod
 ```
 Notice that `app1-v1` Service pods shows two containers as `2/2`.
 
-```bash 
+```
 NAME                      READY   STATUS    RESTARTS   AGE
 app1-v1-df98f6c96-zql6d   2/2     Running   0          32s
 ```
 
-Run `yum install bind-utils tar` in the inventory pod for the `nslookup` and `tar` binaries.
-
-```bash
-kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -c app1-v1 -n app1 -- yum install tar bind-utils -y
-```
-
-::::expand{header="Check Output"}
-```bash
-Loaded plugins: ovl, priorities
-amzn2-core                                                                   | 3.6 kB  00:00:00     
-(1/3): amzn2-core/2/x86_64/group_gz                                          | 2.7 kB  00:00:00     
-(2/3): amzn2-core/2/x86_64/updateinfo                                        | 729 kB  00:00:00     
-(3/3): amzn2-core/2/x86_64/primary_db                                        |  67 MB  00:00:00     
-Resolving Dependencies
---> Running transaction check
----> Package bind-utils.x86_64 32:9.11.4-26.P2.amzn2.13.5 will be installed
---> Processing Dependency: bind-libs(x86-64) = 32:9.11.4-26.P2.amzn2.13.5 for package: 32:bind-utils-9.11.4-26.P2.amzn2.13.5.x86_64
---> Processing Dependency: bind-libs-lite(x86-64) = 32:9.11.4-26.P2.amzn2.13.5 for package: 32:bind-utils-9.11.4-26.P2.amzn2.13.5.x86_64
---> Processing Dependency: libGeoIP.so.1()(64bit) for package: 32:bind-utils-9.11.4-26.P2.amzn2.13.5.x86_64
---> Processing Dependency: libbind9.so.160()(64bit) for package: 32:bind-utils-9.11.4-26.P2.amzn2.13.5.x86_64
---> Processing Dependency: libdns.so.1102()(64bit) for package: 32:bind-utils-9.11.4-26.P2.amzn2.13.5.x86_64
---> Processing Dependency: libirs.so.160()(64bit) for package: 32:bind-utils-9.11.4-26.P2.amzn2.13.5.x86_64
---> Processing Dependency: libisc.so.169()(64bit) for package: 32:bind-utils-9.11.4-26.P2.amzn2.13.5.x86_64
---> Processing Dependency: libisccfg.so.160()(64bit) for package: 32:bind-utils-9.11.4-26.P2.amzn2.13.5.x86_64
---> Processing Dependency: liblwres.so.160()(64bit) for package: 32:bind-utils-9.11.4-26.P2.amzn2.13.5.x86_64
----> Package tar.x86_64 2:1.26-35.amzn2.0.2 will be installed
---> Running transaction check
----> Package GeoIP.x86_64 0:1.5.0-11.amzn2.0.2 will be installed
----> Package bind-libs.x86_64 32:9.11.4-26.P2.amzn2.13.5 will be installed
---> Processing Dependency: bind-license = 32:9.11.4-26.P2.amzn2.13.5 for package: 32:bind-libs-9.11.4-26.P2.amzn2.13.5.x86_64
----> Package bind-libs-lite.x86_64 32:9.11.4-26.P2.amzn2.13.5 will be installed
---> Running transaction check
----> Package bind-license.noarch 32:9.11.4-26.P2.amzn2.13.5 will be installed
---> Finished Dependency Resolution
-
-Dependencies Resolved
-
-====================================================================================================
- Package                Arch           Version                             Repository          Size
-====================================================================================================
-Installing:
- bind-utils             x86_64         32:9.11.4-26.P2.amzn2.13.5          amzn2-core         261 k
- tar                    x86_64         2:1.26-35.amzn2.0.2                 amzn2-core         845 k
-Installing for dependencies:
- GeoIP                  x86_64         1.5.0-11.amzn2.0.2                  amzn2-core         1.1 M
- bind-libs              x86_64         32:9.11.4-26.P2.amzn2.13.5          amzn2-core         159 k
- bind-libs-lite         x86_64         32:9.11.4-26.P2.amzn2.13.5          amzn2-core         1.1 M
- bind-license           noarch         32:9.11.4-26.P2.amzn2.13.5          amzn2-core          92 k
-
-Transaction Summary
-====================================================================================================
-Install  2 Packages (+4 Dependent packages)
-
-Total download size: 3.5 M
-Installed size: 9.1 M
-Downloading packages:
-(1/6): bind-libs-9.11.4-26.P2.amzn2.13.5.x86_64.rpm                          | 159 kB  00:00:00     
-(2/6): GeoIP-1.5.0-11.amzn2.0.2.x86_64.rpm                                   | 1.1 MB  00:00:00     
-(3/6): bind-license-9.11.4-26.P2.amzn2.13.5.noarch.rpm                       |  92 kB  00:00:00     
-(4/6): bind-utils-9.11.4-26.P2.amzn2.13.5.x86_64.rpm                         | 261 kB  00:00:00     
-(5/6): bind-libs-lite-9.11.4-26.P2.amzn2.13.5.x86_64.rpm                     | 1.1 MB  00:00:00     
-(6/6): tar-1.26-35.amzn2.0.2.x86_64.rpm                                      | 845 kB  00:00:00     
-----------------------------------------------------------------------------------------------------
-Total                                                                17 MB/s | 3.5 MB  00:00:00     
-Running transaction check
-Running transaction test
-Transaction test succeeded
-Running transaction
-  Installing : GeoIP-1.5.0-11.amzn2.0.2.x86_64                                                  1/6 
-  Installing : 32:bind-license-9.11.4-26.P2.amzn2.13.5.noarch                                   2/6 
-  Installing : 32:bind-libs-lite-9.11.4-26.P2.amzn2.13.5.x86_64                                 3/6 
-  Installing : 32:bind-libs-9.11.4-26.P2.amzn2.13.5.x86_64                                      4/6 
-  Installing : 32:bind-utils-9.11.4-26.P2.amzn2.13.5.x86_64                                     5/6 
-  Installing : 2:tar-1.26-35.amzn2.0.2.x86_64                                                   6/6 
-  Verifying  : 2:tar-1.26-35.amzn2.0.2.x86_64                                                   1/6 
-  Verifying  : 32:bind-libs-9.11.4-26.P2.amzn2.13.5.x86_64                                      2/6 
-  Verifying  : 32:bind-libs-lite-9.11.4-26.P2.amzn2.13.5.x86_64                                 3/6 
-  Verifying  : 32:bind-utils-9.11.4-26.P2.amzn2.13.5.x86_64                                     4/6 
-  Verifying  : GeoIP-1.5.0-11.amzn2.0.2.x86_64                                                  5/6 
-  Verifying  : 32:bind-license-9.11.4-26.P2.amzn2.13.5.noarch                                   6/6 
-
-Installed:
-  bind-utils.x86_64 32:9.11.4-26.P2.amzn2.13.5            tar.x86_64 2:1.26-35.amzn2.0.2           
-
-Dependency Installed:
-  GeoIP.x86_64 0:1.5.0-11.amzn2.0.2                 bind-libs.x86_64 32:9.11.4-26.P2.amzn2.13.5    
-  bind-libs-lite.x86_64 32:9.11.4-26.P2.amzn2.13.5  bind-license.noarch 32:9.11.4-26.P2.amzn2.13.5 
-
-Complete!
-```
-::::
-
-Run the `nslookup` command in the `app1-v1` Pod to resolve the **app2FQDN**
-
-```bash
-kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -c app1-v1 -n app1 -- nslookup $app2FQDN
-```
-
-::::expand{header="Check Output"}
-```bash
-Server:         172.20.0.10
-Address:        172.20.0.10#53
-
-Non-authoritative answer:
-Name:   app2-app2-0e5f3d2b3db4c7962.7d67968.vpc-lattice-svcs.us-west-2.on.aws
-Address: 169.254.171.33
-Name:   app2-app2-0e5f3d2b3db4c7962.7d67968.vpc-lattice-svcs.us-west-2.on.aws
-Address: fd00:ec2:80::a9fe:ab21
-```
-::::
-
-Notice that the IP `169.254.171.33` for **ratesFQDN** is from `MANAGED_PREFIX=169.254.171.0/24` we saw in the earlier section.
-
-
 Exec into an `app1-v1` pod to check connectivity to `app2`service. 
 
 ```bash
-kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -c app1-v1 -n app1 -- curl -v $app2FQDN
+kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -c app1-v1 -n app1 -- curl $app2DNS
 ```
 
 ::::expand{header="Check Output"}
-```bash
-*   Trying 169.254.171.33:80...
-* Connected to app2-app2-0e5f3d2b3db4c7962.7d67968.vpc-lattice-svcs.us-west-2.on.aws (169.254.171.33) port 80 (#0)
-> GET / HTTP/1.1
-> Host: app2-app2-0e5f3d2b3db4c7962.7d67968.vpc-lattice-svcs.us-west-2.on.aws
-> User-Agent: curl/7.76.1
-> Accept: */*
-> 
-* Mark bundle as not supporting multiuse
-< HTTP/1.1 200 OK
-< Content-Length: 62
-< Content-Type: text/plain; charset=utf-8
-< Date: Thu, 26 Oct 2023 06:56:48 GMT
-< 
-Requsting to Pod(app2-v1-c6978fdbc-fnkw8): Hello from app2-v1
-* Connection #0 to host app2-app2-0e5f3d2b3db4c7962.7d67968.vpc-lattice-svcs.us-west-2.on.aws left intact
+```
+Requsting to Pod(app2-v1-56f7c48bbf-nl6gg): Hello from app2-v1
 ```
 ::::
 
@@ -255,7 +177,7 @@ kubectl --context $EKS_CLUSTER1_CONTEXT logs  deploy/app1-v1 -n app1 -c sigv4pro
 
 
 ::::expand{header="Check Output"}
-```bash
+```
 time="2023-10-26T06:50:27Z" level=info msg="Stripping headers []" StripHeaders="[]"
 time="2023-10-26T06:50:27Z" level=info msg="Listening on :8080" port=":8080"
 time="2023-10-26T06:56:04Z" level=debug msg="Initial request dump:" request="GET / HTTP/1.1\r\nHost: app2-app2-0e5f3d2b3db4c7962.7d67968.vpc-lattice-svcs.us-west-2.on.aws\r\nAccept: */*\r\nUser-Agent: curl/7.76.1\r\n\r\n"
@@ -278,7 +200,7 @@ kubectl --context $EKS_CLUSTER1_CONTEXT delete deploy app1-v1 -n app1
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 deployment.apps "app1-v1" deleted
 ```
 ::::
@@ -291,7 +213,7 @@ kubectl --context $EKS_CLUSTER1_CONTEXT apply -f manifests/app1-v1-deploy.yaml
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 namespace/app1 unchanged
 deployment.apps/app1-v1 created
 service/app1-v1 unchanged
@@ -305,9 +227,22 @@ kubectl --context $EKS_CLUSTER1_CONTEXT get pod -n app1
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 NAME                       READY   STATUS    RESTARTS   AGE
 app1-v1-5cc757c998-9trw5   1/1     Running   0          31s
 ```
 ::::
 
+
+Now the flows between app1 and app2 is not working again through VPC lattice
+
+```bash
+kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -c app1-v1 -n app1 -- curl $app2DNS
+
+```
+
+::::expand{header="Check Output" defaultExpanded=true}
+```
+AccessDeniedException: User: anonymous is not authorized to perform: vpc-lattice-svcs:Invoke on resource: arn:aws:vpc-lattice:us-west-2:097381749469:service/svc-061f66f60654b5c6f/ because no network-based policy allows the vpc-lattice-svcs:Invoke action
+```
+::::

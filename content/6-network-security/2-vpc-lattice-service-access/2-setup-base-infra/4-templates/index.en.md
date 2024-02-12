@@ -102,7 +102,7 @@ spec:
     spec:
       containers:
       - name: \$APPNAME-\$VERSION
-        image: public.ecr.aws/x2j8p8w7/http-server:latest
+        image: public.ecr.aws/seb-demo/http-server:latest
         env:
         - name: PodName
           value: "Hello from \$APPNAME-\$VERSION"

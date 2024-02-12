@@ -28,7 +28,13 @@ managedNodeGroups:
   - m4.large
   - m5a.large
   - m5.large
-  
+
+#To enable eks managed addons
+# addons:
+#   - name: eks-pod-identity-agent # required for `iam.podIdentityAssociations`
+#     tags:
+#       team: eks
+
 # To enable all of the control plane logs, uncomment below:
 # cloudWatch:
 #  clusterLogging:
@@ -61,4 +67,14 @@ NAME                                           STATUS   ROLES    AGE    VERSION
 ip-10-254-128-55.us-west-2.compute.internal    Ready    <none>   3h9m   v1.28.1-eks-43840fb
 ip-10-254-180-171.us-west-2.compute.internal   Ready    <none>   3h9m   v1.28.1-eks-43840fb
 ip-10-254-217-72.us-west-2.compute.internal    Ready    <none>   3h9m   v1.28.1-eks-43840fb
+```
+
+Export variables:
+
+```bash
+export EKS_CLUSTER=eksworkshop-eksctl >> ~/.bash_profile
+export EKS_CLUSTER1_NAME=eksworkshop-eksctl >> ~/.bash_profile
+export EKS_CLUSTER1_CONTEXT=$(kubectl config current-context)
+echo "export EKS_CLUSTER1_CONTEXT=$EKS_CLUSTER1_CONTEXT" >> ~/.bash_profile
+source ~/.bash_profile
 ```

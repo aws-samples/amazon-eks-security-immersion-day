@@ -21,7 +21,7 @@ kubectl --context $EKS_CLUSTER2_CONTEXT exec -it deploy/app5-v1 -n app5 -- nsloo
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 Server:         172.20.0.10
 Address:        172.20.0.10#53
 
@@ -41,7 +41,7 @@ kubectl --context $EKS_CLUSTER2_CONTEXT exec -it deploy/app5-v1 -c app5-v1 -n ap
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 curl: (28) Failed to connect to app1-app1-0df47cf7f9031f04e.7d67968.vpc-lattice-svcs.us-west-2.on.aws port 80: Connection timed out
 command terminated with exit code 28
 ```
@@ -59,7 +59,7 @@ sleep 15
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 {
     "arn": "arn:aws:vpc-lattice:us-west-2:ACCOUNT_ID:servicenetworkvpcassociation/snva-0fab4e09dfe2210b2",
     "createdBy": "ACCOUNT_ID",
@@ -118,7 +118,7 @@ kubectl --context $EKS_CLUSTER2_CONTEXT exec -it deploy/app5-v1 -c app5-v1 -n ap
 The `app5` from second EKS cluster should now be able to connect to `app1` in first EKS clsuter.
 
 ::::expand{header="Check Output"}
-```bash
+```
 Requsting to Pod(app1-v1-7ccbcc48b6-wnltj): Hello from app1-v1
 ```
 ::::
@@ -137,7 +137,7 @@ kubectl --context $EKS_CLUSTER2_CONTEXT exec -it deploy/app5-v1 -n app5 -- nsloo
 Did you notice the error that domain name `app4.vpc-lattice-custom-domain.io` cannot be resolved from second EKS cluster since second EKS cluster VPC is not associated with Route53 Private Hosted Zone.
 
 ::::expand{header="Check Output"}
-```bash
+```
 Server:         172.20.0.10
 Address:        172.20.0.10#53
 
@@ -185,7 +185,7 @@ kubectl --context $EKS_CLUSTER2_CONTEXT exec -it deploy/app5-v1 -n app5 -- nsloo
 The clients in second EKS cluster should now be able to resolve the Custom Domain for services in first EKS Cluster.
 
 ::::expand{header="Check Output"}
-```bash
+```
 Server:         172.20.0.10
 Address:        172.20.0.10#53
 
@@ -205,7 +205,7 @@ kubectl --context $EKS_CLUSTER2_CONTEXT exec -it deploy/app5-v1 -c app5-v1 -n ap
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 Requsting to Pod(app4-v1-77dcb6444c-mfjv2): Hello from app4-v1
 ```
 ::::
@@ -217,7 +217,7 @@ kubectl --context $EKS_CLUSTER2_CONTEXT exec -it deploy/app5-v1 -c app5-v1 -n ap
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 curl: (60) SSL certificate problem: self signed certificate in certificate chain
 More details here: https://curl.se/docs/sslcerts.html
 
@@ -242,7 +242,7 @@ kubectl --context $EKS_CLUSTER2_CONTEXT -n app5 exec -it deploy/app5-v1 -c app5-
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 APP5_POD_NAME=app5-v1-5f558c7fb6-c7vsl
 -rwxrwxr-x 1 root root 6182155 Sep 20  2021 http-servers
 -rw-rw-r-- 1 1000 1000    1383 Oct 27 01:25 root_cert.pem
@@ -259,6 +259,6 @@ kubectl --context $EKS_CLUSTER2_CONTEXT exec -it deploy/app5-v1 -c app5-v1 -n ap
 We should now see the proper response from the `app4`.
 
 ::::expand{header="Check Output"}
-```bash
+```
 Requsting to Pod(app4-v1-77dcb6444c-mfjv2): Hello from app4-v1
 ::::

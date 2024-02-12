@@ -65,7 +65,7 @@ eksctl utils associate-iam-oidc-provider --cluster $EKS_CLUSTER2_NAME --approve 
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 2023-10-27 01:41:42 [ℹ]  will create IAM Open ID Connect provider for cluster "eksworkshop-eksctl-2" in "us-west-2"
 2023-10-27 01:41:42 [✔]  created IAM Open ID Connect provider for cluster "eksworkshop-eksctl-2" in "us-west-2"
 ```
@@ -77,7 +77,7 @@ eksctl utils associate-iam-oidc-provider --cluster $EKS_CLUSTER2_NAME --approve 
 echo "VPCLatticeControllerIAMPolicyArn=$VPCLatticeControllerIAMPolicyArn"
 ```
 ::::expand{header="Check Output"}
-```bash
+```
 VPCLatticeControllerIAMPolicyArn=arn:aws:iam::ACCOUNT_ID:policy/VPCLatticeControllerIAMPolicy
 ```
 ::::
@@ -89,7 +89,7 @@ kubectl --context $EKS_CLUSTER2_CONTEXT apply -f examples/deploy-namesystem.yaml
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 namespace/aws-application-networking-system created
 ```
 ::::
@@ -109,7 +109,7 @@ eksctl create iamserviceaccount \
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 2023-10-27 01:48:53 [ℹ]  1 iamserviceaccount (aws-application-networking-system/gateway-api-controller) was included (based on the include/exclude rules)
 2023-10-27 01:48:53 [!]  metadata of serviceaccounts that exist in Kubernetes will be updated, as --override-existing-serviceaccounts was set
 2023-10-27 01:48:53 [ℹ]  1 task: { 
@@ -132,7 +132,7 @@ kubectl --context $EKS_CLUSTER2_CONTEXT apply -f examples/deploy-v0.0.17.yaml
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 namespace/aws-application-networking-system unchanged
 customresourcedefinition.apiextensions.k8s.io/dnsendpoints.externaldns.k8s.io created
 customresourcedefinition.apiextensions.k8s.io/gatewayclasses.gateway.networking.k8s.io created
@@ -162,7 +162,7 @@ kubectl --context $EKS_CLUSTER2_CONTEXT get all -n aws-application-networking-sy
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 NAME                                         READY   STATUS    RESTARTS   AGE
 pod/gateway-api-controller-965646b47-st8bm   2/2     Running   0          39h
 
@@ -188,7 +188,7 @@ kubectl  --context $EKS_CLUSTER2_CONTEXT apply -f manifests/gatewayclass.yaml
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 gatewayclass.gateway.networking.k8s.io/amazon-vpc-lattice created
 ```
 ::::
@@ -211,7 +211,7 @@ kubectl  --context $EKS_CLUSTER2_CONTEXT apply -f manifests/$GATEWAY_NAME.yaml
 
 
 ::::expand{header="Check Output"}
-```bash
+```
 namespace/app-services-gw created
 gateway.gateway.networking.k8s.io/app-services-gw created
 ```
@@ -224,7 +224,7 @@ kubectl  --context $EKS_CLUSTER2_CONTEXT get gateway -n $GATEWAY_NAMESPACE
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 _NAMESPACE
 NAME              CLASS                ADDRESS   PROGRAMMED   AGE
 app-services-gw   amazon-vpc-lattice                          97s
@@ -368,7 +368,7 @@ echo "gatewayARN=$gatewayARN"
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 gatewayARN=arn:aws:vpc-lattice:us-west-2:ACCOUNT_ID:servicenetwork/sn-0cc73287505ac121a
 ```
 ::::

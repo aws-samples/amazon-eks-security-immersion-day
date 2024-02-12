@@ -11,11 +11,6 @@ Before creating second cluster, let us first setup environment variables for the
 cd ~/environment
 mkdir -p templates
 mkdir -p manifests
-export EKS_CLUSTER1_NAME=eksworkshop-eksctl
-echo "export EKS_CLUSTER1_NAME=$EKS_CLUSTER1_NAME" >> ~/.bash_profile
-export EKS_CLUSTER1_CONTEXT=$(kubectl config current-context)
-echo "export EKS_CLUSTER1_CONTEXT=$EKS_CLUSTER1_CONTEXT" >> ~/.bash_profile
-kubectl  --context $EKS_CLUSTER1_CONTEXT get node
 ```
 ::::expand{header="Check Output"}
 ```bash
@@ -65,7 +60,6 @@ echo "export MASTER_ARN=${MASTER_ARN}" | tee -a ~/.bash_profile
 Create an eksctl deployment file (**eksworkshop.yaml**) used in creating your cluster using the following syntax:
 
 ```bash
-export AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
 export EKS_CLUSTER2_NAME=eksworkshop-eksctl-2
 echo "export EKS_CLUSTER2_NAME=$EKS_CLUSTER2_NAME" >> ~/.bash_profile
 export AZS=($(aws ec2 describe-availability-zones --query 'AvailabilityZones[].ZoneName' --output text --region $AWS_REGION))
@@ -101,7 +95,13 @@ managedNodeGroups:
   - m4.large
   - m5a.large
   - m5.large
-  
+
+#To enable eks managed addons
+addons:
+  - name: eks-pod-identity-agent # required for `iam.podIdentityAssociations`
+    tags:
+      team: eks
+
 # To enable all of the control plane logs, uncomment below:
 # cloudWatch:
 #  clusterLogging:

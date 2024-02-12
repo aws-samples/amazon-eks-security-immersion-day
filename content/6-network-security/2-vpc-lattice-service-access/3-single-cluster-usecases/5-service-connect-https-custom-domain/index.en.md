@@ -5,6 +5,11 @@ weight : 16
 
 In this section, we will deploy a new service `app4` and configure `HTTPRoute` with `HTTPS` listener with Custom VPC Lattice Domain. We will then test connectivity from `app1` to `app4`.
 
+![](/static/images/6-network-security/2-vpc-lattice-service-access/lattice-usecase4.png)
+- We Deploy app4 with an HTTPRoute pointing to a custom Domain Name
+- Gateway api controller will create a `DNSEndpoint` object based on the wanted domain name
+- We add External-DNS to create DNS records from the HTTPRoute object
+- VPC Lattice will deal with TLS termination of our custom domain name, thanks to the Certificat we attached to the `app-service-gw`Gateway.
 
 ## Deploy and register Service `app4` to Service Network `app-services-gw`
 
@@ -18,7 +23,7 @@ kubectl  --context $EKS_CLUSTER1_CONTEXT apply -f manifests/$APPNAME-$VERSION-de
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 namespace/app4 unchanged
 deployment.apps/app4-v1 configured
 service/app4-v1 unchanged
@@ -31,7 +36,7 @@ kubectl --context $EKS_CLUSTER1_CONTEXT -n $APPNAME get all
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 NAME                           READY   STATUS    RESTARTS   AGE
 pod/app4-v1-77dcb6444c-mfjv2   1/1     Running   0          7s
 
@@ -49,17 +54,13 @@ replicaset.apps/app4-v1-77dcb6444c   1         1         1       7s
 ### Deploy HTTPRoute for Service `app4` with `HTTPS` listener with Custom Lattice Domain
 
 ```bash
-export GATEWAY_NAME=app-services-gw
-export GATEWAY_NAMESPACE=app-services-gw
-export APPNAME=app4
-export VERSION=v1
-export CUSTOM_DOMAIN_NAME="vpc-lattice-custom-domain.io"
 envsubst < templates/route-template-https-custom-domain.yaml > manifests/$APPNAME-https-custom-domain.yaml
+c9 manifests/$APPNAME-https-custom-domain.yaml
 kubectl --context $EKS_CLUSTER1_CONTEXT apply -f manifests/$APPNAME-https-custom-domain.yaml
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 httproute.gateway.networking.k8s.io/app4 created
 ```
 ::::
@@ -71,7 +72,7 @@ kubectl --context $EKS_CLUSTER1_CONTEXT  wait --for=jsonpath='{.status.parents[-
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 httproute.gateway.networking.k8s.io/app4 condition met
 ```
 ::::
@@ -169,95 +170,64 @@ The `status` field in the above output contains the DNS Name of the Service `mes
 2. Store assigned DNS names to variables.
 
 ```bash
-app4DNS=$(kubectl --context $EKS_CLUSTER1_CONTEXT get httproute $APPNAME -n $APPNAME -o json | jq -r '.status.parents[].conditions[0].message')
+app4DNS=$(kubectl --context $EKS_CLUSTER1_CONTEXT get httproute app4 -n app4 -o json | jq -r '.metadata.annotations."application-networking.k8s.aws/lattice-assigned-domain-name"')
 echo "app4DNS=$app4DNS"
 ```
 
 ::::expand{header="Check Output"}
-```bash
-app4DNS=DNS Name: app4-app4-06d489b63a7bc4295.7d67968.vpc-lattice-svcs.us-west-2.on.aws
+```
+demo3:~/environment $ echo "app4DNS=$app4DNS"
+app4DNS=app4-app4-05a7179225d38fd2d.7d67968.vpc-lattice-svcs.us-west-2.on.aws
 ```
 ::::
 
-3. Remove preceding extra text.
+::alert[If you have a null in response, wait a little for the HTTPRoute to be properly created and replay the last command.]{header="Note"}
+
+## Install and configure External DNS to manage records automatically
+
+Let's use eksdemo to help us installing ExternalDNS with proper IAM Role for serviceaccount configuration. We also ask External-dns to watch for `service`, `ingress`, and `crd` source type, and we provide Extra configuration so that it watch for `DNSEndpoint` custom ressource definition.
 
 ```bash
-prefix="DNS Name: "
-app4FQDN=${app4DNS#$prefix}
-echo "app4FQDN=$app4FQDN"
-echo "export app4FQDN=$app4FQDN" >> ~/.bash_profile
+eksdemo install external-dns -c $EKS_CLUSTER1_NAME --set policy=sync \
+  --set "domainFilters[0]=vpc-lattice-custom-domain.io" \
+  --set "txtPrefix=lattice" \
+  --set "sources[0]=service" --set "sources[1]=ingress" --set "sources[2]=crd" \
+  --set "extraArgs[0]=--crd-source-apiversion=externaldns.k8s.io/v1alpha1" \
+  --set "extraArgs[1]=--crd-source-kind=DNSEndpoint" \
+  --set "extraArgs[2]=--zone-id-filter=$HOSTED_ZONE_ID" \
+  --set logLevel=debug \
+  --debug
 ```
 
-::::expand{header="Check Output"}
+If you want, you can open another terminal window and watch for the external-dns controller logs
+
 ```bash
-app4FQDN=app4-app4-06d489b63a7bc4295.7d67968.vpc-lattice-svcs.us-west-2.on.aws
-```
-::::
-
-## Create CNAME record for app4 custom domain `app4.vpc-lattice-custom-domain.io`
-
-```bash
-export APPNAME=app4
-export CUSTOM_DOMAIN_NAME="vpc-lattice-custom-domain.io"
-cat <<-EOF > manifests/$APPNAME-r53-record.json
-{
-  "Comment": "CREATE CNAME Record for $APPNAME.$CUSTOM_DOMAIN_NAME",
-  "Changes": [
-    {
-      "Action": "CREATE",
-      "ResourceRecordSet": {
-        "Name": "$APPNAME.$CUSTOM_DOMAIN_NAME",
-        "Type": "CNAME",
-        "TTL": 300,
-        "ResourceRecords": [
-          { 
-            "Value": "$app4FQDN" 
-          }
-        ]
-      }
-    }
-  ]
-}
-EOF
-# Change route53 record set
-aws route53 change-resource-record-sets \
-  --hosted-zone-id $HOSTED_ZONE_ID \
-  --change-batch file://manifests/$APPNAME-r53-record.json
+kubectl stern -n external-dns external-dns 
 ```
 
+External-DNS will watch for the DNSEndpoint created by the Gateway api controller in response to the domain name configure in the app4 HTTPRoute object.
 
-::::expand{header="Check Output"}
-```json
-{
-    "ChangeInfo": {
-        "Id": "/change/C0021990I7F3JHLHICJ4",
-        "Status": "PENDING",
-        "SubmittedAt": "2023-10-27T01:03:02.996000+00:00",
-        "Comment": "CREATE CNAME for app4.vpc-lattice-custom-domain.io"
-    }
-}
+You can see the creation in the external-dns logs:
+
 ```
-::::
+external-dns-68c9ff686b-dpfbl external-dns time="2024-02-12T09:22:09Z" level=info msg="Desired change: CREATE app4.vpc-lattice-custom-domain.io CNAME [Id: /hostedzone/Z0996756AKEM45NP2UWJ]"
+```
+
+You can see the record in Route 53:
 
 ![app4_cname.png](/static/images/6-network-security/2-vpc-lattice-service-access/app4_cname.png)
 
 
 ## Test Service Connectivity from `app1` to `app4` 
 
-1. Run `yum install bind-utils tar` in the inventory pod for the `nslookup` and `tar` binary.
+1. Run the `nslookup` command in the `appv1-v1` Pod to resolve the **app4DNS**
 
 ```bash
-kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -c app1-v1 -n app1 -- yum install tar bind-utils -y
-```
-
-2. Run the `nslookup` command in the `appv1-v1` Pod to resolve the **app4FQDN**
-
-```bash
-kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -n app1 -- nslookup $app4FQDN
+kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -n app1 -- nslookup $app4DNS
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 Server:         172.20.0.10
 Address:        172.20.0.10#53
 
@@ -269,7 +239,7 @@ Address: fd00:ec2:80::a9fe:ab21
 ```
 ::::
 
-3. Run the `nslookup` command in the `appv1-v1` Pod to resolve **Custom Domain** for `app4` i.e. `app4.vpc-lattice-custom-domain.io`
+2. Run the `nslookup` command in the `appv1-v1` Pod to resolve **Custom Domain** for `app4` i.e. `app4.vpc-lattice-custom-domain.io`
 
 ```bash
 kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -n app1 -- nslookup app4.vpc-lattice-custom-domain.io
@@ -278,7 +248,7 @@ kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -n app1 -- nsloo
 Note that domain name `app4.vpc-lattice-custom-domain.io` resolves to `app4` default VPC Lattice generated domain as per the `CNAME` record configuration in the Private Hosted Zone.
 
 ::::expand{header="Check Output"}
-```bash
+```
 Server:         172.20.0.10
 Address:        172.20.0.10#53
 
@@ -292,17 +262,32 @@ Address: fd00:ec2:80::a9fe:ab21
 ::::
 
 
-4. Exec into an `app1-v1` pod to check connectivity to `app4` service using custom domain at `HTTP` listener.
+3. Exec into an `app1-v1` pod to check connectivity to `app4` service using custom domain at `HTTP` listener.
 
 ```bash
 kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -c app1-v1 -n app1 -- curl app4.vpc-lattice-custom-domain.io
 ```
 
 ::::expand{header="Check Output"}
+```
+AccessDeniedException: User: anonymous is not authorized to perform: vpc-lattice-svcs:Invoke on resource: arn:aws:vpc-lattice:us-west-2:382076407153:service/svc-05a7179225d38fd2d/ because no network-based policy allows the vpc-lattice-svcs:Invoke action
+```
+::::
+
+OK We still have activated our Authentication so we need to use the curl command with integration of SigV4 signature
+
+4. Exec into an `app1-v1` pod to check connectivity to `app4` service using custom domain at `HTTP` listener, with Sigv4 signature
+
 ```bash
+kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -n app1 -c app1-v1 -- /bin/bash -c 'TOKEN=$(cat $AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE) && STS=$(curl 169.254.170.23/v1/credentials -H "Authorization: $TOKEN") && curl --aws-sigv4 "aws:amz:${AWS_REGION}:vpc-lattice-svcs" --user $(echo $STS | jq ".AccessKeyId" -r):$(echo $STS | jq ".SecretAccessKey" -r) -H "x-amz-content-sha256: UNSIGNED-PAYLOAD" -H "x-amz-security-token: $(echo $STS | jq ".Token" -r)" 'http://app4.vpc-lattice-custom-domain.io
+```
+
+::::expand{header="Check Output"}
+```
 Requsting to Pod(app4-v1-77dcb6444c-mfjv2): Hello from app4-v1
 ```
 ::::
+
 
 5. Exec into an `app1-v1` pod to check connectivity to `app4` service using custom domain at `HTTPS` listener
 
@@ -311,14 +296,15 @@ kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -c app1-v1 -n ap
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 curl: (60) SSL certificate problem: self signed certificate in certificate chain
 More details here: https://curl.se/docs/sslcerts.html
 
 curl failed to verify the legitimacy of the server and therefore could not
 establish a secure connection to it. To learn more about this situation and
 how to fix it, please visit the web page mentioned above.
-command terminated with exit code 60```
+command terminated with exit code 60
+```
 ::::
 
 
@@ -336,22 +322,40 @@ kubectl --context $EKS_CLUSTER1_CONTEXT -n app1 exec -it deploy/app1-v1 -c app1-
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 APP1_POD_NAME=app1-v1-7ccbcc48b6-wnltj
 -rwxrwxr-x 1 root root 6182155 Sep 20  2021 http-servers
 -rw-rw-r-- 1 1000 1000    1383 Oct 27 01:25 root_cert.pem
 ```
 ::::
 
-5. Exec into an `app1-v1` pod to check connectivity again to `app4` service using custom domain at `HTTPS` listener, along with Root CA certificate.
+7. Exec into an `app1-v1` pod to check connectivity again to `app4` service using custom domain at `HTTPS` listener, along with Root CA certificate.
 
 ```bash
 kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -c app1-v1 -n app1 -- curl --cacert /app/root_cert.pem https://app4.vpc-lattice-custom-domain.io:443
 ```
 
+We should now see the authentication issue
+
+::::expand{header="Check Output"}
+```
+AccessDeniedException: User: anonymous is not authorized to perform: vpc-lattice-svcs:Invoke on resource: arn:aws:vpc-lattice:us-west-2:382076407153:service/svc-05a7179225d38fd2d/ because no network-based policy allows the vpc-lattice-svcs:Invoke action
+```
+::::
+
+8. Exec into an `app1-v1` pod to check connectivity again to `app4` service using custom domain at `HTTPS` listener, along with Root CA certificate and Sigv4 signature
+
+```bash
+kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -n app1 -c app1-v1 -- /bin/bash -c 'TOKEN=$(cat $AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE) && STS=$(curl 169.254.170.23/v1/credentials -H "Authorization: $TOKEN") && curl -cacert /app/root_cert.pem --aws-sigv4 "aws:amz:${AWS_REGION}:vpc-lattice-svcs" --user $(echo $STS | jq ".AccessKeyId" -r):$(echo $STS | jq ".SecretAccessKey" -r) -H "x-amz-content-sha256: UNSIGNED-PAYLOAD" -H "x-amz-security-token: $(echo $STS | jq ".Token" -r)" 'http://app4.vpc-lattice-custom-domain.io
+```
+
 We should now see the proper response from the `app4`.
 
 ::::expand{header="Check Output"}
-```bash
-Requsting to Pod(app4-v1-77dcb6444c-mfjv2): Hello from app4-v1
+```
+Requsting to Pod(app4-v1-85d4d9c455-22fgw): Hello from app4-v1
+::::
+
+::::alert{type="info" header="Note"}
+This time we managed to configure our Service with custom domain name and certificat, with a secure connection in TLS, and authorization validated by VPC Lattice IAM policies.
 ::::

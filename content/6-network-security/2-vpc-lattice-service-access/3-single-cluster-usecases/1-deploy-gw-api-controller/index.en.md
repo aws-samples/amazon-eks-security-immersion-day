@@ -8,15 +8,8 @@ weight : 10
 
 Follow these instructions deploy the AWS Gateway API Controller.
 
-1. You can check your current Kubernetes version with following command.
 
-```bash
-export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
-export AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
-export EKS_CLUSTER1_NAME=eksworkshop-eksctl
-``` 
-
-2. Clone the Repo.
+1. Clone the AWS Gateway API Controller Github Repository.
 
 ```bash
 cd ~/environment
@@ -24,7 +17,7 @@ git clone https://github.com/aws/aws-application-networking-k8s.git
 cd aws-application-networking-k8s
 ```
 
-3. Configure security group to receive traffic from the VPC Lattice fleet. You must set up security groups so that they allow all Pods communicating with VPC Lattice to allow traffic on all ports from the `169.254.171.0/24` address range.
+2. Configure security group to receive traffic from the VPC Lattice fleet. You must set up security groups so that they allow all Pods communicating with VPC Lattice to allow traffic on all ports from the `169.254.171.0/24` address range.
 
 ```bash
 PREFIX_LIST_ID=$(aws ec2 describe-managed-prefix-lists --query "PrefixLists[?PrefixListName=="\'com.amazonaws.$AWS_REGION.vpc-lattice\'"].PrefixListId" | jq -r '.[]')
@@ -60,37 +53,69 @@ CLUSTER_SG=sg-040765a152dcc53f2
 ```
 ::::
 
-4. Create an IAM OIDC provider: See [Creating an IAM OIDC provider](https://docs.aws.amazon.com/eks/latest/userguide/enable-iam-roles-for-service-accounts.html) for your cluster for details. 
+3. Create an IAM OIDC provider: See [Creating an IAM OIDC provider](https://docs.aws.amazon.com/eks/latest/userguide/enable-iam-roles-for-service-accounts.html) for your cluster for details. 
 
 ```bash
 eksctl utils associate-iam-oidc-provider --cluster $EKS_CLUSTER1_NAME --approve --region $AWS_REGION
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 2023-10-19 11:04:48 [ℹ]  IAM Open ID Connect provider is already associated with cluster "eksworkshop-eksctl" in "us-west-2"
 ```
 ::::
 
-5. Create a policy (`recommended-inline-policy.json`) in IAM with the following content that can invoke the gateway API.
+4. Create a policy (`recommended-inline-policy.json`) in IAM with the following content that can invoke the gateway API.
 
 ```bash
 cat > recommended-inline-policy.json <<EOF
 {
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "vpc-lattice:*",
-                "iam:CreateServiceLinkedRole",
-                "ec2:DescribeVpcs",
-                "ec2:DescribeSubnets",
-                "ec2:DescribeTags"
-            ],
-            "Resource": "*"
-        }
-    ]
+ "Version": "2012-10-17",
+ "Statement": [
+     {
+         "Effect": "Allow",
+         "Action": [
+             "vpc-lattice:*",
+             "ec2:DescribeVpcs",
+             "ec2:DescribeSubnets",
+             "ec2:DescribeTags",
+             "ec2:DescribeSecurityGroups",
+             "logs:CreateLogDelivery",
+             "logs:GetLogDelivery",
+             "logs:DescribeLogGroups",
+             "logs:PutResourcePolicy",
+             "logs:DescribeResourcePolicies",
+             "logs:UpdateLogDelivery",
+             "logs:DeleteLogDelivery",
+             "logs:ListLogDeliveries",
+             "tag:GetResources",
+             "firehose:TagDeliveryStream",
+             "s3:GetBucketPolicy",
+             "s3:PutBucketPolicy"
+         ],
+         "Resource": "*"
+     },
+     {
+         "Effect" : "Allow",
+         "Action" : "iam:CreateServiceLinkedRole",
+         "Resource" : "arn:aws:iam::*:role/aws-service-role/vpc-lattice.amazonaws.com/AWSServiceRoleForVpcLattice",
+         "Condition" : {
+             "StringLike" : {
+                 "iam:AWSServiceName" : "vpc-lattice.amazonaws.com"
+             }
+         }
+     },
+     {
+         "Effect" : "Allow",
+         "Action" : "iam:CreateServiceLinkedRole",
+         "Resource" : "arn:aws:iam::*:role/aws-service-role/delivery.logs.amazonaws.com/AWSServiceRoleForLogDelivery",
+         "Condition" : {
+             "StringLike" : {
+                 "iam:AWSServiceName" : "delivery.logs.amazonaws.com"
+             }
+         }
+     }
+   ]
 }
 EOF
 ```
@@ -105,25 +130,25 @@ echo "export VPCLatticeControllerIAMPolicyArn=$VPCLatticeControllerIAMPolicyArn"
 
 ```
 ::::expand{header="Check Output"}
-```bash
+```
 VPCLatticeControllerIAMPolicyArn=arn:aws:iam::ACCOUNT_ID:policy/VPCLatticeControllerIAMPolicy
 ```
 ::::
 
-6. Create the `aws-application-networking-system` Namespace.
+5. Create the `aws-application-networking-system` Namespace.
 
 ```bash
 kubectl --context $EKS_CLUSTER1_CONTEXT apply -f examples/deploy-namesystem.yaml
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 namespace/aws-application-networking-system created
 ```
 ::::
 
 
-7. Create an IRSA for Pod level permission: 
+6. Create an IRSA for Pod level permission: 
 
 ```bash
 eksctl create iamserviceaccount \
@@ -137,7 +162,7 @@ eksctl create iamserviceaccount \
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 2023-10-19 11:12:51 [ℹ]  1 iamserviceaccount (aws-application-networking-system/gateway-api-controller) was included (based on the include/exclude rules)
 2023-10-19 11:12:51 [!]  metadata of serviceaccounts that exist in Kubernetes will be updated, as --override-existing-serviceaccounts was set
 2023-10-19 11:12:51 [ℹ]  1 task: { 
@@ -152,57 +177,127 @@ eksctl create iamserviceaccount \
 ```
 ::::
 
-8. Run kubectl command to deploy the controller.
+7. Run helm command to deploy the controller.
 
 ```bash
-kubectl --context $EKS_CLUSTER1_CONTEXT apply -f examples/deploy-v0.0.17.yaml
+# export Gateway name and namespace
+echo "export GATEWAY_NAME=app-services-gw" >> ~/.bash_profile
+echo "export GATEWAY_NAMESPACE=app-services-gw" >> ~/.bash_profile
+source ~/.bash_profile
+
+# login to ECR
+aws ecr-public get-login-password --region us-east-1 | helm registry login --username AWS --password-stdin public.ecr.aws
+
+# Run helm with either install or upgrade
+export HELM_EXPERIMENTAL_OCI=1
+helm --kube-context $EKS_CLUSTER1_CONTEXT install gateway-api-controller \
+   oci://public.ecr.aws/aws-application-networking-k8s/aws-gateway-controller-chart \
+   --version=v1.0.3 \
+   --set=serviceAccount.create=false --namespace aws-application-networking-system \
+   --set=log.level=info \
+   --set=defaultServiceNetwork=$GATEWAY_NAME
 ```
 
-::::expand{header="Check Output"}
+::::alert{type="info" header="Note"}
+By setting `defaultServiceNetwork`, the Gateway API controller will create a serviceNetwork (Lattice Service Network) with the name provided, and associat it with the EKS cluster's VPC. 
+Alternatively, you can use AWS CLI to manually create a VPC Lattice service network
 ```bash
-namespace/aws-application-networking-system unchanged
-customresourcedefinition.apiextensions.k8s.io/dnsendpoints.externaldns.k8s.io created
-customresourcedefinition.apiextensions.k8s.io/gatewayclasses.gateway.networking.k8s.io created
-customresourcedefinition.apiextensions.k8s.io/gateways.gateway.networking.k8s.io created
-customresourcedefinition.apiextensions.k8s.io/grpcroutes.gateway.networking.k8s.io created
-customresourcedefinition.apiextensions.k8s.io/httproutes.gateway.networking.k8s.io created
-customresourcedefinition.apiextensions.k8s.io/serviceexports.multicluster.x-k8s.io created
-customresourcedefinition.apiextensions.k8s.io/serviceimports.multicluster.x-k8s.io created
-customresourcedefinition.apiextensions.k8s.io/targetgrouppolicies.application-networking.k8s.aws created
-customresourcedefinition.apiextensions.k8s.io/vpcassociationpolicies.application-networking.k8s.aws created
-serviceaccount/gateway-api-controller created
-clusterrole.rbac.authorization.k8s.io/aws-application-networking-controller created
-clusterrole.rbac.authorization.k8s.io/metrics-reader created
-clusterrole.rbac.authorization.k8s.io/proxy-role created
-clusterrolebinding.rbac.authorization.k8s.io/aws-application-networking-controller created
-clusterrolebinding.rbac.authorization.k8s.io/proxy-rolebinding created
-configmap/manager-config created
-service/gateway-api-controller-metrics-service created
-deployment.apps/gateway-api-controller created
+aws vpc-lattice create-service-network --name my-hotel # grab service network ID
+aws vpc-lattice create-service-network-vpc-association --service-network-identifier <service-network-id> --vpc-identifier <k8s-cluster-vpc-id>
 ```
 ::::
 
-9. Ensure the WS Gateway API Controller Pod is running fine.
+::::expand{header="Check Output"}
+```
+NAME: gateway-api-controller
+LAST DEPLOYED: Wed Feb  7 15:44:03 2024
+NAMESPACE: aws-application-networking-system
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+aws-gateway-controller-chart has been installed.
+This chart deploys "public.ecr.aws/aws-application-networking-k8s/aws-gateway-controller:".
+
+Check its status by running:
+  kubectl --namespace aws-application-networking-system get pods -l "app.kubernetes.io/instance=gateway-api-controller"
+
+The controller is running in "cluster" mode.
+```
+::::
+
+8. Ensure the WS Gateway API Controller Pod is running fine.
 
 ```bash
 kubectl --context $EKS_CLUSTER1_CONTEXT get all -n aws-application-networking-system
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 NAME                                         READY   STATUS    RESTARTS   AGE
-pod/gateway-api-controller-965646b47-z66m5   2/2     Running   0          112s
+NAME                                                                  READY   STATUS    RESTARTS   AGE
+pod/gateway-api-controller-aws-gateway-controller-chart-65f66d654jq   1/1     Running   0          100s
+pod/gateway-api-controller-aws-gateway-controller-chart-65f66dklh66   1/1     Running   0          100s
 
-NAME                                             TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
-service/gateway-api-controller-metrics-service   ClusterIP   10.100.34.93   <none>        8443/TCP   112s
+NAME                                                                  READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/gateway-api-controller-aws-gateway-controller-chart   2/2     2            2           100s
 
-NAME                                     READY   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/gateway-api-controller   1/1     1            1           112s
-
-NAME                                               DESIRED   CURRENT   READY   AGE
-replicaset.apps/gateway-api-controller-965646b47   1         1         1       112s
+NAME                                                                             DESIRED   CURRENT   READY   AGE
+replicaset.apps/gateway-api-controller-aws-gateway-controller-chart-65f66d456f   2         2         2       100s
 ```
 ::::
+
+You can check the logs of the Gateway API controller
+
+```bash
+kubectl  --context $EKS_CLUSTER1_CONTEXT logs -n aws-application-networking-system deploy/gateway-api-controller-aws-gateway-controller-chart -f
+```
+
+::::expand{header="Check Output"}
+```
+{"level":"info","ts":"2024-02-07T15:44:23.466Z","logger":"runtime","caller":"controller/controller.go:220","msg":"Starting workers","controller":"httproute","controllerGroup":"gateway.networking.k8s.io","controllerKind":"HTTPRoute","worker count":1}
+{"level":"info","ts":"2024-02-07T15:44:23.468Z","logger":"runtime","caller":"controller/controller.go:220","msg":"Starting workers","controller":"accesslogpolicy","controllerGroup":"application-networking.k8s.aws","controllerKind":"AccessLogPolicy","worker count":1}
+{"level":"info","ts":"2024-02-07T15:44:23.468Z","logger":"runtime","caller":"controller/controller.go:220","msg":"Starting workers","controller":"gateway","controllerGroup":"gateway.networking.k8s.io","controllerKind":"Gateway","worker count":1}
+{"level":"info","ts":"2024-02-07T15:44:23.468Z","logger":"runtime","caller":"controller/controller.go:220","msg":"Starting workers","controller":"grpcroute","controllerGroup":"gateway.networking.k8s.io","controllerKind":"GRPCRoute","worker count":1}
+```
+::::
+
+9. Check VPC service has been created and associated with our EKS cluster VPC
+
+Since we have specified a `defaultServiceNetwork` in our api gateway controller, It should have created a VPC lattice service-network, and associated it with our VPC.
+
+Check the status of the VPC lattice service network:
+
+```bash
+aws vpc-lattice list-service-network-vpc-associations --vpc-id $EKS_CLUSTER1_VPC_ID
+```
+
+::::expand{header="Check Output"}
+```json
+{
+    "items": [
+        {
+            "arn": "arn:aws:vpc-lattice:us-west-2:012345678901:servicenetworkvpcassociation/snva-09c42cc777001062c",
+            "createdAt": "2024-02-07T15:44:07.445000+00:00",
+            "createdBy": "012345678901",
+            "id": "snva-09c42cc777001062c",
+            "lastUpdatedAt": "2024-02-07T15:44:21.434000+00:00",
+            "serviceNetworkArn": "arn:aws:vpc-lattice:us-west-2:012345678901:servicenetwork/sn-0c8e9eeb6d6b0dc9c",
+            "serviceNetworkId": "sn-0c8e9eeb6d6b0dc9c",
+            "serviceNetworkName": "app-services-gw",
+            "status": "ACTIVE",
+            "vpcId": "vpc-06bd0081d216484d2"
+        }
+    ]
+}
+```
+
+> wait for status to be ACTIVE
+::::
+
+View the VPC Lattice Service network `app-services-gw` in the [Amazon VPC Console](https://console.aws.amazon.com/vpc/home?ServiceNetwork=&#ServiceNetworks:)
+
+![](/static/images/6-network-security/2-vpc-lattice-service-access/vpc-service-network.png)
 
 
 ## Deploy `GatewayClass` Resource in First EKS Cluster `eksworkshop-eksctl`
@@ -222,34 +317,27 @@ metadata:
 spec:
   controllerName: application-networking.k8s.aws/gateway-api-controller
 EOF
-```
-
-The above configuration creates Kubernetes `GatewayClass` object **amazon-vpc-lattice** to identify Amazon VPC Lattice as the Infrastructure provider.
-
-Apply the configuration.
-
-```bash
 kubectl  --context $EKS_CLUSTER1_CONTEXT apply -f manifests/gatewayclass.yaml
 ```
 
+The above configuration creates Kubernetes `GatewayClass` object **amazon-vpc-lattice** to identify Amazon VPC Lattice as the Infrastructure provider, and apply the configuration.
+
+
 ::::expand{header="Check Output"}
-```bash
+```
 gatewayclass.gateway.networking.k8s.io/amazon-vpc-lattice created
 ```
 ::::
 
 ## Deploy `Gateway` Resource in First EKS Cluster `eksworkshop-eksctl`
 
-1. Create the Kubernetes `Gateway` object **app-services-gw**
+1. Create the Kubernetes `Gateway` object **app-services-gw** ($GATEWAY_NAME)
 
 Let us see how the configuration looks like.
 
 ```bash
-source ~/.bash_profile
-export GATEWAY_NAME=app-services-gw
-export GATEWAY_NAMESPACE=app-services-gw
 envsubst < templates/gateway-template.yaml > manifests/$GATEWAY_NAME.yaml
-cat manifests/$GATEWAY_NAME.yaml
+c9 manifests/$GATEWAY_NAME.yaml
 ```
 
 Ensure that all the fields in the `manifests/app-services-gw.yaml` are populated properly.
@@ -266,8 +354,6 @@ kind: Gateway
 metadata:
   name: app-services-gw
   namespace: app-services-gw
-  annotations:
-    application-networking.k8s.aws/lattice-vpc-association: "true"
 spec:
   gatewayClassName: amazon-vpc-lattice
   listeners:
@@ -320,8 +406,6 @@ spec:
 
 The above configuration creates Kubernetes `Gateway` object `app-services-gw` which creates a **Service Network** in Amazon VPC Lattice.
 
-::alert[By default, the Gateway (Lattice Service Network) is not associated with cluster's VPC. To associate a Gateway (Lattice Service Network) to VPC, `manifests/app-services-gw.yaml` includes the annotation `application-networking.k8s.aws/lattice-vpc-association: "true"`. ]{header="Note"}
-
 Apply the configuration.
 
 ```bash
@@ -329,7 +413,7 @@ kubectl  --context $EKS_CLUSTER1_CONTEXT apply -f manifests/$GATEWAY_NAME.yaml
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 gateway.gateway.networking.k8s.io/app-services-gw created
 ```
 ::::
@@ -341,7 +425,7 @@ kubectl  --context $EKS_CLUSTER1_CONTEXT get gateway -n $GATEWAY_NAMESPACE
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 NAME              CLASS                ADDRESS   PROGRAMMED   AGE
 app-services-gw   amazon-vpc-lattice             True         76s
 ```
@@ -359,17 +443,16 @@ apiVersion: gateway.networking.k8s.io/v1beta1
 kind: Gateway
 metadata:
   annotations:
-    application-networking.k8s.aws/lattice-vpc-association: "true"
     kubectl.kubernetes.io/last-applied-configuration: |
-      {"apiVersion":"gateway.networking.k8s.io/v1beta1","kind":"Gateway","metadata":{"annotations":{"application-networking.k8s.aws/lattice-vpc-association":"true"},"name":"app-services-gw","namespace":"app-services-gw"},"spec":{"gatewayClassName":"amazon-vpc-lattice","listeners":[{"allowedRoutes":{"kinds":[{"kind":"HTTPRoute"}],"namespaces":{"from":"Selector","selector":{"matchLabels":{"allow-attachment-to-infra-gw":"true"}}}},"name":"http-listener","port":80,"protocol":"HTTP"},{"allowedRoutes":{"kinds":[{"kind":"HTTPRoute"}],"namespaces":{"from":"Selector","selector":{"matchLabels":{"allow-attachment-to-infra-gw":"true"}}}},"name":"https-listener-with-default-domain","port":443,"protocol":"HTTPS"},{"allowedRoutes":{"kinds":[{"kind":"HTTPRoute"}],"namespaces":{"from":"Selector","selector":{"matchLabels":{"allow-attachment-to-infra-gw":"true"}}}},"name":"https-listener-with-custom-domain","port":443,"protocol":"HTTPS","tls":{"mode":"Terminate","options":{"application-networking.k8s.aws/certificate-arn":"arn:aws:acm:us-west-2:ACCOUNT_ID:certificate/d5ebbf85-9b6a-4501-9bfb-65d638b9c0f2"}}}]}}
-  creationTimestamp: "2023-10-25T10:30:52Z"
+      {"apiVersion":"gateway.networking.k8s.io/v1beta1","kind":"Gateway","metadata":{"annotations":{},"name":"app-services-gw","namespace":"app-services-gw"},"spec":{"gatewayClassName":"amazon-vpc-lattice","listeners":[{"allowedRoutes":{"kinds":[{"kind":"HTTPRoute"}],"namespaces":{"from":"Selector","selector":{"matchLabels":{"allow-attachment-to-infra-gw":"true"}}}},"name":"http-listener","port":80,"protocol":"HTTP"},{"allowedRoutes":{"kinds":[{"kind":"HTTPRoute"}],"namespaces":{"from":"Selector","selector":{"matchLabels":{"allow-attachment-to-infra-gw":"true"}}}},"name":"https-listener-with-default-domain","port":443,"protocol":"HTTPS"},{"allowedRoutes":{"kinds":[{"kind":"HTTPRoute"}],"namespaces":{"from":"Selector","selector":{"matchLabels":{"allow-attachment-to-infra-gw":"true"}}}},"name":"https-listener-with-custom-domain","port":443,"protocol":"HTTPS","tls":{"mode":"Terminate","options":{"application-networking.k8s.aws/certificate-arn":"arn:aws:acm:us-west-2:097381749469:certificate/1d3ec714-787f-4a2a-9c46-47927201763c"}}}]}}
+  creationTimestamp: "2024-02-07T16:06:37Z"
   finalizers:
   - gateway.k8s.aws/resources
   generation: 1
   name: app-services-gw
   namespace: app-services-gw
-  resourceVersion: "60343"
-  uid: 14e0fef5-3625-4752-9969-c32f02bb902f
+  resourceVersion: "253377"
+  uid: 45357584-dcaf-40f1-8901-912dfae493e1
 spec:
   gatewayClassName: amazon-vpc-lattice
   listeners:
@@ -412,17 +495,17 @@ spec:
     tls:
       mode: Terminate
       options:
-        application-networking.k8s.aws/certificate-arn: arn:aws:acm:us-west-2:ACCOUNT_ID:certificate/d5ebbf85-9b6a-4501-9bfb-65d638b9c0f2
+        application-networking.k8s.aws/certificate-arn: arn:aws:acm:us-west-2:097381749469:certificate/1d3ec714-787f-4a2a-9c46-47927201763c
 status:
   conditions:
-  - lastTransitionTime: "2023-10-25T10:30:52Z"
+  - lastTransitionTime: "2024-02-07T16:06:37Z"
     message: application-networking.k8s.aws/gateway-api-controller
     observedGeneration: 1
     reason: Accepted
     status: "True"
     type: Accepted
-  - lastTransitionTime: "2023-10-25T10:31:14Z"
-    message: 'aws-gateway-arn: arn:aws:vpc-lattice:us-west-2:ACCOUNT_ID:servicenetwork/sn-0cc73287505ac121a'
+  - lastTransitionTime: "2024-02-07T16:06:38Z"
+    message: 'aws-service-network-arn: arn:aws:vpc-lattice:us-west-2:097381749469:servicenetwork/sn-0c8e9eeb6d6b0dc9c'
     observedGeneration: 1
     reason: Programmed
     status: "True"
@@ -430,7 +513,7 @@ status:
   listeners:
   - attachedRoutes: 0
     conditions:
-    - lastTransitionTime: "2023-10-25T10:30:52Z"
+    - lastTransitionTime: "2024-02-07T16:06:37Z"
       message: ""
       observedGeneration: 1
       reason: Accepted
@@ -442,7 +525,7 @@ status:
       kind: HTTPRoute
   - attachedRoutes: 0
     conditions:
-    - lastTransitionTime: "2023-10-25T10:30:52Z"
+    - lastTransitionTime: "2024-02-07T16:06:37Z"
       message: ""
       observedGeneration: 1
       reason: Accepted
@@ -456,7 +539,7 @@ status:
       kind: HTTPRoute
   - attachedRoutes: 0
     conditions:
-    - lastTransitionTime: "2023-10-25T10:30:52Z"
+    - lastTransitionTime: "2024-02-07T16:06:37Z"
       message: ""
       observedGeneration: 1
       reason: Accepted
@@ -476,25 +559,19 @@ The `status` conditions contains the ARN of the Amazon VPC Lattice Service Netwo
 
 `message: 'aws-gateway-arn: arn:aws:vpc-lattice:us-west-2:ACCOUNT_ID:servicenetwork/sn-0cc73287505ac121a'`
 
-
-View the VPC Lattice Service network `app-services-gw` in the [Amazon VPC Console](https://us-west-2.console.aws.amazon.com/vpc/home?ServiceNetwork=&region=us-west-2#ServiceNetworks:)
-
-![app-services-gw.png](/static/images/6-network-security/2-vpc-lattice-service-access/app-services-gw.png)
-
-Let us the Gateway ARN and store it in an environment variable for later use.
+Let us retrieve the Gateway ARN and store it in an environment variable for later use.
 
 ```bash
-gatewayARNMessage=$(kubectl  --context $EKS_CLUSTER1_CONTEXT get gateway $GATEWAY_NAME -n $GATEWAY_NAMESPACE -o json | jq -r '.status.conditions[1].message')
-echo "gatewayARNMessage=$gatewayARNMessage"
-prefix="aws-gateway-arn: "
-gatewayARN=${gatewayARNMessage#$prefix}
-echo "gatewayARN=$gatewayARN"
+gatewayARN=$(aws vpc-lattice list-service-network-vpc-associations --vpc-id $EKS_CLUSTER1_VPC_ID | jq ".items[0].serviceNetworkArn" -r)
+gatewayID=$(aws vpc-lattice list-service-network-vpc-associations --vpc-id $EKS_CLUSTER1_VPC_ID | jq ".items[0].serviceNetworkId" -r)
 echo "export gatewayARN=$gatewayARN" >> ~/.bash_profile
+echo "export gatewayID=$gatewayID" >> ~/.bash_profile
+echo "gatewayARN=$gatewayARN" && echo "gatewayID=$gatewayID"
 ```
 
 ::::expand{header="Check Output"}
-```bash
-gatewayARNMessage=aws-gateway-arn: arn:aws:vpc-lattice:us-west-2:ACCOUNT_ID:servicenetwork/sn-0cc73287505ac121a
-gatewayARN=arn:aws:vpc-lattice:us-west-2:ACCOUNT_ID:servicenetwork/sn-0cc73287505ac121a
+```
+gatewayARN=arn:aws:vpc-lattice:us-west-2:012345678901:servicenetwork/sn-0c8e9eeb6d6b0dc9c
+gatewayID=sn-0c8e9eeb6d6b0dc9c
 ```
 ::::

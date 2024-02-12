@@ -3,7 +3,13 @@ title : "Inject using Kyverno"
 weight : 12
 ---
 
-## Install Kyvernon Policy Engine
+We are going to dynamically inject the sigv4 sidecar proxy with Kyverno
+
+![](/static/images/6-network-security/2-vpc-lattice-service-access/lattice-usecase3-3.png)
+
+## Install Kyverno Policy Engine
+
+Kyverno is a security tool for kubernetes that can enforce security guardrails when deploying application and that can also mutate objects before they are stored into etcd database. We are going to leverage it's mutation capability to dynamically inject the sigv4-proxy to the required pods.
 
 Let us install the Kyverno policy engine and associated configurations into the EKS cluster using using this [Helm](https://helm.sh/)
 
@@ -14,8 +20,7 @@ helm install kyverno --kube-context $EKS_CLUSTER1_CONTEXT --namespace kyverno ky
 ```
 
 ::::expand{header="Check Output"}
-
-```bash
+```
 NAME: kyverno
 LAST DEPLOYED: Thu Oct 26 07:07:51 2023
 NAMESPACE: kyverno
@@ -49,8 +54,7 @@ kubectl --context $EKS_CLUSTER1_CONTEXT get all -n kyverno
 ```
 
 ::::expand{header="Check Output"}
-
-```bash
+```
 pod/kyverno-admission-controller-6f54d4786f-pqk7h    1/1     Running   0          38s
 pod/kyverno-background-controller-696c6d575c-s94d6   1/1     Running   0          38s
 pod/kyverno-cleanup-controller-79dd5858df-5ng2x      1/1     Running   0          38s
@@ -130,7 +134,7 @@ spec:
                 env:
                  - name: AWS_REGION
                    value: "$AWS_REGION"
-                image: public.ecr.aws/aws-observability/aws-sigv4-proxy:latest
+                image: public.ecr.aws/seb-demo/aws-sigv4-proxy:latest
                 args: [
                   "--unsigned-payload",
                   "--log-failed-requests",
@@ -150,10 +154,11 @@ kubectl --context $EKS_CLUSTER1_CONTEXT apply -f manifests/kyverno-cluster-polic
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 clusterpolicy.kyverno.io/inject-sidecar created
 ```
 ::::
+
 
 Ensure that Kyvero ClusterPolicy is configured properly.
 
@@ -162,38 +167,25 @@ kubectl --context $EKS_CLUSTER1_CONTEXT get ClusterPolicy
 ```
 
 ::::expand{header="Check Output"}
-```bash
-NAME             BACKGROUND   VALIDATE ACTION   READY   AGE   MESSAGE
-inject-sidecar   true         Audit             True    38s   Ready
+```
+NAME                   ADMISSION   BACKGROUND   VALIDATE ACTION   READY   AGE   MESSAGE
+inject-sidecar         true        true         Audit             True    58s   Ready
 ```
 ::::
 
-Let us first delete the `app1-v1` deployment and then re-deploy it.
+Let us first force the `app1-v1` deployment to redeploy.
 
 ```bash
-kubectl --context $EKS_CLUSTER1_CONTEXT delete deploy app1-v1 -n app1
+kubectl --context $EKS_CLUSTER1_CONTEXT rollout restart deployment/app1-v1 -n app1
 ```
 
 ::::expand{header="Check Output"}
-```bash
-deployment.apps "app1-v1" deleted
+```
+deployment.apps/app1-v1 restarted
 ```
 ::::
 
 ::alert[Note that the required annotation `vpc-lattices-svcs.amazonaws.com/agent-inject=true` is already configured in the pod template within the deployment spec in the `templates/app-template.yaml`]{header="Note"}
-
-
-```yaml
-kubectl --context $EKS_CLUSTER1_CONTEXT apply -f manifests/app1-v1-deploy.yaml
-```
-
-::::expand{header="Check Output"}
-```bash
-namespace/app1 unchanged
-deployment.apps/app1-v1 created
-service/app1-v1 unchanged
-```
-::::
 
 Ensure that client Service `app1-v1` pods are re-deployed with Init and SIGV4 Proxy containers.
 
@@ -207,128 +199,14 @@ NAME                       READY   STATUS    RESTARTS   AGE
 app1-v1-85df49c9bc-9flkr   2/2     Running   0          34s
 ``` 
 
-Run `yum install bind-utils tar` in the inventory pod for the `nslookup` and `tar` binaries.
-
-```bash
-kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -c app1-v1 -n app1 -- yum install tar bind-utils -y
-```
-
-::::expand{header="Check Output"}
-```bash
-Loaded plugins: ovl, priorities
-amzn2-core                                                                   | 3.6 kB  00:00:00     
-(1/3): amzn2-core/2/x86_64/group_gz                                          | 2.7 kB  00:00:00     
-(2/3): amzn2-core/2/x86_64/updateinfo                                        | 729 kB  00:00:00     
-(3/3): amzn2-core/2/x86_64/primary_db                                        |  67 MB  00:00:00     
-Resolving Dependencies
---> Running transaction check
----> Package bind-utils.x86_64 32:9.11.4-26.P2.amzn2.13.5 will be installed
---> Processing Dependency: bind-libs(x86-64) = 32:9.11.4-26.P2.amzn2.13.5 for package: 32:bind-utils-9.11.4-26.P2.amzn2.13.5.x86_64
---> Processing Dependency: bind-libs-lite(x86-64) = 32:9.11.4-26.P2.amzn2.13.5 for package: 32:bind-utils-9.11.4-26.P2.amzn2.13.5.x86_64
---> Processing Dependency: libGeoIP.so.1()(64bit) for package: 32:bind-utils-9.11.4-26.P2.amzn2.13.5.x86_64
---> Processing Dependency: libbind9.so.160()(64bit) for package: 32:bind-utils-9.11.4-26.P2.amzn2.13.5.x86_64
---> Processing Dependency: libdns.so.1102()(64bit) for package: 32:bind-utils-9.11.4-26.P2.amzn2.13.5.x86_64
---> Processing Dependency: libirs.so.160()(64bit) for package: 32:bind-utils-9.11.4-26.P2.amzn2.13.5.x86_64
---> Processing Dependency: libisc.so.169()(64bit) for package: 32:bind-utils-9.11.4-26.P2.amzn2.13.5.x86_64
---> Processing Dependency: libisccfg.so.160()(64bit) for package: 32:bind-utils-9.11.4-26.P2.amzn2.13.5.x86_64
---> Processing Dependency: liblwres.so.160()(64bit) for package: 32:bind-utils-9.11.4-26.P2.amzn2.13.5.x86_64
----> Package tar.x86_64 2:1.26-35.amzn2.0.2 will be installed
---> Running transaction check
----> Package GeoIP.x86_64 0:1.5.0-11.amzn2.0.2 will be installed
----> Package bind-libs.x86_64 32:9.11.4-26.P2.amzn2.13.5 will be installed
---> Processing Dependency: bind-license = 32:9.11.4-26.P2.amzn2.13.5 for package: 32:bind-libs-9.11.4-26.P2.amzn2.13.5.x86_64
----> Package bind-libs-lite.x86_64 32:9.11.4-26.P2.amzn2.13.5 will be installed
---> Running transaction check
----> Package bind-license.noarch 32:9.11.4-26.P2.amzn2.13.5 will be installed
---> Finished Dependency Resolution
-
-Dependencies Resolved
-
-====================================================================================================
- Package                Arch           Version                             Repository          Size
-====================================================================================================
-Installing:
- bind-utils             x86_64         32:9.11.4-26.P2.amzn2.13.5          amzn2-core         261 k
- tar                    x86_64         2:1.26-35.amzn2.0.2                 amzn2-core         845 k
-Installing for dependencies:
- GeoIP                  x86_64         1.5.0-11.amzn2.0.2                  amzn2-core         1.1 M
- bind-libs              x86_64         32:9.11.4-26.P2.amzn2.13.5          amzn2-core         159 k
- bind-libs-lite         x86_64         32:9.11.4-26.P2.amzn2.13.5          amzn2-core         1.1 M
- bind-license           noarch         32:9.11.4-26.P2.amzn2.13.5          amzn2-core          92 k
-
-Transaction Summary
-====================================================================================================
-Install  2 Packages (+4 Dependent packages)
-
-Total download size: 3.5 M
-Installed size: 9.1 M
-Downloading packages:
-(1/6): bind-libs-9.11.4-26.P2.amzn2.13.5.x86_64.rpm                          | 159 kB  00:00:00     
-(2/6): GeoIP-1.5.0-11.amzn2.0.2.x86_64.rpm                                   | 1.1 MB  00:00:00     
-(3/6): bind-license-9.11.4-26.P2.amzn2.13.5.noarch.rpm                       |  92 kB  00:00:00     
-(4/6): bind-libs-lite-9.11.4-26.P2.amzn2.13.5.x86_64.rpm                     | 1.1 MB  00:00:00     
-(5/6): bind-utils-9.11.4-26.P2.amzn2.13.5.x86_64.rpm                         | 261 kB  00:00:00     
-(6/6): tar-1.26-35.amzn2.0.2.x86_64.rpm                                      | 845 kB  00:00:00     
-----------------------------------------------------------------------------------------------------
-Total                                                                17 MB/s | 3.5 MB  00:00:00     
-Running transaction check
-Running transaction test
-Transaction test succeeded
-Running transaction
-  Installing : GeoIP-1.5.0-11.amzn2.0.2.x86_64                                                  1/6 
-  Installing : 32:bind-license-9.11.4-26.P2.amzn2.13.5.noarch                                   2/6 
-  Installing : 32:bind-libs-lite-9.11.4-26.P2.amzn2.13.5.x86_64                                 3/6 
-  Installing : 32:bind-libs-9.11.4-26.P2.amzn2.13.5.x86_64                                      4/6 
-  Installing : 32:bind-utils-9.11.4-26.P2.amzn2.13.5.x86_64                                     5/6 
-  Installing : 2:tar-1.26-35.amzn2.0.2.x86_64                                                   6/6 
-  Verifying  : 2:tar-1.26-35.amzn2.0.2.x86_64                                                   1/6 
-  Verifying  : 32:bind-libs-9.11.4-26.P2.amzn2.13.5.x86_64                                      2/6 
-  Verifying  : 32:bind-libs-lite-9.11.4-26.P2.amzn2.13.5.x86_64                                 3/6 
-  Verifying  : 32:bind-utils-9.11.4-26.P2.amzn2.13.5.x86_64                                     4/6 
-  Verifying  : GeoIP-1.5.0-11.amzn2.0.2.x86_64                                                  5/6 
-  Verifying  : 32:bind-license-9.11.4-26.P2.amzn2.13.5.noarch                                   6/6 
-
-Installed:
-  bind-utils.x86_64 32:9.11.4-26.P2.amzn2.13.5            tar.x86_64 2:1.26-35.amzn2.0.2           
-
-Dependency Installed:
-  GeoIP.x86_64 0:1.5.0-11.amzn2.0.2                 bind-libs.x86_64 32:9.11.4-26.P2.amzn2.13.5    
-  bind-libs-lite.x86_64 32:9.11.4-26.P2.amzn2.13.5  bind-license.noarch 32:9.11.4-26.P2.amzn2.13.5 
-
-Complete!
-```
-::::
-
-Run the `nslookup` command in the `app1-v1` Pod to resolve the **app2FQDN**
-
-```bash
-kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -c app1-v1 -n app1 -- nslookup $app2FQDN
-```
-
-::::expand{header="Check Output"}
-```bash
-Server:         172.20.0.10
-Address:        172.20.0.10#53
-
-Non-authoritative answer:
-Name:   app2-app2-0e5f3d2b3db4c7962.7d67968.vpc-lattice-svcs.us-west-2.on.aws
-Address: 169.254.171.33
-Name:   app2-app2-0e5f3d2b3db4c7962.7d67968.vpc-lattice-svcs.us-west-2.on.aws
-Address: fd00:ec2:80::a9fe:ab21
-```
-::::
-
-Notice that the IP `169.254.171.33` for **ratesFQDN** is from `MANAGED_PREFIX=169.254.171.0/24` we saw in the earlier section.
-
-
 Exec into an `app1-v1` pod to check connectivity to `app2` service. 
 
 ```bash
-kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -c app1-v1 -n app1 -- curl -v $app2FQDN
+kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -c app1-v1 -n app1 -- curl -v $app2DNS
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 *   Trying 169.254.171.33:80...
 * Connected to app2-app2-0e5f3d2b3db4c7962.7d67968.vpc-lattice-svcs.us-west-2.on.aws (169.254.171.33) port 80 (#0)
 > GET / HTTP/1.1
@@ -347,7 +225,7 @@ Requsting to Pod(app2-v1-56f7c48bbf-jwx4s): Hello from app2-v1
 ```
 ::::
 
-Since we are signing the requests using the sigv4proxy proxy container, access to `app2` is now allowed. The logs from the `app1-v1` does not show the SIGV4 authentication headers. For that, let us look at the sigv4proxy container logs.
+Since we are signing the requests using the sigv4proxy proxy container, access to `app2` is now again allowed. The logs from the `app1-v1` does not show the SIGV4 authentication headers. For that, let us look at the sigv4proxy container logs.
 
 
 ```bash
@@ -356,7 +234,7 @@ kubectl --context $EKS_CLUSTER1_CONTEXT logs  deploy/app1-v1 -n app1 -c sigv4pro
 
 
 ::::expand{header="Check Output"}
-```bash
+```
 time="2023-10-26T07:22:31Z" level=info msg="Stripping headers []" StripHeaders="[]"
 time="2023-10-26T07:22:31Z" level=info msg="Listening on :8080" port=":8080"
 time="2023-10-26T07:25:47Z" level=debug msg="Initial request dump:" request="GET / HTTP/1.1\r\nHost: app2-app2-0e5f3d2b3db4c7962.7d67968.vpc-lattice-svcs.us-west-2.on.aws\r\nAccept: */*\r\nUser-Agent: curl/7.76.1\r\n\r\n"
@@ -369,43 +247,4 @@ WSParticipantRole:~/environment $
 
 From the above logs, we can verify sigv4proxy container sign the request and adds the headers `Authorization`, `x-amz-content-sha256`, `x-amz-date` and `x-amz-security-token`
 
-Before moving to the next section, let us undo the manual changes to the `app1-v1` deployment by deleting the deployment and the re-deploy the original configuration.
-
-```bash
-kubectl --context $EKS_CLUSTER1_CONTEXT delete deploy app1-v1 -n app1
-```
-
-::::expand{header="Check Output"}
-```bash
-deployment.apps "app1-v1" deleted
-```
-::::
-
-Re-deploy the `app-v1` deployment.
-
-```bash
-cd ~/environment
-kubectl --context $EKS_CLUSTER1_CONTEXT apply -f manifests/app1-v1-deploy.yaml
-```
-
-::::expand{header="Check Output"}
-```bash
-namespace/app1 unchanged
-deployment.apps/app1-v1 created
-service/app1-v1 unchanged
-```
-::::
-
-Ensure that `app1-v1` service pods now has only one main application containers.
-
-```bash
-kubectl --context $EKS_CLUSTER1_CONTEXT get pod -n app1
-```
-
-::::expand{header="Check Output"}
-```bash
-NAME                       READY   STATUS    RESTARTS   AGE
-app1-v1-5cc757c998-9trw5   1/1     Running   0          31s
-```
-::::
 

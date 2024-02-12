@@ -950,7 +950,7 @@ Resources:
                 mv /tmp/kubectl /usr/local/bin/kubectl
                 su -l -c 'aws eks update-kubeconfig --name ${EKSCluster} --region ${AWS::Region} --role-arn ${Cloud9InstanceRole.Arn}' ec2-user
                 su -l -c 'echo "export AWS_ACCOUNT_ID=${AWS::AccountId}" >> ~/.bash_profile' ec2-user
-                su -l -c 'echo "export ACCOUNT_ID=${AWS::AccountId}" >> ~/.bash_profile' ec2-user
+                su -l -c 'echo "export ACCOUNT_ID=${AWS::AccountId}" >> ~/.bash_profile' ec2-user                
                 su -l -c 'echo "export AWS_DEFAULT_REGION=${AWS::Region}" >> ~/.bash_profile' ec2-user
                 su -l -c 'echo "export AWS_REGION=${AWS::Region}" >> ~/.bash_profile' ec2-user
                 su -l -c 'echo "export EKS_CLUSTER=${EKSCluster}" >> ~/.bash_profile' ec2-user

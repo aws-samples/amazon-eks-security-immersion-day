@@ -3,7 +3,7 @@ title : "Single Cluster VPC Lattice Use cases"
 weight : 12
 ---
 
-In this section, we will execute the following modules. It is recommended to these modules in the same order mentioned.
+In this section, we will execute the following modules. It is recommended to execute these modules in the same order mentioned.
 
 1. [**Deploy AWS Gateway API Controller and Gateway Resource**](1-deploy-gw-api-controller)
 2. [**Usecase 1: Service Connectivity in Default Configuration**](2-service-connect-defalt-config)

@@ -28,7 +28,6 @@ EOT
 2. Create an AWS ACM PCA using the `manifests/ca_config.json` 
 
 ```bash
-export AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
 export CA_ARN=$(aws acm-pca create-certificate-authority --certificate-authority-configuration \
 file://manifests/ca_config.json --certificate-authority-type "ROOT" \
 --idempotency-token $(uuidgen) \
@@ -116,7 +115,6 @@ You can also see the Status in the [AWS PCA Console](https://us-west-2.console.a
 ## Generate an end user certificate signed with AWS PCA
 
 ```bash
-export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
 export CERTIFICATE_ARN=$(aws acm request-certificate \
 --domain-name "*.vpc-lattice-custom-domain.io" \
 --subject-alternative-names $ACCOUNT_ID".vpc-lattice-custom-domain.io" \

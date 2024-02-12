@@ -3,21 +3,36 @@ title : "Cleanup"
 weight : 12
 ---
 
-## Uninstall Kyvernon Policy Engine
+## Delete Kyverno cluster policy
 
-Let us install the Kyverno policy engine and associated configurations into the EKS cluster using using this [Helm](https://helm.sh/)
+```bash
+kubectl delete clusterpolicy inject-sidecar
+``` 
+
+## Redeploy the app1
+
+```bash
+kubectl --context $EKS_CLUSTER1_CONTEXT delete deployment/app1-v1 -n app1
+kubectl --context $EKS_CLUSTER1_CONTEXT apply -f manifests/app1-v1-deploy.yaml 
+```
+
+<!--
+## Uninstall Kyverno Policy Engine
+
+Let us uninstall the Kyverno policy engine and associated configurations into the EKS cluster using using this [Helm](https://helm.sh/)
 
 ```bash
 helm uninstall kyverno --kube-context $EKS_CLUSTER1_CONTEXT --namespace kyverno 
 ```
 
 ::::expand{header="Check Output"}
-
-```bash
+```
 release "kyverno" uninstalled
 ```
 ::::
+-->
 
+<!--
 ## Remove IAM Access Auth policy for Service `app2-app2`
 
 1. Run below command to delete the auth policy.
@@ -54,3 +69,4 @@ aws vpc-lattice update-service-network --auth-type NONE \
 }
 ```
 ::::
+-->

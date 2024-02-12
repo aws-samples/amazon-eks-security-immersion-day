@@ -8,7 +8,7 @@ weight : 14
 By this time, the Second EKS Cluster creation would have been completed. Go to the other terminal, where you run `eksctl` command earlier and check the status.
 
 ::::expand{header="Check Output"}
-```bash
+```
 2023-10-25 07:02:07 [ℹ]  eksctl version 0.163.0
 2023-10-25 07:02:07 [ℹ]  using region us-west-2
 2023-10-25 07:02:07 [ℹ]  subnets for us-west-2a - public:10.254.0.0/19 private:10.254.96.0/19
@@ -91,30 +91,10 @@ echo "export EKS_CLUSTER2_VPC_ID=$EKS_CLUSTER2_VPC_ID" >> ~/.bash_profile
 export EKS_CLUSTER2_CONTEXT=$(kubectl config current-context)
 echo "export EKS_CLUSTER2_CONTEXT=$EKS_CLUSTER2_CONTEXT" >> ~/.bash_profile
 kubectl  --context $EKS_CLUSTER2_CONTEXT get node
-
-
-export EKS_CLUSTER3_NAME=eksworkshop-eksctl-3
-export EKS_CLUSTER3_VPC_ID=$(eksctl get cluster $EKS_CLUSTER3_NAME -ojson | jq -r '.[0]["ResourcesVpcConfig"]["VpcId"]')
-echo "EKS_CLUSTER3_VPC_ID=$EKS_CLUSTER3_VPC_ID"
-echo "export EKS_CLUSTER3_VPC_ID=$EKS_CLUSTER3_VPC_ID" >> ~/.bash_profile
-export EKS_CLUSTER3_CONTEXT=$(kubectl config current-context)
-echo "EKS_CLUSTER3_CONTEXT=$EKS_CLUSTER3_CONTEXT"
-echo "export EKS_CLUSTER3_CONTEXT=$EKS_CLUSTER3_CONTEXT" >> ~/.bash_profile
-kubectl  --context $EKS_CLUSTER3_CONTEXT get node
-
-
-export EKS_CLUSTER2_NAME=eksworkshop-eksctl-2
-export EKS_CLUSTER2_VPC_ID=$(eksctl get cluster $EKS_CLUSTER2_NAME -ojson | jq -r '.[0]["ResourcesVpcConfig"]["VpcId"]')
-echo "EKS_CLUSTER2_VPC_ID=$EKS_CLUSTER2_VPC_ID"
-echo "export EKS_CLUSTER2_VPC_ID=$EKS_CLUSTER2_VPC_ID" >> ~/.bash_profile
-
-export EKS_CLUSTER2_CONTEXT=$(kubectl config current-context)
-echo "export EKS_CLUSTER2_CONTEXT=$EKS_CLUSTER2_CONTEXT" >> ~/.bash_profile
-kubectl  --context $EKS_CLUSTER2_CONTEXT get node
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 NAME                                          STATUS   ROLES    AGE    VERSION
 ip-10-254-2-86.us-west-2.compute.internal     Ready    <none>   119m   v1.28.1-eks-43840fb
 ip-10-254-62-120.us-west-2.compute.internal   Ready    <none>   119m   v1.28.1-eks-43840fb
