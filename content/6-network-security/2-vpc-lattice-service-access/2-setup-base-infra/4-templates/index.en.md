@@ -123,6 +123,66 @@ spec:
 EOF
 ```
 
+## Create template for K8s Application Deployment & Service with Certificat Mount
+
+```bash
+cat > templates/app-template-cert.yaml <<EOF
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: \$APPNAME
+  labels:
+    allow-attachment-to-infra-gw: "true"  
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: \$APPNAME-\$VERSION
+  namespace: \$APPNAME
+  labels:
+    app: \$APPNAME-\$VERSION
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: \$APPNAME-\$VERSION
+  template:
+    metadata:
+      annotations:
+       vpc-lattices-svcs.amazonaws.com/agent-inject: "true"
+      labels:
+        app: \$APPNAME-\$VERSION
+    spec:
+      containers:
+      - name: \$APPNAME-\$VERSION
+        image: public.ecr.aws/seb-demo/http-server:latest
+        env:
+        - name: PodName
+          value: "Hello from \$APPNAME-\$VERSION"
+        volumeMounts:
+        - name: root-cert
+          mountPath: /cert/
+          readOnly: true
+      volumes:
+      - name: root-cert
+        configMap:
+          name: app-root-cert  
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: \$APPNAME-\$VERSION
+  namespace: \$APPNAME
+spec:
+  selector:
+    app: \$APPNAME-\$VERSION
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8090
+EOF
+```
+
 ## Create Template for HTTPRoute with Default Domain and HTTP Listener
 
 ```bash
@@ -254,7 +314,7 @@ spec:
 EOF
 ```
 
-## Create Template for HTTPRoute with Custom Domain and HTTPS Listener
+## Create Template for HTTPRoute with Custom Domain and HTTPS Listener and Create IAMAuthPolicy
 
 ```bash
 cat > templates/route-template-https-custom-domain.yaml  <<EOF
@@ -283,7 +343,41 @@ spec:
     matches:
       - path:
           type: PathPrefix
-          value: /      
+          value: /  
+---
+apiVersion: application-networking.k8s.aws/v1alpha1
+kind: IAMAuthPolicy
+metadata:
+    name: \${APPNAME}-iam-auth-policy
+    namespace: \$APPNAME
+spec:
+    targetRef:
+        group: "gateway.networking.k8s.io"
+        kind: HTTPRoute
+        namespace: \$APPNAME
+        name: \$APPNAME
+    policy: |
+        {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Effect": "Allow",
+                    "Principal": {
+                        "AWS": "arn:aws:iam::\${ACCOUNT_ID}:root"
+                    },
+                    "Action": "vpc-lattice-svcs:Invoke",
+                    "Resource": "*",
+                    "Condition": {
+                        "StringEquals": {
+                            "vpc-lattice-svcs:SourceVpc": [
+                                "\$EKS_CLUSTER1_VPC_ID",
+                                "\$EKS_CLUSTER2_VPC_ID"
+                            ]
+                        }
+                    }                    
+                }
+            ]
+        }              
 EOF
 ```
 

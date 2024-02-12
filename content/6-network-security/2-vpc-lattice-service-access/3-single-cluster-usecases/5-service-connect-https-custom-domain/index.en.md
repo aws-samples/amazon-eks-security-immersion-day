@@ -92,7 +92,7 @@ Also note that both of these listeners are configured with the same Target group
 
 ## Get the DNS Names for `app4` service
 
-1. List the route’s yaml file to see the DNS address (highlighted here on the message line): 
+### 1. List the route’s yaml file to see the DNS address (highlighted here on the message line): 
 
 ```bash
 kubectl --context $EKS_CLUSTER1_CONTEXT get httproute $APPNAME -n $APPNAME -o yaml
@@ -167,7 +167,7 @@ status:
 
 The `status` field in the above output contains the DNS Name of the Service `message: 'DNS Name: app4-app4-06d489b63a7bc4295.7d67968.vpc-lattice-svcs.us-west-2.on.aws'`
 
-2. Store assigned DNS names to variables.
+### 2. Store assigned DNS names to variables.
 
 ```bash
 app4DNS=$(kubectl --context $EKS_CLUSTER1_CONTEXT get httproute app4 -n app4 -o json | jq -r '.metadata.annotations."application-networking.k8s.aws/lattice-assigned-domain-name"')
@@ -202,7 +202,7 @@ eksdemo install external-dns -c $EKS_CLUSTER1_NAME --set policy=sync \
 If you want, you can open another terminal window and watch for the external-dns controller logs
 
 ```bash
-kubectl stern -n external-dns external-dns 
+kubectl stern --context $EKS_CLUSTER2_CONTEXT -n external-dns external-dns 
 ```
 
 External-DNS will watch for the DNSEndpoint created by the Gateway api controller in response to the domain name configure in the app4 HTTPRoute object.
@@ -220,7 +220,7 @@ You can see the record in Route 53:
 
 ## Test Service Connectivity from `app1` to `app4` 
 
-1. Run the `nslookup` command in the `appv1-v1` Pod to resolve the **app4DNS**
+### 1. Run the `nslookup` command in the `appv1-v1` Pod to resolve the **app4DNS**
 
 ```bash
 kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -n app1 -- nslookup $app4DNS
@@ -239,7 +239,7 @@ Address: fd00:ec2:80::a9fe:ab21
 ```
 ::::
 
-2. Run the `nslookup` command in the `appv1-v1` Pod to resolve **Custom Domain** for `app4` i.e. `app4.vpc-lattice-custom-domain.io`
+### 2. Run the `nslookup` command in the `appv1-v1` Pod to resolve **Custom Domain** for `app4` i.e. `app4.vpc-lattice-custom-domain.io`
 
 ```bash
 kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -n app1 -- nslookup app4.vpc-lattice-custom-domain.io
@@ -262,7 +262,7 @@ Address: fd00:ec2:80::a9fe:ab21
 ::::
 
 
-3. Exec into an `app1-v1` pod to check connectivity to `app4` service using custom domain at `HTTP` listener.
+### 3. Exec into an `app1-v1` pod to check connectivity to `app4` service using custom domain at `HTTP` listener.
 
 ```bash
 kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -c app1-v1 -n app1 -- curl app4.vpc-lattice-custom-domain.io
@@ -276,7 +276,7 @@ AccessDeniedException: User: anonymous is not authorized to perform: vpc-lattice
 
 OK We still have activated our Authentication so we need to use the curl command with integration of SigV4 signature
 
-4. Exec into an `app1-v1` pod to check connectivity to `app4` service using custom domain at `HTTP` listener, with Sigv4 signature
+### 4. Exec into an `app1-v1` pod to check connectivity to `app4` service using custom domain at `HTTP` listener, with Sigv4 signature
 
 ```bash
 kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -n app1 -c app1-v1 -- /bin/bash -c 'TOKEN=$(cat $AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE) && STS=$(curl 169.254.170.23/v1/credentials -H "Authorization: $TOKEN") && curl --aws-sigv4 "aws:amz:${AWS_REGION}:vpc-lattice-svcs" --user $(echo $STS | jq ".AccessKeyId" -r):$(echo $STS | jq ".SecretAccessKey" -r) -H "x-amz-content-sha256: UNSIGNED-PAYLOAD" -H "x-amz-security-token: $(echo $STS | jq ".Token" -r)" 'http://app4.vpc-lattice-custom-domain.io
@@ -289,7 +289,7 @@ Requsting to Pod(app4-v1-77dcb6444c-mfjv2): Hello from app4-v1
 ::::
 
 
-5. Exec into an `app1-v1` pod to check connectivity to `app4` service using custom domain at `HTTPS` listener
+### 5. Exec into an `app1-v1` pod to check connectivity to `app4` service using custom domain at `HTTPS` listener
 
 ```bash
 kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -c app1-v1 -n app1 -- curl https://app4.vpc-lattice-custom-domain.io:443
@@ -312,27 +312,32 @@ command terminated with exit code 60
 
 So, let us copy the Root CA certificate generated in the earlier module, to `app1-v1` pod and then try curl again using this certificate.
 
-6. Copy the Root CA certificate to `app1-v1` pod
+### 6. Deploy the Root CA certificate to `app1-v1` pod
 
 ```bash
-APP1_POD_NAME=$(kubectl --context $EKS_CLUSTER1_CONTEXT -n app1 get pods -l=app=app1-v1 -o=jsonpath={.items..metadata.name})
-echo "APP1_POD_NAME=$APP1_POD_NAME"
-kubectl --context $EKS_CLUSTER1_CONTEXT -n app1 cp manifests/root_cert.pem $APP1_POD_NAME:/app -c app1-v1
-kubectl --context $EKS_CLUSTER1_CONTEXT -n app1 exec -it deploy/app1-v1 -c app1-v1  -- ls -l /app
+export APPNAME=app1
+export VERSION=v1
+
+#Create ConfigMap with certificat
+kubectl --context $EKS_CLUSTER1_CONTEXT create configmap -n app1 app-root-cert --from-file=/home/ec2-user/environment/manifests/root_cert.pem
+#Load configmap in App
+envsubst < templates/app-template-cert.yaml > manifests/$APPNAME-$VERSION-deploy-cert.yaml
+kubectl  --context $EKS_CLUSTER1_CONTEXT apply -f manifests/$APPNAME-$VERSION-deploy-cert.yaml
 ```
 
 ::::expand{header="Check Output"}
 ```
-APP1_POD_NAME=app1-v1-7ccbcc48b6-wnltj
--rwxrwxr-x 1 root root 6182155 Sep 20  2021 http-servers
--rw-rw-r-- 1 1000 1000    1383 Oct 27 01:25 root_cert.pem
+configmap/app-root-cert created
+namespace/app1 unchanged
+deployment.apps/app1-v1 configured
+service/app1-v1 unchanged
 ```
 ::::
 
-7. Exec into an `app1-v1` pod to check connectivity again to `app4` service using custom domain at `HTTPS` listener, along with Root CA certificate.
+### 7. Exec into an `app1-v1` pod to check connectivity again to `app4` service using custom domain at `HTTPS` listener, along with Root CA certificate.
 
 ```bash
-kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -c app1-v1 -n app1 -- curl --cacert /app/root_cert.pem https://app4.vpc-lattice-custom-domain.io:443
+kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -c app1-v1 -n app1 -- curl --cacert /cert/root_cert.pem https://app4.vpc-lattice-custom-domain.io:443
 ```
 
 We should now see the authentication issue
@@ -343,7 +348,7 @@ AccessDeniedException: User: anonymous is not authorized to perform: vpc-lattice
 ```
 ::::
 
-8. Exec into an `app1-v1` pod to check connectivity again to `app4` service using custom domain at `HTTPS` listener, along with Root CA certificate and Sigv4 signature
+### 8. Exec into an `app1-v1` pod to check connectivity again to `app4` service using custom domain at `HTTPS` listener, along with Root CA certificate and Sigv4 signature
 
 ```bash
 kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -n app1 -c app1-v1 -- /bin/bash -c 'TOKEN=$(cat $AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE) && STS=$(curl 169.254.170.23/v1/credentials -H "Authorization: $TOKEN") && curl -cacert /app/root_cert.pem --aws-sigv4 "aws:amz:${AWS_REGION}:vpc-lattice-svcs" --user $(echo $STS | jq ".AccessKeyId" -r):$(echo $STS | jq ".SecretAccessKey" -r) -H "x-amz-content-sha256: UNSIGNED-PAYLOAD" -H "x-amz-security-token: $(echo $STS | jq ".Token" -r)" 'http://app4.vpc-lattice-custom-domain.io

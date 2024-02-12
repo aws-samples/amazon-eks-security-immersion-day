@@ -35,6 +35,8 @@ Enable completion for Kubectl
 
 ```bash
 /usr/local/bin/kubectl completion bash > /etc/bash_completion.d/kubectl
+sudo tee /etc/bash_completion.d/kubectl > /dev/null <<< "$(/usr/local/bin/kubectl completion bash)"
+. /etc/bash_completion.d/kubectl
 . /etc/profile.d/bash_completion.sh
 echo "alias k=kubectl" >> ~/.bash_profile
 echo "complete -F __start_kubectl k" >> ~/.bash_profile

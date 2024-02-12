@@ -10,3 +10,5 @@ In this section, we will execute the following modules. It is recommended to exe
 3. [**Usecase 2: Service Connectivity with IAM Auth Access Controls**](3-service-connect-with-iam)
 4. [**Usecase 3: Service Connectivity with HTTPS and Default Domain**](4-service-connect-https-default-domain)
 5. [**Usecase 4: Service Connectivity with HTTPS and Custom Domain**](5-service-connect-https-custom-domain)
+
+![](/static/images/6-network-security/2-vpc-lattice-service-access/lattice-usecase4.png)
