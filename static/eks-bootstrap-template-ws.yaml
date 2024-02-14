@@ -943,7 +943,7 @@ Resources:
                 mv /tmp/eksctl /usr/local/bin
                 yum -y install jq envsubst gettext bash-completion moreutils
                 echo 'yq() {
-                  docker run --rm -i -v "${PWD}":/workdir mikefarah/yq "$@"
+                  docker run --rm -i -v "$PWD":/workdir mikefarah/yq "$@"
                   }' | tee -a /home/ec2-user/bashrc
                 /usr/local/bin/kubectl completion bash > /etc/bash_completion.d/kubectl
                 /usr/local/bin/eksctl completion bash > /etc/bash_completion.d/eksctl
