@@ -6,6 +6,14 @@ weight : 11
 
 In this section, we will test service connectivity from `app5` in second EKS Cluster to `app1` in the first EKS Cluster.
 
+![](/static/images/6-network-security/2-vpc-lattice-service-access/lattice-usecase6.png)
+- We redeploy app1 with Authentication and custom domain name
+- Gateway api controller will create a `DNSEndpoint` object based on the wanted domain name
+- We add External-DNS to create DNS records from the HTTPRoute object
+- VPC Lattice will deal with TLS termination of our custom domain name, thanks to the Certificat we attached to the `app-service-gw`Gateway.
+- We configure app5 with PodIdentity so it has appropriate IAM role to sign request using sigv4
+- We also need to associate our Route53 private domain name with VPC of cluster2 so that it can resolve names from it
+
 ## Test Service Connectivity from `app5` to `app1` with HTTPS and custom Lattice Domain, and IAM Auth policy enabled
 
 ### 1. Redeploy App1 with Authentication and default domain
