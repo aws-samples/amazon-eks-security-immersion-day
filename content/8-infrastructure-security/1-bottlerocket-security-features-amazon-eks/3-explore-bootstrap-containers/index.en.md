@@ -24,63 +24,12 @@ Exiting session with sessionId: i-12345999999-abcdexxxxxxxx
 ```
 ::::
 
-
-2. Install and configure [Amazon ECR Credential Helper](https://github.com/awslabs/amazon-ecr-credential-helper)
-
-```bash
-cat << EoF > ~/.docker/config.json
-{
-    "credsStore": "ecr-login"
-}
-EoF
-sudo yum install -y amazon-ecr-credential-helper
-```
-
-::::expand{header="Check Output"}
-```
-Loaded plugins: extras_suggestions, langpacks, priorities, update-motd
-232 packages excluded due to repository priority protections
-Resolving Dependencies
---> Running transaction check
----> Package amazon-ecr-credential-helper.x86_64 0:0.7.1-2.amzn2 will be installed
---> Finished Dependency Resolution
-
-Dependencies Resolved
-
-========================================================================================================
- Package                             Arch          Version               Repository                Size
-========================================================================================================
-Installing:
- amazon-ecr-credential-helper        x86_64        0.7.1-2.amzn2         amzn2extra-docker        2.3 M
-
-Transaction Summary
-========================================================================================================
-Install  1 Package
-
-Total download size: 2.3 M
-Installed size: 6.7 M
-Downloading packages:
-amazon-ecr-credential-helper-0.7.1-2.amzn2.x86_64.rpm                            | 2.3 MB  00:00:00     
-Running transaction check
-Running transaction test
-Transaction test succeeded
-Running transaction
-  Installing : amazon-ecr-credential-helper-0.7.1-2.amzn2.x86_64                                    1/1 
-  Verifying  : amazon-ecr-credential-helper-0.7.1-2.amzn2.x86_64                                    1/1 
-
-Installed:
-  amazon-ecr-credential-helper.x86_64 0:0.7.1-2.amzn2                                                   
-
-Complete!
-```
-::::
-
-3. Create ECR repository for container images.
+2. Create ECR repository for container images.
 
 ```bash
 export ECR_REPO="br-bootstrap"
-echo "export ECR_REPO=$ECR_REPO" >> ~/.br_security
-export ECR_REGISTRY="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+echo "export ECR_REPO=$ECR_REPO" | tee -a ~/.bash_profile
+export ECR_REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
 export ECR_REPO_URI=$(aws ecr describe-repositories --repository-name ${ECR_REPO} --region ${AWS_REGION} | \
                       jq -r '.repositories[0].repositoryUri')
 
@@ -93,11 +42,11 @@ then
         --image-tag-mutability IMMUTABLE \
         --query 'repository.repositoryUri' \
         --output text)
-      echo "export ECR_REPO_URI=$ECR_REPO_URI" >> ~/.br_security
+      echo "export ECR_REPO_URI=$ECR_REPO_URI" | tee -a ~/.bash_profile
       echo -e "\n${ECR_REPO_URI} repo created..."
 else
       echo "${ECR_REPO_URI} already exists..."
-      echo "export ECR_REPO_URI=$ECR_REPO_URI" >> ~/.br_security
+      echo "export ECR_REPO_URI=$ECR_REPO_URI" | tee -a ~/.bash_profile
 fi
 ```
 
@@ -109,7 +58,7 @@ ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/br-bootstrap repo created...
 ```
 ::::
 
-4. Create a Dockerfile and script for the container image. The script will create `eks-workshop` directory within the bind mount `/.bottlerocket/rootfs/mnt`. Build and push the container image to the ECR repository.
+3. Create a Dockerfile and script for the container image. The script will create `eks-workshop` directory within the bind mount `/.bottlerocket/rootfs/mnt`. Build and push the container image to the ECR repository.
 
 ```bash
 cat << EoF > Dockerfile
@@ -162,13 +111,13 @@ v1: digest: sha256:75989751ae2f651987ddab689b879b911aa35374ab6a90b370251bcc7487d
 ```
 ::::
 
-5. Login to the `control` container of the Bottlerocket host
+4. Login to the `control` container of the Bottlerocket host
 
 ```bash
 aws ssm start-session --target $INSTANCE_ID
 ```
 
-6. Use `apiclient` to configure the bootstrap container in the host and verify the bootstrap container settings.
+5. Use `apiclient` to configure the bootstrap container in the host and verify the bootstrap container settings.
 
 ```bash
 ACCOUNT_ID=`curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | jq -r .accountId`
@@ -198,13 +147,13 @@ apiclient get settings.bootstrap-containers
 ```
 ::::
 
-7. Login to the `admin` container
+6. Login to the `admin` container
 
 ```bash
 enter-admin-container
 ```
 
-8. Check if `eks-workshop` directory exists and exit out of the `admin` container. Bootstrap container starts at boot time and the directory should not exist on the host before the first reboot, after configuring the bootstrap container.
+7. Check if `eks-workshop` directory exists and exit out of the `admin` container. Bootstrap container starts at boot time and the directory should not exist on the host before the first reboot, after configuring the bootstrap container.
 
 ```bash
 df -h /.bottlerocket/rootfs/mnt/
@@ -231,25 +180,25 @@ Directory /.bottlerocket/rootfs/mnt/eks-workshop does not exist
 ```
 ::::
 
-9. Reboot the Bottlerocket host using `apiclient` and then exit out of `control` container.
+8. Reboot the Bottlerocket host using `apiclient` and then exit out of `control` container.
 
 ```bash
 apiclient reboot; exit
 ```
 
-10. Reboot from previous step will take about a minute. Login to the `control` container.
+9. Reboot from previous step will take about a minute. Login to the `control` container.
 
 ```bash
 aws ssm start-session --target $INSTANCE_ID
 ```
 
-11. Login to the `admin` container
+10. Login to the `admin` container. `Note:` the exit command will automatically logout of `control` container after we logout of the `admin` container.
 
 ```bash
 enter-admin-container;exit
 ```
 
-12. Check if `eks-workshop` directory exists. Bootstrap container should have started at boot time and the directory should exist on the host.
+11. Check if `eks-workshop` directory exists. Bootstrap container should have started at boot time and the directory should exist on the host.
 
 ```bash
 if [ -d "/.bottlerocket/rootfs/mnt/eks-workshop" ]; then
@@ -272,4 +221,5 @@ Directory /.bottlerocket/rootfs/mnt/eks-workshop exists
 
 You can use Bootstrap containers to run critical software before the node connects to an orchestrator. They give you substantial power to configure and modify the system in ways that would otherwise be difficult or impossible. Please check Bootstrap container [use cases](https://bottlerocket.dev/en/os/latest/#/concepts/bootstrap-containers/#use-cases).
 
-Bootstrap containers can also be specified when creating node groups with the `eksctl create nodegroup` command. Refer to [eksctl schema](https://eksctl.io/usage/schema/#managedNodeGroups-bottlerocket-settings) for the available settings.
+Bootstrap containers can also be specified when creating node groups with the `eksctl create nodegroup` command. Refer to [eksctl schema](https://eksctl.io/usage/schema/#managedNodeGroups-bottlerocket-settings) for the available settings. Please also review [Validating Amazon EKS optimized Bottlerocket AMI against the CIS Benchmark
+](https://catalog.workshops.aws/eks-security-immersionday/en-US/10-regulatory-compliance/2-cis-bottlerocket-eks/create-eks-br-mng) module of this workshop for an example of creating node group with bootstrap container.

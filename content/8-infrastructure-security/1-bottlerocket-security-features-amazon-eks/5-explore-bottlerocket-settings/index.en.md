@@ -5,7 +5,7 @@ weight : 25
 
 In this section of the workshop, you will explore [Bottlerocket settings](https://bottlerocket.dev/en/os/latest/#/api/settings-index/) using the `apiclient` in the `control` container. Any settings you can modify with `apiclient`, you can configure using EC2 [user data](https://github.com/bottlerocket-os/bottlerocket#using-user-data) in TOML format.
 
-1. With Amazon EKS, Bottlerocket uses the aws-iam-authenticator to generate a token to authenticate to the API server and submit a CSR to the signing API.
+1. In Kubernetes, the kubelet is a node agent that communicates with the Kubernetes API. This channel should be private, trustworthy, and free of interference. Kubernetes offers a certificate-signing API, which the kubelet uses to request a certificate from the cluster’s control plane. With Amazon EKS, Bottlerocket uses the aws-iam-authenticator to generate a token to authenticate to the API server and submit a CSR to the certificate-signing API.
 
 ```bash
 apiclient get settings.kubernetes.authentication-mode
@@ -221,7 +221,7 @@ aws ec2 describe-instance-attribute --attribute userData --instance-id $INSTANCE
 7. Scale-in Bottlerocket MNG to stop incurring EC2 costs for the instances.
 
 ```bash
-eksctl scale nodegroup -c $CLUSTER_NAME -n $MNG_NAME -r $AWS_REGION --nodes 0
+eksctl scale nodegroup -c $EKS_CLUSTER -n $BR_MNG_NAME -r $AWS_REGION --nodes 0
 ```
 
 ::::expand{header="Check Output"}
