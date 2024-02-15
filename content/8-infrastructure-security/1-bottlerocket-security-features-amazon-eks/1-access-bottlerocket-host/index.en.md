@@ -5,77 +5,20 @@ weight : 21
 
 In this section of the workshop, you will scale the pre-existing EKS Bottlerocket Managed Node Group (MNG) and access the node. Bottlerocket improves security posture by removing all shells from the Bottlerocket image. Bottlerocket’s API-first/container-centric approach also helps simplify fleet management. For example, Bottlerocket integrates with AWS Systems Manager, which is collection of services that you can use to view and control your infrastructure on AWS, including Bottlerocket instances.
 
-1. Environment variables used across different sections of this workshop module are saved into a file `~/.br_security`, as we progress through this module. If you start a new terminal in the Cloud9 workspace, source the file or copy/run the export commands from the file `~/.br_security` to rebuild the environment variables.
+1. Set environment variable for Bottlerocket MNG
 
 ```bash
-export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
-export AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
-export CLUSTER_NAME="eksworkshop-eksctl"
-export MNG_NAME="mng-br"
+export BR_MNG_NAME="mng-br"
 
-echo "export ACCOUNT_ID=$ACCOUNT_ID" > ~/.br_security
-echo "export AWS_REGION=$AWS_REGION" >> ~/.br_security
-echo "export CLUSTER_NAME=$CLUSTER_NAME" >> ~/.br_security
-echo "export MNG_NAME=$MNG_NAME" >> ~/.br_security
+echo "export BR_MNG_NAME=$BR_MNG_NAME" | tee -a ~/.bash_profile 
 ```
 
-2. Install and verify the Session Manager plugin for the AWS CLI on Cloud9 workspace.
+2. Verify the EKS cluster and node groups
 
 ```bash
-sudo yum install -y https://s3.amazonaws.com/session-manager-downloads/plugin/latest/linux_64bit/session-manager-plugin.rpm
-session-manager-plugin
-```
-
-::::expand{header="Check Output"}
-```
-Loaded plugins: extras_suggestions, langpacks, priorities, update-motd
-session-manager-plugin.rpm                                                         | 2.8 MB  00:00:00     
-Examining /var/tmp/yum-root-VC9iyt/session-manager-plugin.rpm: session-manager-plugin-1.2.497.0-1.x86_64
-Marking /var/tmp/yum-root-VC9iyt/session-manager-plugin.rpm to be installed
-Resolving Dependencies
---> Running transaction check
----> Package session-manager-plugin.x86_64 0:1.2.497.0-1 will be installed
---> Finished Dependency Resolution
-
-Dependencies Resolved
-
-==========================================================================================================
- Package                        Arch           Version              Repository                       Size
-==========================================================================================================
-Installing:
- session-manager-plugin         x86_64         1.2.497.0-1          /session-manager-plugin          12 M
-
-Transaction Summary
-==========================================================================================================
-Install  1 Package
-
-Total size: 12 M
-Installed size: 12 M
-Downloading packages:
-Running transaction check
-Running transaction test
-Transaction test succeeded
-Running transaction
-  Installing : session-manager-plugin-1.2.497.0-1.x86_64                                              1/1 
-  Verifying  : session-manager-plugin-1.2.497.0-1.x86_64                                              1/1 
-
-Installed:
-  session-manager-plugin.x86_64 0:1.2.497.0-1                                                             
-
-Complete!
-```
-
-```
-The Session Manager plugin was installed successfully. Use the AWS CLI to start a session.
-```
-::::
-
-3. Verify the EKS cluster and node groups
-
-```bash
-eksctl get cluster -n $CLUSTER_NAME -r $AWS_REGION -o json | jq -M ".[] | {Name,Version,Status,CreatedAt}"
-eksctl get nodegroups -c $CLUSTER_NAME -r $AWS_REGION -o json | jq -M ".[] | {Cluster,Name,Status,ImageID,Type}"
-eksctl get nodegroup -c $CLUSTER_NAME -n $MNG_NAME -r $AWS_REGION -o json | jq -M ".[] | {Cluster,Name,Status,MaxSize,MinSize,DesiredCapacity,InstanceType,ImageID}"
+eksctl get cluster -n $EKS_CLUSTER -r $AWS_REGION -o json | jq -M ".[] | {Name,Version,Status,CreatedAt}"
+eksctl get nodegroups -c $EKS_CLUSTER -r $AWS_REGION -o json | jq -M ".[] | {Cluster,Name,Status,ImageID,Type}"
+eksctl get nodegroup -c $EKS_CLUSTER -n $BR_MNG_NAME -r $AWS_REGION -o json | jq -M ".[] | {Cluster,Name,Status,MaxSize,MinSize,DesiredCapacity,InstanceType,ImageID}"
 ```
 
 ::::expand{header="Check Output"}
@@ -117,14 +60,14 @@ eksctl get nodegroup -c $CLUSTER_NAME -n $MNG_NAME -r $AWS_REGION -o json | jq -
 ```
 ::::
 
-4. Scale the EKS Bottlerocket MNG `mng-br`. First, check if the MNG has nodes.
+3. Scale the EKS Bottlerocket MNG `mng-br`. First, check if the MNG has nodes.
 
 ```bash
-if [ `kubectl get nodes -l eks.amazonaws.com/nodegroup=$MNG_NAME -o json | jq -r '.items | length'` -gt 0 ]; then 
+if [ `kubectl get nodes -l eks.amazonaws.com/nodegroup=$BR_MNG_NAME -o json | jq -r '.items | length'` -gt 0 ]; then 
   echo -e "\nBottlerocket Managed Node Group has nodes. No need to scale.\n\n"
 else
   echo -e "\nBottlerocket Managed Node Group has no nodes. Scaling to one node.\n\n"
-  eksctl scale nodegroup -c $CLUSTER_NAME -n $MNG_NAME -r $AWS_REGION --nodes 1
+  eksctl scale nodegroup -c $EKS_CLUSTER -n $BR_MNG_NAME -r $AWS_REGION --nodes 1
 fi
 ```
 
@@ -141,10 +84,10 @@ Bottlerocket Managed Node Group has no nodes. Scaling to one node.
 ```
 ::::
 
-5. Check the node status of `mng-br` MNG  and wait for `Ready` status.
+4. Check the node status of `mng-br` MNG  and wait for `Ready` status.
 
 ```bash
-while [ "`kubectl get nodes -l eks.amazonaws.com/nodegroup=$MNG_NAME | grep -v STATUS | awk '{print $2}'`" != "Ready" ]
+while [ "`kubectl get nodes -l eks.amazonaws.com/nodegroup=$BR_MNG_NAME | grep -v STATUS | awk '{print $2}'`" != "Ready" ]
 do 
   echo -e "`date` - Waiting for the Bottlerocket Node to be ready. Please wait...\n"
   sleep 15
@@ -176,23 +119,23 @@ Bottlerocket Node is ready. Please proceed with the next steps.
 ```
 ::::
 
-6. Find the Instance ID of the node in `mng-br` MNG.
+5. Find the Instance ID of the node in `mng-br` MNG.
 
 ```bash
-export INSTANCE_IP=$(kubectl get nodes -l eks.amazonaws.com/nodegroup=$MNG_NAME -o json | jq -r '.items[0].metadata.annotations."alpha.kubernetes.io/provided-node-ip"')
+export INSTANCE_IP=$(kubectl get nodes -l eks.amazonaws.com/nodegroup=$BR_MNG_NAME -o json | jq -r '.items[0].metadata.annotations."alpha.kubernetes.io/provided-node-ip"')
 
 export INSTANCE_ID=$(aws ec2 describe-instances --filters Name=private-ip-address,Values=$INSTANCE_IP | jq -r .[][].Instances[].InstanceId)
 
-echo "export INSTANCE_ID=$INSTANCE_ID" >> ~/.br_security
+echo "export INSTANCE_ID=$INSTANCE_ID" | tee -a ~/.bash_profile
 ```
 
-7. Bottlerocket images do not have an SSH server nor even a shell. Bottlerocket does, however, give you out-of-band access that allows you to launch a shell from a container to explore, debug, manually update, and change settings on the host.
+6. Bottlerocket images do not have an SSH server nor even a shell. Bottlerocket does, however, give you out-of-band access that allows you to launch a shell from a container to explore, debug, manually update, and change settings on the host.
 
-*Bottlerocket image has several [variants](https://bottlerocket.dev/en/os/latest/#/concepts/variants/). Bottlerocket runs [two instances](https://bottlerocket.dev/en/os/latest/#/concepts/components/) of the container runtime, containerd.* Containers used for operational and administrative purposes have a devoted containerd instance, whilst EKS managed workloads have a separate containerd instance. On Kubernetes variants, Bottlerocket runs Kubelet to communicate with the Kubernetes control plane and orchestrate container lifecycles.
+*Bottlerocket image has several [variants](https://bottlerocket.dev/en/os/latest/#/concepts/variants/). Bottlerocket runs [two instances](https://bottlerocket.dev/en/os/latest/#/concepts/components/) of the container runtime, containerd, in order to isolate orchestrator-driven workloads (i.e., customer workloads managed through EKS) from system workloads ( the `admin` and `control` containers). This helps reduce the blast radius of possible problems with the orchestrated workloads and keep the underlying system functional.* On Kubernetes variants, Bottlerocket runs Kubelet to communicate with the Kubernetes control plane and orchestrate container lifecycles.
 
 ![bottlerocket_intro](/static/images/infrastructure-security/bottlerocket/bottlerocket_intro.png)
 
-8. Bottlerocket has a `control` container that provides a first-tier host access, where you can make [API](https://bottlerocket.dev/en/os/latest/#/concepts/api-driven/) calls and gain access to some host-level resources. For Kubernetes variants of Bottlerocket images, the `control` container is enabled by default and remote connections are made through AWS SSM. Connect to the Bottlerocket node using AWS CLI.
+7. Bottlerocket has a `control` container that provides a first-tier host access, where you can make [API](https://bottlerocket.dev/en/os/latest/#/concepts/api-driven/) calls and gain access to some host-level resources. For Kubernetes variants of Bottlerocket images, the `control` container is enabled by default and remote connections are made through AWS SSM. Connect to the Bottlerocket node using AWS CLI.
 
 ```bash
 aws ssm start-session --target $INSTANCE_ID
@@ -232,7 +175,7 @@ You can disable the admin container like this:
 ```
 ::::
 
-9. Bottlerocket ships with a tool called `apiclient` which provides a command line interface for interacting with the API. List the [host containers](https://github.com/bottlerocket-os/bottlerocket/blob/develop/README.md#custom-host-containers) enabled in the Bottlerocket image variant. 
+8. Bottlerocket ships with a tool called `apiclient` which provides a command line interface for interacting with the API. List the [host containers](https://github.com/bottlerocket-os/bottlerocket/blob/develop/README.md#custom-host-containers) enabled in the Bottlerocket image variant. 
 
 ```bash
 apiclient get settings.host-containers
@@ -260,7 +203,7 @@ apiclient get settings.host-containers
 ```
 ::::
 
-10. Above command returns two host-containers `admin` and `control`. Admin container is designed to provide out-of-band access with elevated privileges. For Kubernetes variants of Bottlerocket images, the `admin` container is not enabled by default, but can be turned on or entered through the `control` container. The best security practice is to disable the `admin` container and only enable it as-needed. For this workshop, you can enable the admin container for testing purposes.
+9. Above command returns two host-containers `admin` and `control`. Admin container is designed to provide out-of-band access with elevated privileges. For Kubernetes variants of Bottlerocket images, the `admin` container is not enabled by default, but can be turned on or entered through the `control` container. The best security practice is to disable the `admin` container and only enable it as-needed. For this workshop, you can enable the admin container for testing purposes.
 
 ```bash
 enable-admin-container
@@ -274,7 +217,7 @@ You can also use 'enter-admin-container' to enable, wait, and connect in one ste
 ```
 ::::
 
-11. Access the `admin` container from the control container.
+10. Access the `admin` container from the control container. We will explore use cases for `admin` container in the remaining labs of this module. `Note:` *As mentioned in the previous command output, you can also use 'enter-admin-container' to enable, wait, and connect in one step.*
 
 ```bash
 enter-admin-container
@@ -300,7 +243,7 @@ Bottlerocket host's root filesystem.
 ```
 ::::
 
-12. Exit the `admin` container.
+11. Exit the `admin` container.
 
 ```bash
 exit

@@ -63,7 +63,7 @@ Exiting session with sessionId: i-abcdef4723739-73hf87fiu32e23.
 ```bash
 for i in {1..10}
 do
-  kubectl get nodes -l eks.amazonaws.com/nodegroup=$MNG_NAME
+  kubectl get nodes -l eks.amazonaws.com/nodegroup=$BR_MNG_NAME
   sleep 10
 done
 
@@ -100,9 +100,9 @@ An error occurred (TargetNotConnected) when calling the StartSession operation: 
 6. Terminate the inoperable Bottlerocket host. 
 
 ```bash
-kubectl get nodes -l eks.amazonaws.com/nodegroup=$MNG_NAME | grep NotReady | awk '{print $1}' | xargs kubectl delete node
+kubectl get nodes -l eks.amazonaws.com/nodegroup=$BR_MNG_NAME | grep NotReady | awk '{print $1}' | xargs kubectl delete node
 
-kubectl get nodes -l eks.amazonaws.com/nodegroup=$MNG_NAME
+kubectl get nodes -l eks.amazonaws.com/nodegroup=$BR_MNG_NAME
 
 aws ec2 terminate-instances --instance-ids $INSTANCE_ID --region $AWS_REGION
 ```
@@ -134,21 +134,21 @@ No resources found
 7. ASG associated with the `mng-br` MNG will create a replacement EC2 instance. Check the node status of mng-br MNG, wait for Ready status, find the EC2 instance ID and connect to `control` container on the host.
 
 ```bash
-while [ "`kubectl get nodes -l eks.amazonaws.com/nodegroup=$MNG_NAME | grep -v STATUS | awk '{print $2}'`" != "Ready" ]
+while [ "`kubectl get nodes -l eks.amazonaws.com/nodegroup=$BR_MNG_NAME | grep -v STATUS | awk '{print $2}'`" != "Ready" ]
 do
   echo -e "`date` - Waiting for the Bottlerocket Node to be ready. Please wait...\n"
   sleep 15
 done
 
-kubectl get nodes -l eks.amazonaws.com/nodegroup=$MNG_NAME
+kubectl get nodes -l eks.amazonaws.com/nodegroup=$BR_MNG_NAME
 
 echo -e "\nBottlerocket Node is ready."
 
-export INSTANCE_IP=$(kubectl get nodes -l eks.amazonaws.com/nodegroup=$MNG_NAME -o json | jq -r '.items[0].metadata.annotations."alpha.kubernetes.io/provided-node-ip"')
+export INSTANCE_IP=$(kubectl get nodes -l eks.amazonaws.com/nodegroup=$BR_MNG_NAME -o json | jq -r '.items[0].metadata.annotations."alpha.kubernetes.io/provided-node-ip"')
 
 export INSTANCE_ID=$(aws ec2 describe-instances --filters Name=private-ip-address,Values=$INSTANCE_IP | jq -r .[][].Instances[].InstanceId)
 
-echo "export INSTANCE_ID=$INSTANCE_ID" >> ~/.br_security
+echo "export INSTANCE_ID=$INSTANCE_ID" | tee -a ~/.bash_profile
 
 aws ssm start-session --target $INSTANCE_ID
 ```

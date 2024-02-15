@@ -3,11 +3,15 @@ title : "Upgrading Bottlerocket host"
 weight : 22
 ---
 
-In this section of the workshop, you will explore Bottlerocket OS update [methods](https://bottlerocket.dev/en/os/latest/#/update/methods/).
+Bottlerocket OS update [methods](https://bottlerocket.dev/en/os/latest/#/update/methods/) can be classified into two main categories. You can choose the appropriate OS update method based on your cluster workload requirements.
+
+`Node replacement`:  Bottlerocket clusters can be updated via node replacement, meaning that the existing Bottlerocket nodes will be replaced by new Bottlerocket nodes that run updated software. This requires nodes to be reprovisioned. When running the aws-k8s-* variants of Bottlerocket on EKS, you can use either the EKS Console or eksctl to update your Bottlerocket nodes using the node replacement method. If you use Karpenter for EKS cluster autoscaling, [Drift](https://catalog.workshops.aws/karpenter/en-US/basic-nodepool/drift) will allow node replacements. Changes in Bottlerocket variants (e.g. upgrading k8s version) must be handled through a node replacement.
+
+`In-place updates`: Bottlerocket clusters can be updated in-place, meaning that the existing Bottlerocket nodes will download updated software to use, without re-provisioning the nodes. In this section of the workshop, we will explore the in-place updates using `apiclient`.
 
 ::alert[This workshop is frequently updated to use the latest Bottlerocket release and EKS version. In case there are no available Bottlerocket updates while executing this module, please follow along to understand the concepts.]{header=""}
 
-1. Bottlerocket API allows [in-place](https://bottlerocket.dev/en/os/latest/#/update/guidelines/) update of the OS using `apiclient`. In-place updates are supported within the same [Bottlerocket variant](https://bottlerocket.dev/en/os/latest/#/concepts/variants/) (e.g. aws-k8s-1.27). Review the settings available to manage in-place OS updates.
+1. In-place updates are supported within the same [Bottlerocket variant](https://bottlerocket.dev/en/os/latest/#/concepts/variants/) (e.g. aws-k8s-1.27). Review the settings available to manage in-place OS updates.
 
 ```bash
 apiclient get settings.updates
@@ -35,41 +39,39 @@ apiclient get settings.updates
 apiclient update check
 ```
 
-Based on `version-lock` setting, the `update check` command will show `chosen_update` with the latest version and `update_state` will be **Available**. At the time you are running this workshop, if there are no available updates, `chosen_update` will show **null**.
+Based on `version-lock` setting, the `update check` command will show `chosen_update` with the latest version and `update_state` will be **Available**. At the time you are running this workshop, if there are no available updates, `chosen_update` will show **null** and `update_state` will show **Idle**.
 
 ::::expand{header="Check Output"}
 ```
-21:10:57 [INFO] Refreshing updates...
+23:47:20 [INFO] Refreshing updates...
 {
   "active_partition": {
     "image": {
       "arch": "x86_64",
-      "variant": "aws-k8s-1.27",
-      "version": "1.14.0"
+      "variant": "aws-k8s-1.28",
+      "version": "1.19.0"
     },
     "next_to_boot": true
   },
   "available_updates": [
-    "1.15.0",
-    "1.14.3",
-    "1.14.2",
-    "1.14.1",
-    "1.14.0"
+    "1.19.0",
+    "1.18.0",
+    "1.17.0",
+    "1.16.1",
+    "1.16.0",
+    "1.15.1",
+    "1.15.0"
   ],
-  "chosen_update": {
-    "arch": "x86_64",
-    "variant": "aws-k8s-1.27",
-    "version": "1.15.0"
-  },
+  "chosen_update": null,
   "most_recent_command": {
     "cmd_status": "Success",
     "cmd_type": "refresh",
     "exit_status": 0,
     "stderr": "",
-    "timestamp": "2023-10-13T21:10:58.126609177Z"
+    "timestamp": "2024-02-07T23:47:21.094234584Z"
   },
   "staging_partition": null,
-  "update_state": "Available"
+  "update_state": "Idle"
 }
 ```
 ::::
@@ -162,5 +164,3 @@ exit
 Exiting session with sessionId: i-12345999999-abcdexxxxxxxx
 ```
 ::::
-
-6. Bottlerocket version updates can be handled through a node replacement too. Changes in variants (e.g. upgrading k8s version) must be handled through a node replacement. Please review [Bottlerocket documentation](https://bottlerocket.dev/en/os/latest/#/concepts/variants/#variants-updating--migrating) and [AWS documentation](https://docs.aws.amazon.com/eks/latest/userguide/update-managed-node-group.html#mng-update) to learn more.
