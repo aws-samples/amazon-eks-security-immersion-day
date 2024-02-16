@@ -3,22 +3,22 @@ title : "Usecase 7: Export K8s Service in Cluster2 and Import into  Cluster1"
 weight : 13
 ---
 
-In this section, we will deploy a new service `app6` in Second EKS Cluster and Export it to VPC Lattice. Then import this service into first EKS Cluster.
+In this section, we will deploy a new version of `app4`, which is already deployed in cluster 1, in Second EKS Cluster and Export it to VPC Lattice. Then import this service into first EKS Cluster.
 
-## Deploy K8s manifests for Service `app6` in Second EKS Cluster
+## Deploy K8s manifests for Service `app4 version 2` in Second EKS Cluster
 
 ```bash
-export APPNAME=app6
-export VERSION=v1
+export APPNAME=app4
+export VERSION=v2
 envsubst < templates/app-template.yaml > manifests/$APPNAME-$VERSION-deploy.yaml
 kubectl  --context $EKS_CLUSTER2_CONTEXT apply -f manifests/$APPNAME-$VERSION-deploy.yaml
 ```
 
 ::::expand{header="Check Output"}
 ```
-namespace/app6 created
-deployment.apps/app6-v1 created
-service/app6-v1 created
+namespace/app4 created
+deployment.apps/app4-v2 created
+service/app4-v2 created
 ```
 ::::
 
@@ -30,20 +30,20 @@ kubectl --context $EKS_CLUSTER2_CONTEXT -n $APPNAME get all
 ::::expand{header="Check Output"}
 ```
 NAME                           READY   STATUS    RESTARTS   AGE
-pod/app6-v1-7c98dc8c57-ssgxz   1/1     Running   0          109s
+pod/app4-v2-76fd45fbc4-d7fhg   1/1     Running   0          23s
 
 NAME              TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
-service/app6-v1   ClusterIP   172.20.179.90   <none>        80/TCP    109s
+service/app4-v2   ClusterIP   10.100.222.74   <none>        80/TCP    23s
 
 NAME                      READY   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/app6-v1   1/1     1            1           109s
+deployment.apps/app4-v2   1/1     1            1           23s
 
 NAME                                 DESIRED   CURRENT   READY   AGE
-replicaset.apps/app6-v1-7c98dc8c57   1         1         1       109s
+replicaset.apps/app4-v2-76fd45fbc4   1         1         1       23s
 ```
 ::::
 
-### Export Kubernetes service `app6-v1` from Second EKS Cluster to AWS Lattice Service
+### Export Kubernetes service `app4-v2` from Second EKS Cluster to AWS Lattice Service
 
 ```bash
 cat > manifests/$APPNAME-service-export.yaml <<EOF
@@ -61,37 +61,37 @@ kubectl --context $EKS_CLUSTER2_CONTEXT apply -f manifests/$APPNAME-service-expo
 
 ::::expand{header="Check Output"}
 ```
-serviceexport.application-networking.k8s.aws/app6-v1 created
+serviceexport.application-networking.k8s.aws/app4-v2 created
 ```
 ::::
 
 ```bash
-kubectl --context $EKS_CLUSTER2_CONTEXT -n $APPNAME get serviceexport.application-networking.k8s.aws app6-v1 -n app6 
+kubectl --context $EKS_CLUSTER2_CONTEXT -n $APPNAME get serviceexport.application-networking.k8s.aws app4-v2 -n app4
 ```
 
 ::::expand{header="Check Output"}
 ```
 NAME      AGE
-app6-v1   44s
+app4-v2   44s
 ```
 ::::
 
 The Kubernetes `ServicExport`triggers VPC Lattice Gateway API controller to create a lattice target group `k8s-app6-v1-app6-http-http1`
 
-![app6-tg.png](/static/images/6-network-security/2-vpc-lattice-service-access/app6-tg.png)
+![app6-tg.png](/static/images/6-network-security/2-vpc-lattice-service-access/app4-v2-tg.png)
 
 
-### Import Kubernetes service `app6-v1` into First EKS Cluster
+### Import Kubernetes service `app4-v2` into First EKS Cluster
 
 ```bash
-export APPNAME=app6
-export VERSION=v1
+export APPNAME=app4
+export VERSION=v2
 cat > manifests/$APPNAME-service-import.yaml <<EOF
 apiVersion: application-networking.k8s.aws/v1alpha1
 kind: ServiceImport
 metadata: 
-  name: app6-v1
-  namespace: app6
+  name: $APPNAME-$VERSION
+  namespace: $APPNAME
   annotations:
     application-networking.k8s.aws/aws-eks-cluster-name: $EKS_CLUSTER2_NAME
     application-networking.k8s.aws/aws-vpc: $EKS_CLUSTER2_VPC_ID 
@@ -102,39 +102,51 @@ spec:
     protocol: TCP 
 EOF
 
-kubectl --context $EKS_CLUSTER1_CONTEXT create namespace $APPNAME
 kubectl --context $EKS_CLUSTER1_CONTEXT apply -f manifests/$APPNAME-service-import.yaml
 ```
 
 ::::expand{header="Check Output"}
 ```
-namespace/app6 created
-serviceimport.application-networking.k8s.aws/app6-v1 created
+serviceimport.application-networking.k8s.aws/app4-v2 created
 ```
 ::::
 
 ```bash
-kubectl --context $EKS_CLUSTER1_CONTEXT get serviceimport.application-networking.k8s.aws -n app6
+kubectl --context $EKS_CLUSTER1_CONTEXT get serviceimport.application-networking.k8s.aws -n $APPNAME
 ```
 
 ::::expand{header="Check Output"}
 ```
 NAME      AGE
-app6-v1   58s
+app4-v2   68s
 ```
 ::::
 
 
-### Deploy HTTPRoute for Service `app6` in First Cluster with ServiceImport
+
+### Update HTTPRoute for Service `app4` in First Cluster and add ServiceImport as additional target
+
+Before starting, check we can access app4-v1 service, from app1
 
 ```bash
-envsubst < templates/route-template-https-custom-domain-service-import.yaml > manifests/$APPNAME-https-custom-domain-service-import.yaml
-kubectl --context $EKS_CLUSTER1_CONTEXT apply -f manifests/$APPNAME-https-custom-domain-service-import.yaml
+export APPNAME=app1
+export VERSION=v1
+kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/$APPNAME-$VERSION -c $APPNAME-$VERSION -n $APPNAME -- /bin/bash -c 'TOKEN=$(cat $AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE) && STS=$(curl 169.254.170.23/v1/credentials -H "Authorization: $TOKEN") && curl --cacert /cert/root_cert.pem --aws-sigv4 "aws:amz:${AWS_REGION}:vpc-lattice-svcs" --user $(echo $STS | jq ".AccessKeyId" -r):$(echo $STS | jq ".SecretAccessKey" -r) -H "x-amz-content-sha256: UNSIGNED-PAYLOAD" -H "x-amz-security-token: $(echo $STS | jq ".Token" -r)" 'https://app4.vpc-lattice-custom-domain.io
+```
+
+Update HTTP Route to point to both services, which are in different clusters:
+
+```bash
+export APPNAME=app4
+export VERSION1=v1
+export VERSION2=v2
+envsubst < templates/route-template-http-custom-domain-weighted.yaml > manifests/$APPNAME-https-custom-domain-weighted-service-import.yaml
+kubectl --context $EKS_CLUSTER1_CONTEXT apply -f manifests/$APPNAME-https-custom-domain-weighted-service-import.yaml
 ```
 
 ::::expand{header="Check Output"}
 ```
-httproute.gateway.networking.k8s.io/app6 created
+httproute.gateway.networking.k8s.io/app4 configured
 ```
 ::::
 
@@ -146,168 +158,79 @@ kubectl --context $EKS_CLUSTER1_CONTEXT  wait --for=jsonpath='{.status.parents[-
 
 ::::expand{header="Check Output"}
 ```
-httproute.gateway.networking.k8s.io/app6 condition met
+httproute.gateway.networking.k8s.io/app4 condition met
 ```
 ::::
 
 ::alert[If the above command returns `error: timed out waiting for the condition on httproutes/app6`, run the command once again]{header="Note"}
 
-View the VPC Lattice Service `app6-app6` in the [Amazon VPC Console](https://us-west-2.console.aws.amazon.com/vpc/home?region=us-west-2#Services:)
+View the VPC Lattice Service `app4-app4` in the [Amazon VPC Console](https://console.aws.amazon.com/vpc/home?#Services:)
 
-![app6-service.png](/static/images/6-network-security/2-vpc-lattice-service-access/app6-service.png)
+![app4-service.png](/static/images/6-network-security/2-vpc-lattice-service-access/app4-service.png)
 
+Note that this time we created only 1 `HTTPS` listeners under **Routing** Tab for VPC Service `app4-app4` in the Console. 
 
-Note that there are 2 listeners created one for `HTTP` and one for `HTTPS` under **Routing** Tab for VPC Service `app6-app6` in the Console. 
+![app4-routes-weighted.png](/static/images/6-network-security/2-vpc-lattice-service-access/app4-routes-weighted.png)
+
+In the Routing section you can see that we have now 2 targetgroups for the service:
+- the app4-v1 targetgroup is from the local kubernetes service (in EKS cluster 1)
+- the app4-v2 targetgroup is from the serviceImport, referencing the remote Kubernetes service (in EKS cluster 2)
 
 Note also the Access configuration with IAM policy.
 
-![app6-routes.png](/static/images/6-network-security/2-vpc-lattice-service-access/app6-routes.png)
+## Test Service Connectivity from `app1` in Cluster1 to `app4` 
 
-This route is connected to the Target group `k8s-app6-v1-app6-http-http1` which was created earlier as result of `ServiceExport` in the Second EKS Cluster.
-
-## Get the HTTPRoute for `app6` service
-
-1. List the route’s yaml file to see the DNS address (highlighted here on the message line): 
-
-```bash
-kubectl --context $EKS_CLUSTER1_CONTEXT get httproute $APPNAME -n $APPNAME -o yaml
-```
-
-::::expand{header="Check Output"}
-```yaml
-apiVersion: gateway.networking.k8s.io/v1beta1
-kind: HTTPRoute
-metadata:
-  annotations:
-    application-networking.k8s.aws/lattice-assigned-domain-name: app6-app6-094b5ffecc2aa5d85.7d67968.vpc-lattice-svcs.us-west-2.on.aws
-    kubectl.kubernetes.io/last-applied-configuration: |
-      {"apiVersion":"gateway.networking.k8s.io/v1beta1","kind":"HTTPRoute","metadata":{"annotations":{},"name":"app6","namespace":"app6"},"spec":{"hostnames":["app6.vpc-lattice-custom-domain.io"],"parentRefs":[{"kind":"Gateway","name":"app-services-gw","namespace":"app-services-gw","sectionName":"http-listener"}],"rules":[{"backendRefs":[{"kind":"ServiceImport","name":"app6-v1","port":80}],"matches":[{"path":{"type":"PathPrefix","value":"/"}}]}]}}
-  creationTimestamp: "2023-10-27T09:06:57Z"
-  finalizers:
-  - httproute.k8s.aws/resources
-  generation: 1
-  name: app6
-  namespace: app6
-  resourceVersion: "618104"
-  uid: 8e65f671-c5f3-4fcb-8443-9ba4dfbfedba
-spec:
-  hostnames:
-  - app6.vpc-lattice-custom-domain.io
-  parentRefs:
-  - group: gateway.networking.k8s.io
-    kind: Gateway
-    name: app-services-gw
-    namespace: app-services-gw
-    sectionName: http-listener
-  rules:
-  - backendRefs:
-    - group: ""
-      kind: ServiceImport
-      name: app6-v1
-      port: 80
-      weight: 1
-    matches:
-    - path:
-        type: PathPrefix
-        value: /
-status:
-  parents:
-  - conditions:
-    - lastTransitionTime: "2023-10-27T09:07:19Z"
-      message: 'DNS Name: app6-app6-094b5ffecc2aa5d85.7d67968.vpc-lattice-svcs.us-west-2.on.aws'
-      observedGeneration: 1
-      reason: Accepted
-      status: "True"
-      type: Accepted
-    - lastTransitionTime: "2023-10-27T09:07:19Z"
-      message: 'DNS Name: app6-app6-094b5ffecc2aa5d85.7d67968.vpc-lattice-svcs.us-west-2.on.aws'
-      observedGeneration: 1
-      reason: ResolvedRefs
-      status: "True"
-      type: ResolvedRefs
-    controllerName: application-networking.k8s.aws/gateway-api-controller
-    parentRef:
-      group: gateway.networking.k8s.io
-      kind: Gateway
-      name: app-services-gw
-      namespace: app-services-gw
-      sectionName: http-listener
-```
-::::
-
-The `status` field in the above output contains the DNS Name of the Service `message: 'DNS Name: app6-app6-075dc0ad6d3159ffb.7d67968.vpc-lattice-svcs.us-west-2.on.aws'`
-
-As we have deploy external-DNS, there should also be a `DNSEndpoint` object that will trigger a Route53 record creation.
-
-```bash
-kubectl --context $EKS_CLUSTER1_CONTEXT get dnsendpoint $APPNAME-dns -n $APPNAME -o yaml     
-```                     
-
-::::expand{header="Check Output"}
-```
-apiVersion: externaldns.k8s.io/v1alpha1
-kind: DNSEndpoint
-metadata:
-  creationTimestamp: "2024-02-14T12:36:57Z"
-  generation: 1
-  name: app6-dns
-  namespace: app6
-  ownerReferences:
-  - apiVersion: gateway.networking.k8s.io/v1beta1
-    blockOwnerDeletion: true
-    controller: true
-    kind: HTTPRoute
-    name: app6
-    uid: b4cde166-8440-4562-9424-75b3fd2f9016
-  resourceVersion: "2307662"
-  uid: 5a8a00d5-8fed-430b-8e70-46004d8e82dc
-spec:
-  endpoints:
-  - dnsName: app6.vpc-lattice-custom-domain.io
-    recordTTL: 300
-    recordType: CNAME
-    targets:
-    - app6-app6-05af6dcbca041aaf3.7d67968.vpc-lattice-svcs.us-west-2.on.aws
-status:
-  observedGeneration: 1
-```
-::::
-
-## Test Service Connectivity from `app1` in Cluster1 to `app6` hosted in Cluster2
-
-1. Run the `nslookup` command in the `app1-v1` Pod to resolve **Custom Domain** for `app6` i.e. `app6.vpc-lattice-custom-domain.io`
+### 1. Exec into an `app1-v1` pod to check connectivity to `app4` service using custom domain at `HTTPS` listener.
 
 ```bash
 export APPNAME=app1
 export VERSION=v1
-kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/$APPNAME-$VERSION -c $APPNAME-$VERSION -n $APPNAME -- nslookup app6.vpc-lattice-custom-domain.io
+for x in `seq 0 9`; do kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/$APPNAME-$VERSION -c $APPNAME-$VERSION -n $APPNAME -- /bin/bash -c 'TOKEN=$(cat $AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE) && STS=$(curl -s 169.254.170.23/v1/credentials -H "Authorization: $TOKEN") && curl -s --cacert /cert/root_cert.pem --aws-sigv4 "aws:amz:${AWS_REGION}:vpc-lattice-svcs" --user $(echo $STS | jq ".AccessKeyId" -r):$(echo $STS | jq ".SecretAccessKey" -r) -H "x-amz-content-sha256: UNSIGNED-PAYLOAD" -H "x-amz-security-token: $(echo $STS | jq ".Token" -r)" 'https://app4.vpc-lattice-custom-domain.io ; done
 ```
-
-Note that domain name `app6.vpc-lattice-custom-domain.io` resolves to `app6` default VPC Lattice generated domain as per the `CNAME` record configuration in the Private Hosted Zone.
 
 ::::expand{header="Check Output"}
 ```
-Server:         172.20.0.10
-Address:        172.20.0.10#53
-
-Non-authoritative answer:
-app6.vpc-lattice-custom-domain.io       canonical name = app6-app6-094b5ffecc2aa5d85.7d67968.vpc-lattice-svcs.us-west-2.on.aws.
-Name:   app6-app6-094b5ffecc2aa5d85.7d67968.vpc-lattice-svcs.us-west-2.on.aws
-Address: 169.254.171.33
-Name:   app6-app6-094b5ffecc2aa5d85.7d67968.vpc-lattice-svcs.us-west-2.on.aws
-Address: fd00:ec2:80::a9fe:ab21
+Requsting to Pod(app4-v2-76fd45fbc4-d7fhg): Hello from app4-v2
+Requsting to Pod(app4-v2-76fd45fbc4-d7fhg): Hello from app4-v2
+Requsting to Pod(app4-v2-76fd45fbc4-d7fhg): Hello from app4-v2
+Requsting to Pod(app4-v2-76fd45fbc4-d7fhg): Hello from app4-v2
+Requsting to Pod(app4-v2-76fd45fbc4-d7fhg): Hello from app4-v2
+Requsting to Pod(app4-v1-85d4d9c455-22fgw): Hello from app4-v1
+Requsting to Pod(app4-v1-85d4d9c455-22fgw): Hello from app4-v1
+Requsting to Pod(app4-v1-85d4d9c455-22fgw): Hello from app4-v1
+Requsting to Pod(app4-v1-85d4d9c455-22fgw): Hello from app4-v1
+Requsting to Pod(app4-v2-76fd45fbc4-d7fhg): Hello from app4-v2
 ```
 ::::
 
+> You should see like 50% requests are going to app4-v1, and 50% are going to app4-v2.
 
-4. Exec into an `app1-v1` pod to check connectivity to `app6` service using custom domain at `HTTP` listener.
+## Test resilience when stopping the app1-v1 service.
+
+Now we want to see how VPC lattice can improva the resiliency of our application.
+
+In one terminal, start calling the app4 lattice service:
 
 ```bash
-kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/$APPNAME-$VERSION -c $APPNAME-$VERSION -n $APPNAME -- /bin/bash -c 'TOKEN=$(cat $AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE) && STS=$(curl 169.254.170.23/v1/credentials -H "Authorization: $TOKEN") && curl --cacert /cert/root_cert.pem --aws-sigv4 "aws:amz:${AWS_REGION}:vpc-lattice-svcs" --user $(echo $STS | jq ".AccessKeyId" -r):$(echo $STS | jq ".SecretAccessKey" -r) -H "x-amz-content-sha256: UNSIGNED-PAYLOAD" -H "x-amz-security-token: $(echo $STS | jq ".Token" -r)" 'https://app6.vpc-lattice-custom-domain.io
+export APPNAME=app1
+export VERSION=v1
+while true; do kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/$APPNAME-$VERSION -c $APPNAME-$VERSION -n $APPNAME -- /bin/bash -c 'TOKEN=$(cat $AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE) && STS=$(curl -s 169.254.170.23/v1/credentials -H "Authorization: $TOKEN") && curl -s --cacert /cert/root_cert.pem --aws-sigv4 "aws:amz:${AWS_REGION}:vpc-lattice-svcs" --user $(echo $STS | jq ".AccessKeyId" -r):$(echo $STS | jq ".SecretAccessKey" -r) -H "x-amz-content-sha256: UNSIGNED-PAYLOAD" -H "x-amz-security-token: $(echo $STS | jq ".Token" -r)" 'https://app4.vpc-lattice-custom-domain.io ; done
 ```
 
-::::expand{header="Check Output"}
+While the command is running, scale down to 0 the app4-v1 service in first cluster
+
+```bash
+
+kubectl --context $EKS_CLUSTER1_CONTEXT rollout -n app4 restart deployment app4-v1 
+
+kubectl --context $EKS_CLUSTER1_CONTEXT scale -n app4 deployment/app4-v1 --replicas=0
+
+kubectl --context $EKS_CLUSTER1_CONTEXT get deployment -n app4
 ```
-Requsting to Pod(app6-v1-7c98dc8c57-ssgxz): Hello from app6-v1
+
+
+You can also try the same for app4-v2
+
+```bash
+kubectl --context $EKS_CLUSTER2_CONTEXT rollout -n app4 restart deployment app4-v2
 ```
-::::

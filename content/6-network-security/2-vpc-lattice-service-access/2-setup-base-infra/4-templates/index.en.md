@@ -106,6 +106,11 @@ spec:
         env:
         - name: PodName
           value: "Hello from \$APPNAME-\$VERSION"
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 180"]
+      terminationGracePeriodSeconds: 190           
 
 ---
 apiVersion: v1
