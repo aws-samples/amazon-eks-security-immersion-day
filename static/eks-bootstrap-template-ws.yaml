@@ -948,7 +948,7 @@ Resources:
                 /usr/local/bin/kubectl completion bash > /etc/bash_completion.d/kubectl
                 /usr/local/bin/eksctl completion bash > /etc/bash_completion.d/eksctl
                 su -l -c 'echo "alias k=kubectl" >> ~/.bash_profile' ec2-user
-                su -l -c 'echo "alias ll=ls -la" >> ~/.bash_profile' ec2-user
+                su -l -c 'echo "alias ll=\"ls -la\"" >> ~/.bash_profile' ec2-user
                 su -l -c 'echo "complete -F __start_kubectl k" >> ~/.bash_profile' ec2-user
                 curl -fsSL -o /tmp/helm.tgz https://get.helm.sh/helm-v3.7.1-linux-amd64.tar.gz
                 tar -C /tmp -xzf /tmp/helm.tgz
@@ -957,7 +957,7 @@ Resources:
                 su -l -c 'helm repo add eks https://aws.github.io/eks-charts' ec2-user
                 su -l -c 'helm repo update' ec2-user
                 su -l -c 'curl -sS https://webinstall.dev/k9s | bash' ec2-user
-                /home/ec2-user/.nvm/versions/node/`node -v`/bin/npm  i -g c9
+                sudo /home/ec2-user/.nvm/versions/node/v18.17.1/bin/npm i -g c9
                 su -l -c 'aws configure set default.region ${AWS::Region}' ec2-user
                 su -l -c 'aws configure set cli_pager ""' ec2-user                
                 # This must be the last line - do not add any lines after this!
