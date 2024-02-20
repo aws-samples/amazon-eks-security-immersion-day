@@ -332,7 +332,7 @@ Resources:
       Role: !GetAtt EKSClusterCreatorRole.Arn
       #Architectures:
       #  - arm64
-      Runtime: python3.9
+      Runtime: python3.12
       Handler: index.handler
       Timeout: 900
       Code:
@@ -689,7 +689,7 @@ Resources:
     DependsOn: [Cloud9Environment]
     Properties:
       Role: !GetAtt Cloud9InitializerRole.Arn
-      Runtime: python3.9
+      Runtime: python3.12
       #Handler: index.handler
       Handler: index.lambda_handler
       Environment:
@@ -941,12 +941,16 @@ Resources:
                 curl -sSL "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
                 chmod +x /tmp/eksctl
                 mv /tmp/eksctl /usr/local/bin
+                curl -sSL "https://github.com/awslabs/eksdemo/releases/download/v0.12.0/eksdemo_Linux_x86_64.tar.gz" | tar xz -C /tmp
+                chmod +x /tmp/eksdemo
+                mv /tmp/eksdemo /usr/local/bin
                 yum -y install jq envsubst gettext bash-completion moreutils
                 echo 'yq() {
                   docker run --rm -i -v "$PWD":/workdir mikefarah/yq "$@"
                   }' | tee -a /home/ec2-user/bashrc
                 /usr/local/bin/kubectl completion bash > /etc/bash_completion.d/kubectl
                 /usr/local/bin/eksctl completion bash > /etc/bash_completion.d/eksctl
+                mv /tmp/completions/eksdemo.bash /etc/bash_completion.d/eksdemo
                 su -l -c 'echo "alias k=kubectl" >> ~/.bash_profile' ec2-user
                 su -l -c 'echo "alias ll=\"ls -la\"" >> ~/.bash_profile' ec2-user
                 su -l -c 'echo "complete -F __start_kubectl k" >> ~/.bash_profile' ec2-user
@@ -956,10 +960,23 @@ Resources:
                 rm -rf /tmp/helm.tgz /tmp/linux-amd64
                 su -l -c 'helm repo add eks https://aws.github.io/eks-charts' ec2-user
                 su -l -c 'helm repo update' ec2-user
+                #Install Krew and stern
+                (
+                  cd "$(mktemp -d)" &&
+                  OS="$(uname | tr '[:upper:]' '[:lower:]')" &&
+                  ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" &&
+                  KREW="krew-${OS}_${ARCH}" &&
+                  curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/latest/download/${KREW}.tar.gz" &&
+                  tar zxvf "${KREW}.tar.gz" &&
+                  ./"${KREW}" install krew
+                )
+                echo "export PATH=${KREW_ROOT:-$HOME/.krew}/bin:$PATH" | tee -a ~/.bash_profile
+                source ~/.bash_profile
+                kubectl krew install stern
                 su -l -c 'curl -sS https://webinstall.dev/k9s | bash' ec2-user
                 sudo /home/ec2-user/.nvm/versions/node/v18.17.1/bin/npm i -g c9
                 su -l -c 'aws configure set default.region ${AWS::Region}' ec2-user
-                su -l -c 'aws configure set cli_pager ""' ec2-user                
+                su -l -c 'aws configure set cli_pager ""' ec2-user
                 # This must be the last line - do not add any lines after this!
                 shutdown -r 1
 
