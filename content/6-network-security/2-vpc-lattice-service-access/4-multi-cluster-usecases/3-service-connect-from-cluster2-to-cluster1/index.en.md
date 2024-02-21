@@ -37,7 +37,7 @@ kubectl --context $EKS_CLUSTER1_CONTEXT  wait --for=jsonpath='{.status.parents[-
 Install Pod Identity add-on in Cluster2:
 
 ```bash
-aws eks create-addon --cluster-name $EKS_CLUSTER2_NAME --addon-name eks-pod-identity-agent --addon-version v1.1.0-eksbuild.1 
+eksdemo create addon eks-pod-identity-agent -c $EKS_CLUSTER2_NAME
 ```
 
 > Wait for eks-pod-identity to be up and running
@@ -161,8 +161,14 @@ kubectl stern -n kube-system eks-pod-identity-agent
 
 Finally Call App1
 
+kubectl --context $EKS_CLUSTER_CONTEXT create configmap -n app5 app-root-cert --from-file=/home/ec2-user/environment/manifests/root_cert.pem
+
 ```bash
-kubectl --context $EKS_CLUSTER2_CONTEXT exec -it deploy/app5-v1 -n app5 -c app5-v1 -- /bin/bash -c 'TOKEN=$(cat $AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE) && STS=$(curl 169.254.170.23/v1/credentials -H "Authorization: $TOKEN") && curl --cacert /cert/root_cert.pem --aws-sigv4 "aws:amz:${AWS_REGION}:vpc-lattice-svcs" --user $(echo $STS | jq ".AccessKeyId" -r):$(echo $STS | jq ".SecretAccessKey" -r) -H "x-amz-content-sha256: UNSIGNED-PAYLOAD" -H "x-amz-security-token: $(echo $STS | jq ".Token" -r)" 'https://app1.vpc-lattice-custom-domain.io
+kubectl --context $EKS_CLUSTER2_CONTEXT exec -it deploy/app5-v1 -n app5 -c app5-v1 -- /bin/bash -c '\
+TOKEN=$(cat $AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE) && \
+STS=$(curl -s 169.254.170.23/v1/credentials -H "Authorization: $TOKEN") && \
+curl -s --cacert /cert/root_cert.pem --aws-sigv4 "aws:amz:${AWS_REGION}:vpc-lattice-svcs" --user $(echo $STS | jq ".AccessKeyId" -r):$(echo $STS | jq ".SecretAccessKey" -r) -H "x-amz-content-sha256: UNSIGNED-PAYLOAD" -H "x-amz-security-token: $(echo $STS | jq ".Token" -r)" \
+'https://app1.vpc-lattice-custom-domain.io
 ```
 
 
@@ -197,3 +203,7 @@ We should now see the proper response from the `app4`.
 ```
 Requsting to Pod(app4-v1-77dcb6444c-mfjv2): Hello from app4-v1
 ::::
+
+:::::alert{type="info" header="Congratulation!!"}
+You have managed to have TLS connection in both way with IAM signature verification
+:::::

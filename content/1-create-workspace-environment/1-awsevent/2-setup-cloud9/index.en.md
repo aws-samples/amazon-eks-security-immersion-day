@@ -39,3 +39,4 @@ ip-10-254-128-55.us-west-2.compute.internal    Ready    <none>   88m   v1.28.1-e
 ip-10-254-180-171.us-west-2.compute.internal   Ready    <none>   88m   v1.28.1-eks-43840fb
 ip-10-254-217-72.us-west-2.compute.internal    Ready    <none>   88m   v1.28.1-eks-43840fb
 ```
+

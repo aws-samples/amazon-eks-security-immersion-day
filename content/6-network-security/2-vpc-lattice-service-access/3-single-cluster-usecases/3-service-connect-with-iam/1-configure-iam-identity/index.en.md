@@ -18,17 +18,6 @@ First, we can use the SDK to sign the request.
 Nut the first step is to be able to provide an IAM Role to the Pod that needs to sign the request. For that we are going to leverage the new [EKS Pod Identity](https://aws.amazon.com/about-aws/whats-new/2023/11/amazon-eks-pod-identity/?nc1=h_ls) feature:
 
 ### 1. Create an IAM Role for out pod
-<!--
-```bash
-eksctl create podidentityassociation \
-    --cluster $EKS_CLUSTER1_NAME \
-    --namespace app1 \
-    --service-account-name default \
-    --permission-policy-arns="arn:aws:iam::111122223333:policy/permission-policy-1, arn:aws:iam::111122223333:policy/permission-policy-2" \
-    --well-known-policies="autoScaler,externalDNS" \
-    --permissions-boundary-arn arn:aws:iam::111122223333:policy/permissions-boundary
-```
--->
 
 We are going to create an IAM role that will be associated with our app1-v1 pod. This Role will have the permission to access the VPC Lattice Service.
 ```bash
@@ -91,26 +80,24 @@ aws iam attach-role-policy \
 
 List the addon compatible versions
 ```bash
-aws eks describe-addon-versions --kubernetes-version 1.28 --addon-name eks-pod-identity-agent  \
-    --query 'addons[].addonVersions[].{Version: addonVersion, Defaultversion: compatibilities[0].defaultVersion}' --output table
+eksdemo get addon-versions -c $EKS_CLUSTER1_NAME
 ```
 
 ::::expand{header="Check Output"}
 ```
------------------------------------------
-|         DescribeAddonVersions         |
-+-----------------+---------------------+
-| Defaultversion  |       Version       |
-+-----------------+---------------------+
-|  True           |  v1.1.0-eksbuild.1  |
-|  False          |  v1.0.0-eksbuild.1  |
-+-----------------+---------------------+
++------------------------------------+----------------------+--------------+
+|                Name                |       Version        | Restrictions |
++------------------------------------+----------------------+--------------+
+...
+| eks-pod-identity-agent             | v1.1.0-eksbuild.1*   | -            |
+| eks-pod-identity-agent             | v1.0.0-eksbuild.1    | -            |
+...
 ```
 ::::
 
 Create the Addon
 ```bash
-aws eks create-addon --cluster-name $EKS_CLUSTER1_NAME --addon-name eks-pod-identity-agent --addon-version v1.1.0-eksbuild.1 
+eksdemo create addon eks-pod-identity-agent -c $EKS_CLUSTER1_NAME
 ```
 
 ### 3. Associate the role to the app1 application
@@ -170,8 +157,10 @@ We can see that some env var and volume mount were added into the pod.
 Now let's check what is the identity used inside the pod:
 
 ```bash
- kubectl --context $EKS_CLUSTER1_CONTEXT exec -ti -n app1 deployment/app1-v1 -- aws sts get-caller-identity
+kubectl --context $EKS_CLUSTER1_CONTEXT exec -ti -n app1 deployment/app1-v1 -- aws sts get-caller-identity
 ```
+
+> Note: we have shipped the aws cli in our application demo
 
 ::::expand{header="Check Output"}
 ```
@@ -196,7 +185,7 @@ eks-pod-identity-agent-fd2zw eks-pod-identity-agent {"client-addr":"10.254.145.2
 ```
 ::::
 
-## Use the SDK to sign the requests.
+## Use the curl's AWS SDK integration to sign the requests.
 
 In this first step, which will be the recommended one, we are going to simulate how you can leverage AWS SDK to use the IAM Role to sign the requests directly.
 
@@ -204,7 +193,11 @@ We are going to emulate this by using the `curl` programm which has an integrati
 
 
 ```bash
-kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -n app1 -c app1-v1 -- /bin/bash -c 'TOKEN=$(cat $AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE) && STS=$(curl 169.254.170.23/v1/credentials -H "Authorization: $TOKEN") && curl -s --aws-sigv4 "aws:amz:${AWS_REGION}:vpc-lattice-svcs" --user $(echo $STS | jq ".AccessKeyId" -r):$(echo $STS | jq ".SecretAccessKey" -r) -H "x-amz-content-sha256: UNSIGNED-PAYLOAD" -H "x-amz-security-token: $(echo $STS | jq ".Token" -r)" '$app2DNS
+kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -n app1 -c app1-v1 -- /bin/bash -c '\
+TOKEN=$(cat $AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE) && \
+STS=$(curl -s 169.254.170.23/v1/credentials -H "Authorization: $TOKEN") && \
+curl -s --aws-sigv4 "aws:amz:${AWS_REGION}:vpc-lattice-svcs" --user $(echo $STS | jq ".AccessKeyId" -r):$(echo $STS | jq ".SecretAccessKey" -r) -H "x-amz-content-sha256: UNSIGNED-PAYLOAD" -H "x-amz-security-token: $(echo $STS | jq ".Token" -r)" \
+'$app2DNS
 ```
 
 ::::expand{header="Check Output" defaultExpanded=true}

@@ -1,5 +1,5 @@
 ---
-title : "Usecase 1: Service Connectivity in Default Configuration"
+title : "Usecase 1: Service Connectivity with HTTP in Default Configuration"
 weight : 11
 ---
 
@@ -7,8 +7,8 @@ In this section, let us deploy two simple services `app1` and `app2` and test co
 
 ![](/static/images/6-network-security/2-vpc-lattice-service-access/lattice-usecase1.png)
 
-- we create app1/app2 deployment and services
-- We create HTTPRoute for app1/app2 using default `templates/route-template-http-default-domain.yaml`which uses default VPC lattice configuration for app1 and app2
+- we create app1 and app2 deployments and services
+- We create HTTPRoutes for app1/app2 using template `templates/route-template-http-default-domain.yaml` which uses default VPC lattice configuration for app1 and app2 (in HTTP without authentication)
 - We will validate connectivity between app1 and app2 through VPC lattice
 
 ## Deploy and register Service `app1` to Service Network `app-services-gw`

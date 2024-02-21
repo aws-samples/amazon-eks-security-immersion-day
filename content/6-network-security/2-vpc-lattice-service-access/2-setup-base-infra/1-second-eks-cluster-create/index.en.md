@@ -3,29 +3,26 @@ title : "Create Second EKS Cluster"
 weight : 10
 ---
 
-## Setup the Kube Context for First EKS Cluster `eksworkshop-eksctl`
-
-Before creating second cluster, let us first setup environment variables for the first EKS Cluster `eksworkshop-eksctl`
+## Create folder for the module
 
 ```bash
 cd ~/environment
 mkdir -p templates
 mkdir -p manifests
 ```
-::::expand{header="Check Output"}
-```bash
-NAME                                           STATUS   ROLES    AGE     VERSION
-ip-10-254-141-4.us-west-2.compute.internal     Ready    <none>   4h55m   v1.28.1-eks-43840fb
-ip-10-254-175-45.us-west-2.compute.internal    Ready    <none>   4h55m   v1.28.1-eks-43840fb
-ip-10-254-222-134.us-west-2.compute.internal   Ready    <none>   4h55m   v1.28.1-eks-43840fb
-```
-::::
-
 
 ## Create Second EKS Cluster `eksworkshop-eksctl-2`
 
 **Open a new terminal and run all the below steps in this section.**
 
+<!-- EKS Pod-Identity is not supported on 1.29 on 02.2024 -->
+```bash
+export EKS_CLUSTER2_NAME=eksworkshop-eksctl-2
+echo "export EKS_CLUSTER2_NAME=$EKS_CLUSTER2_NAME" >> ~/.bash_profile
+eksdemo create cluster $EKS_CLUSTER2_NAME --vpc-cidr 10.254.0.0/16 -N 3 --version 1.28 
+```
+
+<!--
 #### Create an AWS KMS Custom Managed Key (CMK) 
 
 Create a CMK for the EKS cluster to use when encrypting your Kubernetes secrets:
@@ -126,5 +123,6 @@ Next, use the file you created as the input for the eksctl cluster creation.
 ```bash
 eksctl create cluster -f manifests/eksworkshop.yaml
 ```
+-->
 
 ::alert[Launching Amazon EKS and all the dependencies will take approximately 15 minutes. We will come back to this Section Later. Please proceed to next section for now.]{header="Note"}

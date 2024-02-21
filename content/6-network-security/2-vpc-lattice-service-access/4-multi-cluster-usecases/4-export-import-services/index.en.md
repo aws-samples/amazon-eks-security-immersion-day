@@ -1,15 +1,20 @@
 ---
-title : "Usecase 7: Export K8s Service in Cluster2 and Import into  Cluster1"
+title : "Usecase 7: Spread a same service onto the 2 different clusters (using serviceImport/serviceExport)"
 weight : 13
 ---
 
 In this section, we will deploy a new version of `app4`, which is already deployed in cluster 1, in Second EKS Cluster and Export it to VPC Lattice. Then import this service into first EKS Cluster.
 
+![](/static/images/6-network-security/2-vpc-lattice-service-access/lattice-usecase7.png)
+- We Use only 1 HTTPRoute declared in cluster 1
+- This route reference loval app4-v1 service, and Import app4-v2 service from cluster 2
+- The route is loadbalanced 50% on each service
+
 ## Deploy K8s manifests for Service `app4 version 2` in Second EKS Cluster
 
 ```bash
 export APPNAME=app4
-export VERSION=v2
+export VERSION=v2 
 envsubst < templates/app-template.yaml > manifests/$APPNAME-$VERSION-deploy.yaml
 kubectl  --context $EKS_CLUSTER2_CONTEXT apply -f manifests/$APPNAME-$VERSION-deploy.yaml
 ```
@@ -131,16 +136,21 @@ Before starting, check we can access app4-v1 service, from app1
 ```bash
 export APPNAME=app1
 export VERSION=v1
-kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/$APPNAME-$VERSION -c $APPNAME-$VERSION -n $APPNAME -- /bin/bash -c 'TOKEN=$(cat $AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE) && STS=$(curl 169.254.170.23/v1/credentials -H "Authorization: $TOKEN") && curl --cacert /cert/root_cert.pem --aws-sigv4 "aws:amz:${AWS_REGION}:vpc-lattice-svcs" --user $(echo $STS | jq ".AccessKeyId" -r):$(echo $STS | jq ".SecretAccessKey" -r) -H "x-amz-content-sha256: UNSIGNED-PAYLOAD" -H "x-amz-security-token: $(echo $STS | jq ".Token" -r)" 'https://app4.vpc-lattice-custom-domain.io
+kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/$APPNAME-$VERSION -c $APPNAME-$VERSION -n $APPNAME -- /bin/bash -c '\
+TOKEN=$(cat $AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE) && \
+STS=$(curl -s 169.254.170.23/v1/credentials -H "Authorization: $TOKEN") && \
+curl -s --cacert /cert/root_cert.pem --aws-sigv4 "aws:amz:${AWS_REGION}:vpc-lattice-svcs" --user $(echo $STS | jq ".AccessKeyId" -r):$(echo $STS | jq ".SecretAccessKey" -r) -H "x-amz-content-sha256: UNSIGNED-PAYLOAD" -H "x-amz-security-token: $(echo $STS | jq ".Token" -r)" \
+'https://app4.vpc-lattice-custom-domain.io
 ```
 
-Update HTTP Route to point to both services, which are in different clusters:
+Update HTTP Route to point to both services, which are in different clusters. We define a weight of 50% for each target (app4-v1 and app4-v2)
 
 ```bash
 export APPNAME=app4
 export VERSION1=v1
 export VERSION2=v2
 envsubst < templates/route-template-http-custom-domain-weighted.yaml > manifests/$APPNAME-https-custom-domain-weighted-service-import.yaml
+c9 manifests/$APPNAME-https-custom-domain-weighted-service-import.yaml
 kubectl --context $EKS_CLUSTER1_CONTEXT apply -f manifests/$APPNAME-https-custom-domain-weighted-service-import.yaml
 ```
 
@@ -214,23 +224,79 @@ In one terminal, start calling the app4 lattice service:
 ```bash
 export APPNAME=app1
 export VERSION=v1
-while true; do kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/$APPNAME-$VERSION -c $APPNAME-$VERSION -n $APPNAME -- /bin/bash -c 'TOKEN=$(cat $AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE) && STS=$(curl -s 169.254.170.23/v1/credentials -H "Authorization: $TOKEN") && curl -s --cacert /cert/root_cert.pem --aws-sigv4 "aws:amz:${AWS_REGION}:vpc-lattice-svcs" --user $(echo $STS | jq ".AccessKeyId" -r):$(echo $STS | jq ".SecretAccessKey" -r) -H "x-amz-content-sha256: UNSIGNED-PAYLOAD" -H "x-amz-security-token: $(echo $STS | jq ".Token" -r)" 'https://app4.vpc-lattice-custom-domain.io ; done
+while true; do kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/$APPNAME-$VERSION -c $APPNAME-$VERSION -n $APPNAME -- /bin/bash -c 'TOKEN=$(cat $AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE) && STS=$(curl -s 169.254.170.23/v1/credentials -H "Authorization: $TOKEN") && curl -s --connect-timeout 1 --max-time 1 --cacert /cert/root_cert.pem --aws-sigv4 "aws:amz:${AWS_REGION}:vpc-lattice-svcs" --user $(echo $STS | jq ".AccessKeyId" -r):$(echo $STS | jq ".SecretAccessKey" -r) -H "x-amz-content-sha256: UNSIGNED-PAYLOAD" -H "x-amz-security-token: $(echo $STS | jq ".Token" -r)" 'https://app4.vpc-lattice-custom-domain.io ; done
 ```
 
-While the command is running, scale down to 0 the app4-v1 service in first cluster
+While the command is running, check the impact on the following scenarios:
 
+1. Restart the application
 ```bash
+kubectl --context $EKS_CLUSTER1_CONTEXT rollout -n app4 restart deployment app4-v1
+kubectl --context $EKS_CLUSTER2_CONTEXT rollout -n app4 restart deployment app4-v2
+```
 
-kubectl --context $EKS_CLUSTER1_CONTEXT rollout -n app4 restart deployment app4-v1 
+::::expand{header="Check Output"}
+```
+Requsting to Pod(app4-v1-678678d77b-x4fhb): Hello from app4-v1
+Requsting to Pod(app4-v2-7dbbc7c77f-sflcl): Hello from app4-v2
+Service Unavailable
+Service Unavailable
+Requsting to Pod(app4-v2-7dbbc7c77f-sflcl): Hello from app4-v2
+Requsting to Pod(app4-v1-7d8f575467-xmzgp): Hello from app4-v1
+Requsting to Pod(app4-v2-7dbbc7c77f-sflcl): Hello from app4-v2
+```
+::::
 
+<!--
+2. scale down to 0 the app4-v1 service in first cluster
+```bash
 kubectl --context $EKS_CLUSTER1_CONTEXT scale -n app4 deployment/app4-v1 --replicas=0
-
-kubectl --context $EKS_CLUSTER1_CONTEXT get deployment -n app4
+```
+3. Scale back the app4-v1 in first cluster
+```bash
+kubectl --context $EKS_CLUSTER1_CONTEXT scale -n app4 deployment/app4-v1 --replicas=1
 ```
 
 
 You can also try the same for app4-v2
 
+1. Restart the application
 ```bash
 kubectl --context $EKS_CLUSTER2_CONTEXT rollout -n app4 restart deployment app4-v2
 ```
+2. scale down to 0 the app4-v1 service in first cluster
+```bash
+kubectl --context $EKS_CLUSTER2_CONTEXT scale -n app4 deployment/app4-v2 --replicas=0
+```
+3. Scale back the app4-v1 in first cluster
+```bash
+kubectl --context $EKS_CLUSTER2_CONTEXT scale -n app4 deployment/app4-v2 --replicas=1
+```
+-->
+
+### Improve situation
+
+You should have seen some Errors while the application restart.
+
+How can we improve this ? while it is quick for Kubernetes to add a new pod and delete the old one, it take longer for this to reflect in the VPC Lattice targetgroup.
+Following the [EKS Best Practice guide for resiliency](https://aws.github.io/aws-eks-best-practices/networking/loadbalancing/loadbalancing/#ensure-pods-are-deregistered-from-load-balancers-before-termination), we are going to add a preStop Hook in our pod definition so that it will wait for 30 seconds before exiting, allowing to keep responding for ongoing request, the time it is removed from the targetgroup
+
+let's apply this in both manifest for app4-v1 and app4-v2 and try again the previous test to see the differences.
+
+```
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 15"]
+      terminationGracePeriodSeconds: 15
+```
+
+```bash
+sed -i "s/#addprestop//g" manifests/app4-v1-deploy.yaml
+kubectl --context $EKS_CLUSTER1_CONTEXT apply -f manifests/app4-v1-deploy.yaml
+
+sed -i "s/#addprestop//g" manifests/app4-v2-deploy.yaml
+kubectl --context $EKS_CLUSTER2_CONTEXT apply -f manifests/app4-v2-deploy.yaml
+```
+
+With this new setup you should be able to rollout your application without downtime. If needed, you can still increase the terminationGracePeriodSeconds time.

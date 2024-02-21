@@ -8,7 +8,7 @@ weight : 10
 
 Follow these instructions deploy the AWS Gateway API Controller.
 
-
+<!--
 ### 1. Create an IAM OIDC provider: 
 
 See [Creating an IAM OIDC provider](https://docs.aws.amazon.com/eks/latest/userguide/enable-iam-roles-for-service-accounts.html) for your cluster for details. 
@@ -23,19 +23,14 @@ eksctl utils associate-iam-oidc-provider --cluster $EKS_CLUSTER2_NAME --approve 
 2023-10-27 01:41:42 [✔]  created IAM Open ID Connect provider for cluster "eksworkshop-eksctl-2" in "us-west-2"
 ```
 ::::
+-->
 
-### 2. Deploy the VPC Lattice Api Gateway Controller
+### 1. Deploy the VPC Lattice Api Gateway Controller
 
 ```bash
-./eksdemo install vpc-lattice-controller -c $EKS_CLUSTER2_NAME \
+eksdemo install vpc-lattice-controller -c $EKS_CLUSTER2_NAME \
   --set log.level=debug \
   --set "defaultServiceNetwork=$GATEWAY_NAME"
-
-eksdemo install vpc-lattice-controller -c $EKS_CLUSTER2_NAME \
- --chart-version v1.0.3 \
- --version v1.0.3 \
- --set log.level=debug \
- --set "defaultServiceNetwork=$GATEWAY_NAME"
 ```
 
 > because we are speifying the default service network associated with our gateway name `app-service-gw`, then the controller will register our EKS VPC with lattice
@@ -100,11 +95,10 @@ replicaset.apps/gateway-api-controller-965646b47   1         1         1       3
 
 1. Create the Kubernetes `Gateway` object **app-services-gw**
 
-Note that we already generated the `Gateway` configuratoion earlier in the file `manifests/app-services-gw.yaml`. For now, we will change the annotaion from `application-networking.k8s.aws/lattice-vpc-association: "true"` to `application-networking.k8s.aws/lattice-vpc-association: "false"` and apply the configuration. We will associate the second EKS Cluster VPC to the Service network later during the workshop.
+Note that we already generated the `Gateway` configuration earlier in the file `manifests/app-services-gw.yaml`. For now, we will change the annotation from `application-networking.k8s.aws/lattice-vpc-association: "true"` to `application-networking.k8s.aws/lattice-vpc-association: "false"` and apply the configuration. We will associate the second EKS Cluster VPC to the Service network later during the workshop.
 
 
 ```bash
-sed -i -e 's#application-networking.k8s.aws/lattice-vpc-association: "true"#application-networking.k8s.aws/lattice-vpc-association: "false"#g' manifests/$GATEWAY_NAME.yaml
 kubectl  --context $EKS_CLUSTER2_CONTEXT apply -f manifests/$GATEWAY_NAME.yaml
 ```
 

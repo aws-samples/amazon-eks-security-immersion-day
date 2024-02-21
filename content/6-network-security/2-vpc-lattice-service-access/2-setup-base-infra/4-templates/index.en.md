@@ -19,8 +19,6 @@ kind: Gateway
 metadata:
   name: \$GATEWAY_NAME
   namespace: \$GATEWAY_NAMESPACE
-  annotations:
-    application-networking.k8s.aws/lattice-vpc-association: "true"
 spec:
   gatewayClassName: amazon-vpc-lattice
   listeners:
@@ -78,8 +76,6 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: \$APPNAME
-  labels:
-    allow-attachment-to-infra-gw: "true"  
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -106,72 +102,19 @@ spec:
         env:
         - name: PodName
           value: "Hello from \$APPNAME-\$VERSION"
-        lifecycle:
-          preStop:
-            exec:
-              command: ["/bin/sh", "-c", "sleep 180"]
-      terminationGracePeriodSeconds: 190           
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: \$APPNAME-\$VERSION
-  namespace: \$APPNAME
-spec:
-  selector:
-    app: \$APPNAME-\$VERSION
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 8090
-EOF
-```
-
-## Create template for K8s Application Deployment & Service with Certificat Mount
-
-```bash
-cat > templates/app-template-cert.yaml <<EOF
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: \$APPNAME
-  labels:
-    allow-attachment-to-infra-gw: "true"  
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: \$APPNAME-\$VERSION
-  namespace: \$APPNAME
-  labels:
-    app: \$APPNAME-\$VERSION
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: \$APPNAME-\$VERSION
-  template:
-    metadata:
-      annotations:
-       vpc-lattices-svcs.amazonaws.com/agent-inject: "true"
-      labels:
-        app: \$APPNAME-\$VERSION
-    spec:
-      containers:
-      - name: \$APPNAME-\$VERSION
-        image: public.ecr.aws/seb-demo/http-server:latest
-        env:
-        - name: PodName
-          value: "Hello from \$APPNAME-\$VERSION"
-        volumeMounts:
-        - name: root-cert
-          mountPath: /cert/
-          readOnly: true
-      volumes:
-      - name: root-cert
-        configMap:
-          name: app-root-cert  
+#addprestop        lifecycle:
+#addprestop          preStop:
+#addprestop            exec:
+#addprestop              command: ["/bin/sh", "-c", "sleep 15"]          
+#addcert        volumeMounts:
+#addcert        - name: root-cert
+#addcert          mountPath: /cert/
+#addcert          readOnly: true
+#addcert      volumes:
+#addcert      - name: root-cert
+#addcert        configMap:
+#addcert          name: app-root-cert
+#addprestop      terminationGracePeriodSeconds: 15
 ---
 apiVersion: v1
 kind: Service
@@ -214,79 +157,6 @@ spec:
           value: /      
 EOF
 ```
-
-## Create Template for HTTPRoute with Custom Domain and HTTP Listener
-
-```bash
-cat > templates/route-template-http-custom-domain.yaml <<EOF
-apiVersion: gateway.networking.k8s.io/v1beta1
-kind: HTTPRoute
-metadata:
-  name: \$APPNAME
-  namespace: \$APPNAME
-spec:
-  hostnames:
-  - \$APPNAME.\$CUSTOM_DOMAIN_NAME
-  parentRefs:
-  - kind: Gateway
-    name: \$GATEWAY_NAME
-    namespace: \$GATEWAY_NAMESPACE  
-    sectionName: http-listener
-  rules:
-  - backendRefs:
-    - name: \$APPNAME-\$VERSION
-      kind: Service
-      port: 80
-    matches:
-      - path:
-          type: PathPrefix
-          value: /      
-EOF
-```
-
-## Create Template for HTTPRoute with Custom Domain and HTTP Listener and Weighted Routing
-
-```bash
-cat > templates/route-template-http-custom-domain-weighted.yaml  <<EOF
-apiVersion: gateway.networking.k8s.io/v1beta1
-kind: HTTPRoute
-metadata:
-  name: \$APPNAME
-  namespace: \$APPNAME
-spec:
-  hostnames:
-  - \$APPNAME.\$CUSTOM_DOMAIN_NAME
-  parentRefs:
-  - kind: Gateway
-    name: \$GATEWAY_NAME
-    namespace: \$GATEWAY_NAMESPACE  
-    sectionName: http-listener
-  rules:
-  - backendRefs:
-    - name: \$APPNAME-\$VERSION1
-      kind: Service
-      port: 80
-      weight: 100
-    matches:
-      - path:
-          type: PathPrefix
-          value: /
-  - backendRefs:
-    - name: \$APPNAME-\$VERSION1
-      kind: Service
-      port: 80
-      weight: 50
-    - name: \$APPNAME-\$VERSION2
-      kind: Service
-      port: 80
-      weight: 50 
-    matches:
-      - path:
-          type: PathPrefix
-          value: /v2
-EOF
-```
-
 
 ## Create Template for HTTPRoute with Default Domain and HTTPS Listener
 
@@ -387,10 +257,10 @@ EOF
 ```
 
 
-## Create Template for HTTPRoute for ServiceImport with HTTP and Custom Domain
+## Create Template for HTTPRoute with Custom Domain and HTTPS Listener and Weighted Routing, and ServiceImport
 
 ```bash
-cat > templates/route-template-http-custom-domain-service-import.yaml <<EOF
+cat > templates/route-template-http-custom-domain-weighted.yaml  <<EOF
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: HTTPRoute
 metadata:
@@ -403,15 +273,54 @@ spec:
   - kind: Gateway
     name: \$GATEWAY_NAME
     namespace: \$GATEWAY_NAMESPACE  
-    sectionName: http-listener
+    sectionName: https-listener-with-custom-domain
   rules:
   - backendRefs:
-    - name: \$APPNAME-\$VERSION
+    - name: \$APPNAME-\$VERSION1
+      kind: Service
+      port: 80
+      weight: 50
+    - name: \$APPNAME-\$VERSION2
       kind: ServiceImport
       port: 80
+      weight: 50      
     matches:
       - path:
           type: PathPrefix
-          value: /      
+          value: /
+---
+apiVersion: application-networking.k8s.aws/v1alpha1
+kind: IAMAuthPolicy
+metadata:
+    name: \${APPNAME}-iam-auth-policy
+    namespace: \$APPNAME
+spec:
+    targetRef:
+        group: "gateway.networking.k8s.io"
+        kind: HTTPRoute
+        namespace: \$APPNAME
+        name: \$APPNAME
+    policy: |
+        {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Effect": "Allow",
+                    "Principal": {
+                        "AWS": "arn:aws:iam::\${ACCOUNT_ID}:root"
+                    },
+                    "Action": "vpc-lattice-svcs:Invoke",
+                    "Resource": "*",
+                    "Condition": {
+                        "StringEquals": {
+                            "vpc-lattice-svcs:SourceVpc": [
+                                "\$EKS_CLUSTER1_VPC_ID",
+                                "\$EKS_CLUSTER2_VPC_ID"
+                            ]
+                        }
+                    }                    
+                }
+            ]
+        }          
 EOF
 ```

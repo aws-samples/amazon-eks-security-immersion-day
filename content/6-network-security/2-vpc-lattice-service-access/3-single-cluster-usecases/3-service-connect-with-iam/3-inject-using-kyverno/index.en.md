@@ -14,33 +14,22 @@ Kyverno is a security tool for kubernetes that can enforce security guardrails w
 Let us install the Kyverno policy engine and associated configurations into the EKS cluster using using this [Helm](https://helm.sh/)
 
 ```bash
-helm repo add kyverno https://kyverno.github.io/kyverno/
-helm repo update
-helm install kyverno --kube-context $EKS_CLUSTER1_CONTEXT --namespace kyverno kyverno/kyverno --create-namespace
+eksdemo install policy kyverno -c $EKS_CLUSTER1_NAME
 ```
 
 ::::expand{header="Check Output"}
 ```
-NAME: kyverno
-LAST DEPLOYED: Thu Oct 26 07:07:51 2023
-NAMESPACE: kyverno
-STATUS: deployed
-REVISION: 1
+Downloading Chart: https://kyverno.github.io/kyverno/kyverno-v2.5.2.tgz
+Helm installing...
+2024/02/20 14:26:36 creating 1 resource(s)
+2024/02/20 14:26:37 creating 32 resource(s)
+Using chart version "v2.5.2", installed "policy-kyverno" version "v1.7.2" in namespace "kyverno"
 NOTES:
-Chart version: 3.0.5
-Kyverno version: v1.10.3
+Chart version: v2.5.2
+Kyverno version: v1.7.2
 
-Thank you for installing kyverno! Your release is named kyverno.
-
-The following components have been installed in your cluster:
-- CRDs
-- Admission controller
-- Reports controller
-- Cleanup controller
-- Background controller
-
-
-⚠️  WARNING: Setting the admission controller replica count below 3 means Kyverno is not running in high availability mode.
+Thank you for installing kyverno! Your release is named policy-kyverno.
+⚠️  WARNING: Setting replicas count below 3 means Kyverno is not running in high availability mode.
 
 💡 Note: There is a trade-off when deciding which approach to take regarding Namespace exclusions. Please see the documentation at https://kyverno.io/docs/installation/#security-vs-operability to understand the risks.
 ```
@@ -202,26 +191,12 @@ app1-v1-85df49c9bc-9flkr   2/2     Running   0          34s
 Exec into an `app1-v1` pod to check connectivity to `app2` service. 
 
 ```bash
-kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -c app1-v1 -n app1 -- curl -v $app2DNS
+kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -c app1-v1 -n app1 -- curl -s $app2DNS
 ```
 
 ::::expand{header="Check Output"}
 ```
-*   Trying 169.254.171.33:80...
-* Connected to app2-app2-0e5f3d2b3db4c7962.7d67968.vpc-lattice-svcs.us-west-2.on.aws (169.254.171.33) port 80 (#0)
-> GET / HTTP/1.1
-> Host: app2-app2-0e5f3d2b3db4c7962.7d67968.vpc-lattice-svcs.us-west-2.on.aws
-> User-Agent: curl/7.76.1
-> Accept: */*
-> 
-* Mark bundle as not supporting multiuse
-< HTTP/1.1 200 OK
-< Content-Length: 63
-< Content-Type: text/plain; charset=utf-8
-< Date: Thu, 26 Oct 2023 07:25:47 GMT
-< 
-Requsting to Pod(app2-v1-56f7c48bbf-jwx4s): Hello from app2-v1
-* Connection #0 to host app2-app2-0e5f3d2b3db4c7962.7d67968.vpc-lattice-svcs.us-west-2.on.aws left intact
+Requsting to Pod(app2-v1-5df5598b86-jfjlj): Hello from app2-v1
 ```
 ::::
 
@@ -247,4 +222,9 @@ WSParticipantRole:~/environment $
 
 From the above logs, we can verify sigv4proxy container sign the request and adds the headers `Authorization`, `x-amz-content-sha256`, `x-amz-date` and `x-amz-security-token`
 
+::::alert{type="info" header="Note:"}
+The Signing sidecar was automatically added to our application thanks to the Kyverno `ClusterPolicy`, so we can benefit from Sigv4 signature used by VPC lattice without application changes. 
 
+
+While this setup is possible, we recommend to integrate the Sigv4 signature directly into your code with the AWS SDKs.
+::::

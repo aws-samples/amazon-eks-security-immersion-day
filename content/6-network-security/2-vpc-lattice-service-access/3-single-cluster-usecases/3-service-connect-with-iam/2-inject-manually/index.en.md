@@ -3,9 +3,11 @@ title : "Use a Proxy to implement SIGv4"
 weight : 11
 ---
 
-**AWS SIGv4 Proxy container**: It will automatically sign requests using the credentials obtained by AWS IAM role of Pod Identity in Amazon EKS. It provides various configuration options including `--name vpc-lattice-svcs`, `--unsigned-payload` flag and logging options. 
+As an alternative, in the case of you are not able to change your application code to integrate with AWS SDK in order to sign the request, you can rely on a sidecar Proxy to do the work without changing your application.
 
-The proxy container will listen to port 8080 and run as user `101`. The YAML snippet will look like below.
+By relying on **[AWS SIGv4 Proxy container](https://github.com/awslabs/aws-sigv4-proxy)**: you can delegate automatically the requests's signing by using the credentials obtained by AWS IAM role of Pod Identity in Amazon EKS. It provides various configuration options including `--name vpc-lattice-svcs`, `--unsigned-payload` flag and logging options. 
+
+The proxy container will listen on port 8080 and run as user `101`. The YAML snippet will look like below.
 
 ```yaml
       - name: sigv4proxy
@@ -26,7 +28,7 @@ The proxy container will listen to port 8080 and run as user `101`. The YAML sni
           runAsUser: 101 
 ```
 
-**Init container**: It configures the iptables to intercept any traffic from `app1` Service going to Amazon VPC Lattice services and redirect traffic to the AWS SigV4 Proxy.
+We also need an **Init container**: It configures the iptables to intercept any traffic from `app1` Service going to Amazon VPC Lattice services and redirect traffic to the AWS SigV4 Proxy.
 
 It uses `iptables` utility to route the traffic connecting to Amazon VPC Lattice CIDR `169.254.171.0/24` to `EGRESS_PROXY` chain, and redirect the traffic to local port 8080. To avoid infinite loops when the traffic is sent by the proxy container, it is identified by checking whether the UID is `101` to ensure that it won’t be redirect again. The YAML snippet will look like below.
 
@@ -193,7 +195,7 @@ time="2023-10-26T06:56:48Z" level=debug msg="proxying request" request="GET / HT
 
 From the above logs, we can verify sigv4proxy container sign the request and adds the headers `Authorization`, `x-amz-content-sha256`, `x-amz-date` and `x-amz-security-token`
 
-Before moving to the next section, let us undo the manual changes to the `app1-v1` deployment by deleting the deployment and the re-deploy the original configuration.
+Before moving to the next section, let us undo the manual changes to the `app1-v1` deployment by deleting the deployment and then re-deploy the original configuration.
 
 ```bash
 kubectl --context $EKS_CLUSTER1_CONTEXT delete deploy app1-v1 -n app1

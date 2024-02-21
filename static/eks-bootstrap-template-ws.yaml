@@ -963,7 +963,7 @@ Resources:
                 mv /tmp/eksctl /usr/local/bin
                 curl -sSL "https://github.com/awslabs/eksdemo/releases/download/v0.12.0/eksdemo_Linux_x86_64.tar.gz" | tar xz -C /tmp
                 chmod +x /tmp/eksdemo
-                mv /tmp/eksdemo /usr/local/bin
+                mv /tmp/eksdemo /usr/local/bin                
                 yum -y install jq gettext bash-completion moreutils
                 echo '' | tee -a /home/ec2-user/bashrc
                 /usr/local/bin/kubectl completion bash > /etc/bash_completion.d/kubectl

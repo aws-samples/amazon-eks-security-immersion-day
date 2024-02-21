@@ -1,5 +1,5 @@
 ---
-title : "Usecase 3: Service Connectivity with HTTPS and Default Domain"
+title : "Usecase 3: Service Connectivity with HTTPS on Default Domain and IAM Auth Access Controls"
 weight : 15
 ---
 
@@ -80,7 +80,6 @@ httproute.gateway.networking.k8s.io/app3 condition met
 ```
 ::::
 
-::alert[If the above command returns `error: timed out waiting for the condition on httproutes/app3`, run the command once again]{header="Note"}
 
 View the VPC Lattice Service `app3-app3` in the [Amazon VPC Console](https://us-west-2.console.aws.amazon.com/vpc/home?region=us-west-2#Services:)
 
@@ -116,6 +115,8 @@ app3DNS=app3-app3-09b674948b9fb4016.7d67968.vpc-lattice-svcs.us-west-2.on.aws
 ```
 ::::
 
+::alert[If the above command returns `null`, wait a little and re-run the command again]{header="Note"}
+
 ## Test Service Connectivity from `app1` to `app3` 
 
 1. Run the `nslookup` command in the `app1-v1` Pod to resolve the **app3DNS**
@@ -142,7 +143,11 @@ Address: fd00:ec2:80::a9fe:ab40
 2. Exec into an app1 pod to check connectivity to `app3` service using `HTTPS` listener
 
 ```bash
-kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -n app1 -c app1-v1 -- /bin/bash -c 'TOKEN=$(cat $AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE) && STS=$(curl 169.254.170.23/v1/credentials -H "Authorization: $TOKEN") && curl --aws-sigv4 "aws:amz:${AWS_REGION}:vpc-lattice-svcs" --user $(echo $STS | jq ".AccessKeyId" -r):$(echo $STS | jq ".SecretAccessKey" -r) -H "x-amz-content-sha256: UNSIGNED-PAYLOAD" -H "x-amz-security-token: $(echo $STS | jq ".Token" -r)" 'https://$app3DNS
+kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -n app1 -c app1-v1 -- /bin/bash -c '\
+TOKEN=$(cat $AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE) && \
+STS=$(curl -s 169.254.170.23/v1/credentials -H "Authorization: $TOKEN") && \
+curl -s --aws-sigv4 "aws:amz:${AWS_REGION}:vpc-lattice-svcs" --user $(echo $STS | jq ".AccessKeyId" -r):$(echo $STS | jq ".SecretAccessKey" -r) -H "x-amz-content-sha256: UNSIGNED-PAYLOAD" -H "x-amz-security-token: $(echo $STS | jq ".Token" -r)" \
+'https://$app3DNS
 ```
 
 ::::expand{header="Check Output" defaultExpanded=true}

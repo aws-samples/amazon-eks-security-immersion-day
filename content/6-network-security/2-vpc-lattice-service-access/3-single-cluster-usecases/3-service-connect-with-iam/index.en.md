@@ -1,5 +1,5 @@
 ---
-title : "Usecase 2: Service Connectivity with IAM Auth Access Controls"
+title : "Usecase 2: Service Connectivity with HTTP and IAM Auth Access Controls"
 weight : 14
 ---
 
@@ -8,11 +8,13 @@ Amazon VPC Lattice integrates with AWS IAM to provide same authentication and au
 To configure Service access controls, you can use access policies. An access policy is an AWS IAM resource policy that can be associated with a Service network and individual Services. With access policies, you can use the PARC (principal, action, resource, and condition) model to enforce context-specific access controls for Services.
 
 ![](/static/images/6-network-security/2-vpc-lattice-service-access/lattice-usecase2.png)
+- This time we enable HTTPS communication between app1 and app2
+- We also activate IAM policy controls on app2
+- We add EKS Pod Identity to App1 so that it can sign requests to app2
 
-## Configure IAM Access Auth policy for Service network `app-services-gw`
+## Configure IAM Access Auth policy for VPC Lattice Service network `app-services-gw`
 
-
-1. We need to first configure the Auth type for Service network `app-services-gw` to `AWS_IAM` and then configure Auth Access policy.
+We need to first configure the Auth type for Service network `app-services-gw` to `AWS_IAM` and then configure Auth Access policy.
 
 We are going to associate an IAM Auth Policy with our VPC lattice service network. The rule we are going to put is to not accept unauthenticated traffic. To know more about configurations options, you can look at the [documentation](https://docs.aws.amazon.com/vpc-lattice/latest/ug/auth-policies.html).
 
@@ -37,20 +39,17 @@ spec:
         name: $GATEWAY_NAME
     policy: |
         {
-            "Version": "2012-10-17",
-            "Statement": [
-                {
-                    "Effect": "Allow",
-                    "Principal": "*",
-                    "Action": "vpc-lattice-svcs:Invoke",
-                    "Resource": "*",
-                    "Condition": {
-                        "StringNotEqualsIgnoreCase": {
-                            "aws:PrincipalType": "anonymous"
-                        }                        
+            "Statement": {
+                "Effect": "Allow",
+                "Principal": "*",
+                "Resource": "*",
+                "Condition": {
+                    "StringNotEqualsIgnoreCase": {
+                        "aws:PrincipalType": "anonymous"
                     }
-                }
-            ]
+                },
+                "Action": "*"
+            }
         }
 EOF
 envsubst < ~/environment/templates/gateway-policy-template.yaml > ~/environment/manifests/${GATEWAY_NAME}-policy.yaml
@@ -154,7 +153,7 @@ Now, with that policy on the gateway, VPC lattice will enforce all flow to be si
 If we try again to reach app2 from app1 we should get an error:
 
 ```bash
-kubectl exec -ti -n app1 deployments/app1-v1 -- curl $app2DNS
+kubectl --context $EKS_CLUSTER1_CONTEXT exec -ti -n app1 deployments/app1-v1 -- curl $app2DNS
 ```
 
 ::::expand{header="Check Output" defaultExpanded=true}
@@ -168,8 +167,6 @@ AccessDeniedException: User: anonymous is not authorized to perform: vpc-lattice
 
 We can even have more granular control over the IAM auth policies associated with each VPC lattice services. Let's add a policy to restrict traffic only from our 2 VPC of our 2 EKS clusters.
 
-2. Then, configure the Access Auth policy for for Service 
-
 :::::tabs{variant="container"}
 
 ::::tab{id="kube" label="Using Kubernetes Manifests"}
@@ -179,6 +176,7 @@ Create a new IAM Auth Policy for the service app2:
 ```bash
 export APPNAME=app2
 export VERSION=v1
+export SOURCENAMESPACE=app1
 cat << EOF > ~/environment/templates/app-iam-auth-policy.yaml
 apiVersion: application-networking.k8s.aws/v1alpha1
 kind: IAMAuthPolicy
@@ -200,24 +198,36 @@ spec:
                     "Principal": {
                         "AWS": "arn:aws:iam::\${ACCOUNT_ID}:root"
                     },
-                    "Action": "vpc-lattice-svcs:Invoke",
+                    "Action": [
+                        "vpc-lattice-svcs:Invoke"
+                    ],                    
                     "Resource": "*",
                     "Condition": {
                         "StringEquals": {
                             "vpc-lattice-svcs:SourceVpc": [
                                 "\$EKS_CLUSTER1_VPC_ID",
                                 "\$EKS_CLUSTER2_VPC_ID"
-                            ]
-                        }
-                    }                    
+                            ]                      
+                        }                    
+                    }
                 }
             ]
         }         
 EOF
 envsubst < ~/environment/templates/app-iam-auth-policy.yaml > ~/environment/manifests/${APPNAME}-iam-auth-policy.yaml
 c9  ~/environment/manifests/${APPNAME}-iam-auth-policy.yaml
-kubectl apply -f ~/environment/manifests/${APPNAME}-iam-auth-policy.yaml
+kubectl --context $EKS_CLUSTER1_CONTEXT apply -f ~/environment/manifests/${APPNAME}-iam-auth-policy.yaml
 ```
+
+<!--  Trying to make use of PodIdentity Session tags                          
+                            "aws:PrincipalTag/AllowTag": "true",
+                            "aws:ResourceTag/eks-cluster-name": "\$EKS_CLUSTER1_NAME",
+                            "aws:ResourceTag/k8s-namespace": "\$SOURCENAMESPACE"
+                        },
+                        "StringNotEqualsIgnoreCase": {
+                            "aws:PrincipalType": "anonymous"
+                        }
+-->  
 
 ::::
 
@@ -281,8 +291,7 @@ Go to VPC Lattice Service `app2-app2` under **Access** tab in the [Amazon VPC Co
 
 ## Check service connectivity again from `app1` to `app2` Service
 
-
-1. Exec into an `app1-v1` pod to check connectivity to `app2` service: 
+Exec into an `app1-v1` pod to check connectivity to `app2` service: 
 
 ```bash
 kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -n app1 -- curl $app2DNS

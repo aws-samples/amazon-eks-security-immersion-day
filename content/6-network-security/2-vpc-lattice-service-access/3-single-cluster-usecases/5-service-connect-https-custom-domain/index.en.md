@@ -1,15 +1,15 @@
 ---
-title : "Usecase 4: Service Connectivity with HTTPS and Custom Domain"
+title : "Usecase 4: Service Connectivity with HTTPS on Custom Domain and IAM Auth Access Controls"
 weight : 16
 ---
 
-In this section, we will deploy a new service `app4` and configure `HTTPRoute` with `HTTPS` listener with Custom VPC Lattice Domain. We will then test connectivity from `app1` to `app4`.
+In this section, we will deploy a new service `app4` and configure `HTTPRoute` with `HTTPS` listener with Custom VPC Lattice Domain. We will then test connectivity from `app1` to `app4` using the custom domain name and our Private Authority Certificate and Certificate Manager [created in the pre-requisite section](/6-network-security/2-vpc-lattice-service-access/2-setup-base-infra/3-acm-pca)
 
 ![](/static/images/6-network-security/2-vpc-lattice-service-access/lattice-usecase4.png)
 - We Deploy app4 with an HTTPRoute pointing to a custom Domain Name
 - Gateway api controller will create a `DNSEndpoint` object based on the wanted domain name
 - We add External-DNS to create DNS records from the HTTPRoute object
-- VPC Lattice will deal with TLS termination of our custom domain name, thanks to the Certificat we attached to the `app-service-gw`Gateway.
+- VPC Lattice will deal with TLS termination of our custom domain name, thanks to the Certificat we attached to the `app-service-gw` Gateway.
 
 ## Deploy and register Service `app4` to Service Network `app-services-gw`
 
@@ -195,14 +195,13 @@ eksdemo install external-dns -c $EKS_CLUSTER1_NAME --set policy=sync \
   --set "extraArgs[0]=--crd-source-apiversion=externaldns.k8s.io/v1alpha1" \
   --set "extraArgs[1]=--crd-source-kind=DNSEndpoint" \
   --set "extraArgs[2]=--zone-id-filter=$HOSTED_ZONE_ID" \
-  --set logLevel=debug \
-  --debug
+  --set logLevel=debug
 ```
 
 If you want, you can open another terminal window and watch for the external-dns controller logs
 
 ```bash
-kubectl stern --context $EKS_CLUSTER2_CONTEXT -n external-dns external-dns 
+kubectl stern --context $EKS_CLUSTER1_CONTEXT -n external-dns external-dns 
 ```
 
 External-DNS will watch for the DNSEndpoint created by the Gateway api controller in response to the domain name configure in the app4 HTTPRoute object.
@@ -279,7 +278,11 @@ OK We still have activated our Authentication so we need to use the curl command
 ### 4. Exec into an `app1-v1` pod to check connectivity to `app4` service using custom domain at `HTTP` listener, with Sigv4 signature
 
 ```bash
-kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -n app1 -c app1-v1 -- /bin/bash -c 'TOKEN=$(cat $AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE) && STS=$(curl 169.254.170.23/v1/credentials -H "Authorization: $TOKEN") && curl --aws-sigv4 "aws:amz:${AWS_REGION}:vpc-lattice-svcs" --user $(echo $STS | jq ".AccessKeyId" -r):$(echo $STS | jq ".SecretAccessKey" -r) -H "x-amz-content-sha256: UNSIGNED-PAYLOAD" -H "x-amz-security-token: $(echo $STS | jq ".Token" -r)" 'http://app4.vpc-lattice-custom-domain.io
+kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -n app1 -c app1-v1 -- /bin/bash -c '\
+TOKEN=$(cat $AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE) && \
+STS=$(curl -s 169.254.170.23/v1/credentials -H "Authorization: $TOKEN") && \
+curl -s --aws-sigv4 "aws:amz:${AWS_REGION}:vpc-lattice-svcs" --user $(echo $STS | jq ".AccessKeyId" -r):$(echo $STS | jq ".SecretAccessKey" -r) -H "x-amz-content-sha256: UNSIGNED-PAYLOAD" -H "x-amz-security-token: $(echo $STS | jq ".Token" -r)" \
+'http://app4.vpc-lattice-custom-domain.io
 ```
 
 ::::expand{header="Check Output"}
@@ -288,6 +291,7 @@ Requsting to Pod(app4-v1-77dcb6444c-mfjv2): Hello from app4-v1
 ```
 ::::
 
+## Now test HTTPS Connectivity 
 
 ### 5. Exec into an `app1-v1` pod to check connectivity to `app4` service using custom domain at `HTTPS` listener
 
@@ -321,8 +325,8 @@ export VERSION=v1
 #Create ConfigMap with certificat
 kubectl --context $EKS_CLUSTER1_CONTEXT create configmap -n app1 app-root-cert --from-file=/home/ec2-user/environment/manifests/root_cert.pem
 #Load configmap in App
-envsubst < templates/app-template-cert.yaml > manifests/$APPNAME-$VERSION-deploy-cert.yaml
-kubectl  --context $EKS_CLUSTER1_CONTEXT apply -f manifests/$APPNAME-$VERSION-deploy-cert.yaml
+sed -i "s/#addcert//g" manifests/$APPNAME-$VERSION-deploy.yaml
+kubectl  --context $EKS_CLUSTER1_CONTEXT apply -f manifests/$APPNAME-$VERSION-deploy.yaml
 ```
 
 ::::expand{header="Check Output"}
@@ -337,7 +341,8 @@ service/app1-v1 unchanged
 ### 7. Exec into an `app1-v1` pod to check connectivity again to `app4` service using custom domain at `HTTPS` listener, along with Root CA certificate.
 
 ```bash
-kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -c app1-v1 -n app1 -- curl --cacert /cert/root_cert.pem https://app4.vpc-lattice-custom-domain.io:443
+kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -c app1-v1 -n app1 -- \
+curl --cacert /cert/root_cert.pem https://app4.vpc-lattice-custom-domain.io:443
 ```
 
 We should now see the authentication issue
@@ -351,7 +356,11 @@ AccessDeniedException: User: anonymous is not authorized to perform: vpc-lattice
 ### 8. Exec into an `app1-v1` pod to check connectivity again to `app4` service using custom domain at `HTTPS` listener, along with Root CA certificate and Sigv4 signature
 
 ```bash
-kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -n app1 -c app1-v1 -- /bin/bash -c 'TOKEN=$(cat $AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE) && STS=$(curl 169.254.170.23/v1/credentials -H "Authorization: $TOKEN") && curl -cacert /app/root_cert.pem --aws-sigv4 "aws:amz:${AWS_REGION}:vpc-lattice-svcs" --user $(echo $STS | jq ".AccessKeyId" -r):$(echo $STS | jq ".SecretAccessKey" -r) -H "x-amz-content-sha256: UNSIGNED-PAYLOAD" -H "x-amz-security-token: $(echo $STS | jq ".Token" -r)" 'http://app4.vpc-lattice-custom-domain.io
+kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -n app1 -c app1-v1 -- /bin/bash -c '\
+TOKEN=$(cat $AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE) && \
+STS=$(curl -s 169.254.170.23/v1/credentials -H "Authorization: $TOKEN") && \
+curl -s --cacert /cert/root_cert.pem --aws-sigv4 "aws:amz:${AWS_REGION}:vpc-lattice-svcs" --user $(echo $STS | jq ".AccessKeyId" -r):$(echo $STS | jq ".SecretAccessKey" -r) -H "x-amz-content-sha256: UNSIGNED-PAYLOAD" -H "x-amz-security-token: $(echo $STS | jq ".Token" -r)" \
+'https://app4.vpc-lattice-custom-domain.io
 ```
 
 We should now see the proper response from the `app4`.
@@ -361,6 +370,6 @@ We should now see the proper response from the `app4`.
 Requsting to Pod(app4-v1-85d4d9c455-22fgw): Hello from app4-v1
 ::::
 
-::::alert{type="info" header="Note"}
+::::alert{type="info" header="Congratulation!!"}
 This time we managed to configure our Service with custom domain name and certificat, with a secure connection in TLS, and authorization validated by VPC Lattice IAM policies.
 ::::
