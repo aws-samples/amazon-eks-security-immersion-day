@@ -41,7 +41,8 @@ Parameters:
   EETeamRoleArn:
     Type: String
     Description: The Arn of the Cloud9 Owner to be set if 3rdParty deployment.
-    Default: 'arn:aws:iam::[ChangeMe]:role/[ChangeMe]'
+    Default: 'arn:aws:iam::012345678901:assumed-role/ChangeMe/ChangeMe'
+    AllowedPattern: '^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):(iam|sts)::\d+:(root|(user\/[\w+=/:,.@-]{1,64}|federated-user\/[\w+=/:,.@-]{2,32}|assumed-role\/[\w+=:,.@-]{1,64}\/[\w+=,.@-]{1,64}))$'
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -683,6 +684,7 @@ Resources:
       InstanceRoleArn: !GetAtt Cloud9InstanceRole.Arn
       SsmDocument: !Ref EksWorkshopC9SSMDocument
       Cloud9InstanceRole: !Ref Cloud9InstanceRole
+      EETeamRoleArn: !Ref EETeamRoleArn
 
   Cloud9InitializerFunction:
     Type: AWS::Lambda::Function
@@ -750,17 +752,35 @@ Resources:
                       aws_session_token=creds['SessionToken']
                   )
 
-                  cloud9.create_environment_membership(
-                      environmentId=environmentId,
-                      permissions='read-write',
-                      userArn=f'arn:aws:sts::{account_id}:assumed-role/WSParticipantRole/Participant'
-                  )
+                  #Try association for aws event
+                  try:
+                    cloud9.create_environment_membership(
+                        environmentId=environmentId,
+                        permissions='read-write',
+                        userArn=f'arn:aws:sts::{account_id}:assumed-role/WSParticipantRole/Participant'
+                    )
 
-                  cloud9.create_environment_membership(
-                      environmentId=environmentId,
-                      permissions='read-write',
-                      userArn=f'arn:aws:sts::{account_id}:assumed-role/WSOpsRole/Ops',
-                  )
+                    cloud9.create_environment_membership(
+                        environmentId=environmentId,
+                        permissions='read-write',
+                        userArn=f'arn:aws:sts::{account_id}:assumed-role/WSOpsRole/Ops',
+                    )
+                  except Exception as e:
+                      print("user may not exists if not an aws-event")
+                      print(traceback.format_exc())
+
+                  #Try association for n your Own
+                  try:
+                    team_arn = event['ResourceProperties']['EETeamRoleArn']
+                    cloud9.create_environment_membership(
+                        environmentId=environmentId,
+                        permissions='read-write',
+                        userArn=f'{team_arn}'
+                    )
+
+                  except Exception as e:
+                      print("user may not exists if not an aws-event")
+                      print(traceback.format_exc())
 
                   cloud9.update_environment(
                       environmentId=environmentId,
@@ -903,6 +923,7 @@ Resources:
                   cfnresponse.send(event, context, status, responseData, 'CustomResourcePhysicalID')
               print('end init')                     
 
+  #the script will be stored on the instance in /var/lib/amazon/ssm/i-0ed44984a70893c5d/document/orchestration/f709c76f-7a4e-422d-987c-a21eb482c67a/EksWorkshopC9bootstrap/_script.sh
   EksWorkshopC9SSMDocument: 
     Type: AWS::SSM::Document
     Properties: 
@@ -935,19 +956,16 @@ Resources:
                 su -l -c 'echo "export EKS_CLUSTER=${EKSCluster}" >> ~/.bash_profile' ec2-user
                 su -l -c 'echo "export EKS_CLUSTER1_NAME=${EKSCluster}" >> ~/.bash_profile' ec2-user
                 su -l -c 'echo "Found the Cloud9ID envs ${Cloud9Environment}"' ec2-user
-                su -l -c 'echo "aws cloud9 update-environment  --environment-id ${Cloud9Environment} --managed-credentials-action DISABLE > /dev/null 2>&1" |  tee -a ~/.bash_profile' ec2-user
-                export AZS=($(aws ec2 describe-availability-zones --query 'AvailabilityZones[].ZoneName' --output text --region ${AWS::Region}))
-                su -l -c 'echo "export AZS=($AZS[@])" | tee -a ~/.bash_profile' ec2-user
+                su -l -c 'echo "aws cloud9 update-environment  --environment-id ${Cloud9Environment} --managed-credentials-action DISABLE > /dev/null 2>&1" |  tee -a ~/.bash_profile' ec2-user                
+                su -l -c 'export AZS=($(aws ec2 describe-availability-zones --query 'AvailabilityZones[].ZoneName' --output text --region ${AWS::Region})) && echo "export AZS=(${!AZS[@]})" | tee -a ~/.bash_profile' ec2-user
                 curl -sSL "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
                 chmod +x /tmp/eksctl
                 mv /tmp/eksctl /usr/local/bin
                 curl -sSL "https://github.com/awslabs/eksdemo/releases/download/v0.12.0/eksdemo_Linux_x86_64.tar.gz" | tar xz -C /tmp
                 chmod +x /tmp/eksdemo
                 mv /tmp/eksdemo /usr/local/bin
-                yum -y install jq envsubst gettext bash-completion moreutils
-                echo 'yq() {
-                  docker run --rm -i -v "$PWD":/workdir mikefarah/yq "$@"
-                  }' | tee -a /home/ec2-user/bashrc
+                yum -y install jq gettext bash-completion moreutils
+                echo '' | tee -a /home/ec2-user/bashrc
                 /usr/local/bin/kubectl completion bash > /etc/bash_completion.d/kubectl
                 /usr/local/bin/eksctl completion bash > /etc/bash_completion.d/eksctl
                 mv /tmp/completions/eksdemo.bash /etc/bash_completion.d/eksdemo
@@ -961,18 +979,17 @@ Resources:
                 su -l -c 'helm repo add eks https://aws.github.io/eks-charts' ec2-user
                 su -l -c 'helm repo update' ec2-user
                 #Install Krew and stern
-                (
-                  cd "$(mktemp -d)" &&
-                  OS="$(uname | tr '[:upper:]' '[:lower:]')" &&
-                  ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" &&
-                  KREW="krew-${OS}_${ARCH}" &&
-                  curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/latest/download/${KREW}.tar.gz" &&
-                  tar zxvf "${KREW}.tar.gz" &&
-                  ./"${KREW}" install krew
-                )
-                echo "export PATH=${KREW_ROOT:-$HOME/.krew}/bin:$PATH" | tee -a ~/.bash_profile
-                source ~/.bash_profile
-                kubectl krew install stern
+                su -l -c "(cd \$(mktemp -d) && pwd &&
+                  OS=\$(uname | tr '[:upper:]' '[:lower:]') &&
+                  ARCH=\$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/') &&
+                  KREW=krew-\${!OS}_\${!ARCH} && echo \$KREW
+                  curl -fsSLO \"https://github.com/kubernetes-sigs/krew/releases/latest/download/\${!KREW}.tar.gz\" &&
+                  tar zxvf \${!KREW}.tar.gz &&
+                  ./\${!KREW} install krew
+                )" ec2-user 
+                su -l -c 'echo "export PATH=${!KREW_ROOT:-/home/ec2-user/.krew}/bin:$PATH" | tee -a ~/.bash_profile &&
+                source /home/ec2-user/.bash_profile &&
+                kubectl krew install stern' ec2-user
                 su -l -c 'curl -sS https://webinstall.dev/k9s | bash' ec2-user
                 sudo /home/ec2-user/.nvm/versions/node/v18.17.1/bin/npm i -g c9
                 su -l -c 'aws configure set default.region ${AWS::Region}' ec2-user
