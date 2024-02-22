@@ -574,6 +574,21 @@ Resources:
               rm -rf /tmp/helm.tgz /tmp/linux-amd64
               su -l -c 'helm repo add eks https://aws.github.io/eks-charts' ec2-user
               su -l -c 'helm repo update' ec2-user
+
+              #Install Krew and stern
+              (
+                cd "$(mktemp -d)" &&
+                OS="$(uname | tr '[:upper:]' '[:lower:]')" &&
+                ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" &&
+                KREW="krew-${OS}_${ARCH}" &&
+                curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/latest/download/${KREW}.tar.gz" &&
+                tar zxvf "${KREW}.tar.gz" &&
+                ./"${KREW}" install krew
+              )
+              echo "export PATH=${KREW_ROOT:-$HOME/.krew}/bin:$PATH" | tee -a ~/.bash_profile
+              source ~/.bash_profile
+              kubectl krew install stern
+
               volume_id=$(aws --region {region} ec2 describe-volumes --filters Name=attachment.instance-id,Values={instance_id} --query 'Volumes[0].VolumeId' --output text)
               aws --region {region} ec2 modify-volume --volume-id $volume_id --size 30
               # This must be the last line - do not add any lines after this!

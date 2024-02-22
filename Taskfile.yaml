@@ -1,0 +1,92 @@
+# https://taskfile.dev
+
+version: "3"
+
+dotenv: [".env", "{{.ENV}}/.env.", "{{.HOME}}/.env"]
+
+# includes:
+#   app:
+#     taskfile: ./app
+#     dir: ./app
+
+tasks:
+  pre:
+    cmds:
+      - pre-commit run --all-files
+
+  # env:
+  #   desc: env. variables
+  #   cmds:
+  #     - rm -f .env || true
+  #     - echo 'IMAGE_REPO_NAME={{.IMAGE_REPO_NAME}}' >> .env
+  #     - echo 'AWS_DEFAULT_REGION={{.AWS_DEFAULT_REGION}}' >> .env
+  #     - echo 'AWS_ACCOUNT_ID={{.AWS_ACCOUNT_ID}}' >> .env
+  #     - echo 'ECS_CLUSTER={{.ECS_CLUSTER}}' >> .env
+  #     - echo 'ECS_SERVICE={{.ECS_SERVICE}}' >> .env
+  #   vars:
+  #     IMAGE_REPO_NAME:
+  #       sh: aws cloudformation describe-stacks --stack-name lawsy-registry-stack --query 'Stacks[0].Outputs[?OutputKey==`EcrRegistry`].OutputValue' --output text || true
+  #     ECS_SERVICE:
+  #       sh: aws cloudformation describe-stacks --stack-name lawsy-stack --query 'Stacks[0].Outputs[?OutputKey==`ecsservice`].OutputValue' --output text || true
+  #     ECS_CLUSTER:
+  #       sh: aws cloudformation describe-stacks --stack-name lawsy-stack --query 'Stacks[0].Outputs[?OutputKey==`ecscluster`].OutputValue' --output text || true
+  #     AWS_ACCOUNT_ID:
+  #       sh: aws sts get-caller-identity --query "Account" --output text || true
+  #     AWS_DEFAULT_REGION:
+  #       sh: aws configure get region || true
+  #   status:
+  #     - test -f .env
+
+  # venv:
+  #   desc: Create local python virtual env
+  #   cmds:
+  #     - rm -rf .venv/ || true
+  #     - python3 -m venv .venv
+  #     - .venv/bin/python3 -m pip install --upgrade --quiet pip
+  #     - .venv/bin/pip3 install --quiet --requirement requirements.txt
+  #     - .venv/bin/pip3 install --quiet --requirement app/requirements.txt
+  #   sources:
+  #     - requirements.txt
+  #   generates:
+  #     - .venv/bin/activate
+
+  preview:
+    desc: dpreview local webwite
+    cmds:
+      - preview_build
+
+  assets-upload:
+    desc: upload assets to workshop studio s3 Bucket
+    deps: [check_creds, build]
+    cmds:
+      - aws s3 sync ./assets s3://ws-assets-us-east-1/165b0729-2791-4452-8920-53b734419050
+
+  assets-list:
+    desc: list assets in Bucket
+    deps: [check_creds]    
+    cmds:
+      - aws s3 ls s3://ws-assets-us-east-1/25d0d383-8c35-4e03-b549-fd7cbf3ad9a2/
+
+  # build:
+  #   desc: build assets
+  #   dir: assets
+  #   cmds:
+  #     - pwd
+  #     - rm hybrid-containers.zip
+  #     - zip -ry hybrid-containers.zip hybrid-containers 
+
+  check_creds:
+    desc: check workshop studio credendials are SessionToken
+    cmds:
+      - aws sts get-caller-identity | jq ".Arn" | grep WSDataPlaneContentCreatorRole || (echo "Error - you need to retrieve credentials in Workshop Studio https://studio.us-east-1.prod.workshops.aws/workshops/25d0d383-8c35-4e03-b549-fd7cbf3ad9a2#builds" && false)
+
+  pre_commit_1:
+    desc: scheck cloud9-template.yaml is up to date with static/event/cloud9-template.yaml
+    cmds:
+      - sdiff -s assets/cloud9-template.yaml static/event
+
+  pre_commit:
+    desc: some check that needs to be run before commit
+    cmds:
+      - task: pre_commit_1
+      - task: assets-upload

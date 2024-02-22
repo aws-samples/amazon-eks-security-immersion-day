@@ -13,8 +13,7 @@ Before we configure the EKS Pod Identity feature, let us first deploy a Sample A
 Run below command to generate a App template file, which we will be using throughout this workshop module.
 
 ```bash
-cd ~/environment
-cat > app-template.yaml <<EOF
+cat > ~/environment/app-template.yaml <<EOF
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -52,8 +51,8 @@ Run below command to deploy a Sample App `app1` with a Kubernetes Service accoun
 export APP=app1
 export NS=ns-a
 export SA=sa1
-envsubst < app-template.yaml > $APP.yaml
-kubectl  apply -f $APP.yaml
+envsubst < ~/environment/app-template.yaml > ~/environment/$APP.yaml
+kubectl  apply -f ~/environment/$APP.yaml
 ```
 
 ::::expand{header="Check Output"}
@@ -101,13 +100,12 @@ The `AccessDenied` error is expected since the Pod is not confugured with any IA
 Create a trust policy and configure the principal to `pods.eks.amazonaws.com`
 
 ```bash
-cd ~/environment
 export IAM_ROLE="eks-pod-s3-read-access-role"
 export IAM_ROLE_TRUST_POLICY="eks-pod-s3-read-access-trust-policy"
 export IAM_POLICY="eks-pod-s3-read-access-policy"
 export ROLE_DESCRIPTION="To allow Kubernetes Pods to allow readonly acces to S3"
 
-cat > $IAM_ROLE_TRUST_POLICY.json << EOF
+cat > ~/environment/$IAM_ROLE_TRUST_POLICY.json << EOF
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -136,7 +134,7 @@ then
       IAM_ROLE_ARN=$(aws iam create-role \
         --role-name $IAM_ROLE \
         --description  "$ROLE_DESCRIPTION" \
-        --assume-role-policy-document file://$IAM_ROLE_TRUST_POLICY.json \
+        --assume-role-policy-document file://~/environment/$IAM_ROLE_TRUST_POLICY.json \
         --output text \
         --query 'Role.Arn')
       echo "IAM Role ${IAM_ROLE} created. IAM_ROLE_ARN=$IAM_ROLE_ARN"
@@ -157,7 +155,7 @@ IAM Role eks-pod-s3-read-access-role created. IAM_ROLE_ARN=arn:aws:iam::ACCOUNT_
 Let us create a custom IAM Policy for S3 to list buckets and get Objects.
 
 ```bash
-cat > $IAM_POLICY.json <<EOF
+cat > ~/environment/$IAM_POLICY.json <<EOF
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -184,7 +182,7 @@ EOF
 Create the IAM Policy.
 
 ```bash
-policyArn=$(aws iam create-policy --policy-name $IAM_POLICY  --policy-document file://$IAM_POLICY.json --output text --query Policy.Arn)
+policyArn=$(aws iam create-policy --policy-name $IAM_POLICY  --policy-document file://~/environment/$IAM_POLICY.json --output text --query Policy.Arn)
 echo "policyArn=$policyArn"
 ```
 ::::expand{header="Check Output"}
@@ -205,7 +203,6 @@ Go to IAM Console and view the IAM Role.
 
 ![iam_role_permissions](/static/images/iam/eks-pod-identity/iam_role_permissions.png)
 
-
 Look at the trust policy.
 
 ![iam_role_trust](/static/images/iam/eks-pod-identity/iam_role_trust.png)
@@ -215,7 +212,7 @@ Look at the trust policy.
 ```bash
 export EKS_POD_IDENTITY_ADDON_NAME="eks-pod-identity-agent"
 export EKS_CLUSTER_NAME="eksworkshop-eksctl"
-aws eks  create-addon --cluster-name $EKS_CLUSTER_NAME --addon-name $EKS_POD_IDENTITY_ADDON_NAME
+aws eks create-addon --cluster-name $EKS_CLUSTER_NAME --addon-name $EKS_POD_IDENTITY_ADDON_NAME
 ```
 
 ::::expand{header="Check Output"}

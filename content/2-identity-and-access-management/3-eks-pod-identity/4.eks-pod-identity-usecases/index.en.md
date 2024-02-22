@@ -19,11 +19,10 @@ Let us say we want to restrict access to the IAM Role to only two EKS Clusters w
 Let us update the IAM Role Trust policy document as below.
 
 ```bash
-cd ~/environment
 export IAM_ROLE="eks-pod-s3-read-access-role"
 export IAM_ROLE_TRUST_POLICY_CLUSTER="eks-pod-s3-read-access-trust-policy-cluster"
 
-cat > $IAM_ROLE_TRUST_POLICY_CLUSTER.json << EOF
+cat > ~/environment/$IAM_ROLE_TRUST_POLICY_CLUSTER.json << EOF
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -54,7 +53,7 @@ Let us update the IAM Role with the new Trust policy.
 ```bash
 aws iam update-assume-role-policy \
     --role-name $IAM_ROLE \
-    --policy-document file://$IAM_ROLE_TRUST_POLICY_CLUSTER.json
+    --policy-document file://~/environment/$IAM_ROLE_TRUST_POLICY_CLUSTER.json
 ```
 
 ### Test Access to IAM Role from clusters
@@ -136,14 +135,13 @@ Let us update the IAM Role Trust policy document to restrict access to only two 
 
 
 ```bash
-cd ~/environment
 export IAM_ROLE="eks-pod-s3-read-access-role"
 export IAM_ROLE_TRUST_POLICY_NAMESPACE="eks-pod-s3-read-access-trust-policy-namespace"
 export NS1="ns-a"
 export NS2="ns-b"
 
 
-cat > $IAM_ROLE_TRUST_POLICY_NAMESPACE.json << EOF
+cat > ~/environment/$IAM_ROLE_TRUST_POLICY_NAMESPACE.json << EOF
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -176,7 +174,8 @@ Let us update the IAM Role with the new Trust policy.
 ```bash
 aws iam update-assume-role-policy \
     --role-name $IAM_ROLE \
-    --policy-document file://$IAM_ROLE_TRUST_POLICY_NAMESPACE.json
+    --policy-document file://~/environment/$IAM_ROLE_TRUST_POLICY_NAMESPACE.json
+IAM_ROLE_ARN=$(aws iam get-role --role-name $IAM_ROLE | jq ".Role.Arn" -r)
 ```
 
 ### Test Access to IAM Role across Namespaces
@@ -249,7 +248,7 @@ Similarly, you can also restrict access to the IAM Role to a specific Service ac
 
 In this section, we will explore how to control access to S3 Bucket and Objects for a specific  EKS cluster, namespace using AWS Resource Tags.
 
-### Update IAM Policy for fine grained acecss control
+### Update IAM Policy for fine grained access control
 
 Earlier we created one S3 Bucket `ekspodidentity-ACCOUNT_ID-us-west-2`
 
@@ -260,7 +259,7 @@ Let us create a custom IAM Policy for S3 read access role to configure the granu
 ```bash
 export IAM_POLICY="eks-pod-s3-read-access-policy"
 export IAM_POLICY_S3="eks-pod-s3-read-access-policy-s3"
-cat > $IAM_POLICY_S3.json <<EOF
+cat >  ~/environment/$IAM_POLICY_S3.json <<EOF
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -290,7 +289,7 @@ cat > $IAM_POLICY_S3.json <<EOF
 EOF
 ```
 ```bash
-s3policyArn=$(aws iam create-policy --policy-name $IAM_POLICY_S3  --policy-document file://$IAM_POLICY_S3.json --output text --query Policy.Arn)
+s3policyArn=$(aws iam create-policy --policy-name $IAM_POLICY_S3  --policy-document file://~/environment/$IAM_POLICY_S3.json --output text --query Policy.Arn)
 echo "s3policyArn=$s3policyArn"
 ```
 
