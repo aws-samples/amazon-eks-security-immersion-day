@@ -1004,6 +1004,16 @@ Resources:
       GroupDescription: CodeBuild SecurityGroup
       VpcId: !Ref VPC
 
+  AllowCodebuildToAccessCluster:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Allow connections from CodeBuild SecurityGroup
+      IpProtocol: tcp
+      GroupId: !GetAtt EKSCluster.ClusterSecurityGroupId
+      SourceSecurityGroupId: !Ref CodeBuildSecurityGroup
+      FromPort: 443
+      ToPort: 443
+
 Outputs:
 
   VPC:
@@ -1019,3 +1029,9 @@ Outputs:
     Export:
       Name: SubnetAPrivate
 
+
+  CodeBuildSecurityGroup:
+    Description: 'Security group for codebuild'
+    Value: !Ref CodeBuildSecurityGroup
+    Export:
+      Name: CodeBuildSecurityGroup

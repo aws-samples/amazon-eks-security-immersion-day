@@ -727,7 +727,7 @@ Resources:
       FunctionName: "process-build-approval-msg"
       Handler: index.lambda_handler
       Role: !GetAtt PipelineApprovalMsgRole.Arn
-      Runtime: python3.7
+      Runtime: python3.12
       Timeout: 30
       Code:
         ZipFile: |
@@ -786,7 +786,7 @@ Resources:
       FunctionName: "eval-container-scan-results"
       Handler: index.lambda_handler
       Role: !GetAtt ContainerScanResultsRole.Arn
-      Runtime: python3.7
+      Runtime: python3.12
       Timeout: 30
       Environment:
         Variables:
