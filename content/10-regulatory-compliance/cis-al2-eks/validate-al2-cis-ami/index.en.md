@@ -19,13 +19,14 @@ In this lab we will validate the CIS benchmark hardened EC2 instance using Amazo
 aws inspector2 enable --resource-types EC2
 ```
 ::::expand{header="Check Output"}
-```
+
+:::code{language=json lineNumberStart=1 highlightLines=6,11 highlightLinesStart=1}
 {
     "accounts": [
         {
-            "accountId": "487725470668",
+            "accountId": "872629243257",
             "resourceStatus": {
-                "ec2": "ENABLING",
+                "ec2": "ENABLED",
                 "ecr": "DISABLED",
                 "lambda": "DISABLED",
                 "lambdaCode": "DISABLED"
@@ -35,47 +36,120 @@ aws inspector2 enable --resource-types EC2
     ],
     "failedAccounts": []
 }
+:::
+
+::::
+
+Setup CIS scan configuration using either AWS CLI or AWS Console once Amazon Inspector status is **ENABLED**
+:::::tabs{variant="container"}
+
+::::tab{id="cli" label="Using AWS CLI"}
+
+Run the following command to create the cis scan configuration using AWS CLI
+
+```bash
+AWS_ACCOUNT=$(aws sts get-caller-identity --query "Account" --output text)
+cd ~/environment
+cat > inspector-cis-scan-config.json <<EOF
+{
+    "scanName":  "security-lab",
+    "schedule": {
+        "oneTime": {}
+    },
+    "securityLevel": "LEVEL_2",
+    "targets": {
+        "accountIds": [
+            "$AWS_ACCOUNT"
+        ],
+        "targetResourceTags": {
+            "eks:nodegroup-name":  [ "custom-ng-amd" ]
+        }
+    }
+}
+EOF
+
+aws inspector2 create-cis-scan-configuration --cli-input-json file://inspector-cis-scan-config.json
+
+```
+::::expand{header="Check Output"}
+```
+{
+    "scanConfigurationArn": "arn:aws:inspector2:us-west-2:872629243257:owner/872629243257/cis-configuration/464bb15d-47d6-47ce-8e97-d95f741a1440"
+}
 ```
 ::::
-2. Let's go to the [Amazon Inspector console](https://us-west-2.console.aws.amazon.com/inspector/v2/home?region=us-west-2)  and  select On-demand scans "CIS scans". Choose "Create new scan".
+::::tab{id="console" label="Using AWS Console"}
+
+1. Let's go to the [Amazon Inspector console](https://us-west-2.console.aws.amazon.com/inspector/v2/home?region=us-west-2)  and  select On-demand scans "CIS scans". Choose "Create new scan".
 
 ![Amazon-Instector-1](/static/images/regulatory-compliance/cis-al2-eks/validatescan-1.png)
 
-3. a. Enter a Scan configuration name.
+2. a. Enter a Scan configuration name.
+   ```bash
+   security-lab
+   ```
 
    b. For Target resource enter the Key and corresponding Value of a tag on the instances that you want to scan. You can specify a total of 25 tags to include in the scan, and for each key, you can specify up to five different values.
+   For this lab specify the below Resource tags:
 
-   c. Choose a CIS Benchmark level. You can select Level 1 for basic security configurations, or Level 2 for advanced security configurations.
+   **Key**
+   ```bash
+    eks:nodegroup-name
+    ```
+    **Value**
+    ```bash 
+    custom-ng-amd
+    ```
+   c. Choose a CIS Benchmark level of **LEVEL_2**. 
 
-   d. For Target accounts, specify which accounts to include in the scan. A standalone account or member in an organization can select Self to create a scan configuration for their account. An Amazon Inspector delegated administrator can select All accounts to target all accounts within the organization, or select Specify accounts and specify a subset of member accounts to target. The delegated administrator can enter SELF instead of an account ID to create a scan configuration for their own account. 
+   You can select Level 1 for basic security configurations, or Level 2 for advanced security configurations.
 
-   e. Choose a Schedule for the scans. Choose between One time scan, which will run as soon as you finish creating the scan configuration, or Recurring scans, which will run at the scheduled time that you choose until it's deleted.
+   d. Select Target account as **Self**.
 
-   f. Choose Create to finish creating the scan configuration.
+   For Target accounts, specify which accounts to include in the scan. A standalone account or member in an organization can select Self to create a scan configuration for their account. 
 
-*To grant permissions to run CIS scans, attach the “AmazonSSMManagedInstanceCore” and the “AmazonInspector2ManagedCispolicy” IAM policies to the EC2 instance profile role. We have added these roles while creating the managed node group.*
+   e. Choose Schedule as **One time** scan, which will run as soon as you finish creating the scan configuration
 
-![Amazon-Instector-1](/static/images/regulatory-compliance/cis-al2-eks/validatescan-2.png)
 
-4. Scan status  will be displayed as "IN_PROGRESS" while the instances are been scanned
+   f. Choose **Create** to finish creating the scan configuration.
+   It will take approtimately 10 minutes to complete scan of two instances
+
+   ![Amazon-Instector-1](/static/images/regulatory-compliance/cis-al2-eks/validatescan-2.png)
+
+::::
+
+:::::
+::alert[To grant permissions to run CIS scans, attach the “AmazonSSMManagedInstanceCore” and the “AmazonInspector2ManagedCispolicy” IAM policies to the EC2 instance profile role. We have added these roles while creating the managed node group.]{header="Note"}
+
+
+ Let's go to the [Amazon Inspector console](https://us-west-2.console.aws.amazon.com/inspector/v2/home?region=us-west-2) to check CIS scan status
+ 
+ Scan status  will be displayed as **IN_PROGRESS** while the instances are been scanned
 
 ![Amazon-Instector-1](/static/images/regulatory-compliance/cis-al2-eks/validatescan-3.png)
 
-5. Once the scan is complete it should display status as "COMPLETED"
+ Once the scan is complete it should display status as  **COMPLETED**
 
 ![Amazon-Instector-1](/static/images/regulatory-compliance/cis-al2-eks/validatescan-4.png)
 
-6. Click the Scan ARN to see the results
+ Click the Scan ARN to see the results
 
 ![Amazon-Instector-1](/static/images/regulatory-compliance/cis-al2-eks/validatescan-5.png)
 
-- Snippet of "PASSED" checks
+- Snippet of **PASSED** checks
 
 ![Amazon-Instector-1](/static/images/regulatory-compliance/cis-al2-eks/validatescan-6.png)
 
-- Snippet of "FAILED" checks
+- Snippet of **SKIPPED** checks
+
+The checks that requires manual steps to determine whether a system’s configured state is as expected is skipped in the scan. Manual recommendations are equally important to automated and this should be validated using the assesment steps provided in [ CIS Amazon Linux 2 Benchmark ](https://www.cisecurity.org/benchmark/amazon_linux). 
+
+![Amazon-Instector-1](/static/images/regulatory-compliance/cis-al2-eks/validatescan-8.png)
+
+- Snippet of **FAILED** checks
 
 ![Amazon-Instector-1](/static/images/regulatory-compliance/cis-al2-eks/validatescan-7.png)
+
 
 
 
@@ -102,6 +176,6 @@ aws inspector2 enable --resource-types EC2
 | 6.1.12 |  Ensure no ungrouped files or directories exist | Directories used by containerd | Potential Operation Impact
 
     
-*Recommendations can have one of the following reasons:
+***Recommendations can have one of the following reasons:**
 
-Potential Operation Impact - Recommendation wasn't applied because it would have a negative effect on the service.
+*Potential Operation Impact - Recommendation wasn't applied because it would have a negative effect on the service.*

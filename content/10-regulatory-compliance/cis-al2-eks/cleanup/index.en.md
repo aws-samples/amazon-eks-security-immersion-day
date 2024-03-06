@@ -56,3 +56,8 @@ Delete the repository
 cd ~/environment/
 rm -rf amazon-eks-custom-amis/
 ```
+
+Disable Amazon Inspector 
+```bash
+aws inspector2 disable --resource-types LAMBDA_CODE LAMBDA ECR EC2
+```

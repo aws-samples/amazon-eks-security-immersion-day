@@ -12,6 +12,7 @@ weight : 200
 
 ## Workshop Contributors
 
+* Sebastien Allamand
 * Jayaprakash Alawala
 * Jimmy Ray
 * Raj Bagwe
@@ -19,6 +20,9 @@ weight : 200
 * Lijo Antony
 * Venkateswara Podugu
 * Ravi Yalamanchili
+* Vijay Kamath
+* Josh Hart
+* Preetam Rebello
 
 
 If anyone (Only AWS Employees) is interested to contribute, please contact us at [amazon-eks-security-immersion-day@amazon.com](mailto:amazon-eks-security-immersion-day@amazon.com)
