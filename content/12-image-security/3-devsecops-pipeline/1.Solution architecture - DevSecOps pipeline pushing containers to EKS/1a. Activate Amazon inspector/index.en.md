@@ -1,0 +1,60 @@
+---
+title : "Activate Inspector"
+weight : 21
+---
+
+
+:::::tabs{variant="container"}
+
+::::tab{id="cli" label="Using AWS CLI"}
+Run the following command to enable Amazon Inspector and then also enable ECR 
+
+
+Run the below command to enable Inspector.
+
+
+```bash
+aws inspector2 enable --resource-types ECR
+```
+
+::::expand{header="Check Output"}
+```json
+{
+    "accounts": [
+        {
+            "accountId": "************",
+            "resourceStatus": {
+                "ec2": "DISABLED",
+                "ecr": "ENABLING",
+                "lambda": "DISABLED",
+                "lambdaCode": "DISABLED"
+            },
+            "status": "ENABLING"
+        }
+    ],
+    "failedAccounts": []
+}
+```
+::::
+
+::::tab{id="console" label="Using AWS Console"}
+
+In your AWS Console, Search for Inspector
+
+![Search for Inspector](/static/images/image-security/devsecops-inspector/Inspector-search.png)
+
+Click **Get Started**
+
+![Get Started](/static/images/image-security/devsecops-inspector/Inspector-getstarted.png)
+
+
+Click **Activate Inspector**
+![Enable Inspector!](/static/images/image-security/devsecops-inspector/Inspector-Activate.png)
+
+::::
+
+:::::
+
+When you enable Inspector for the first time,you will see the following screen
+
+![GDNewEKSProtectionScreen-New](/static/images/image-security/devsecops-inspector/inspector-enabled.png)
