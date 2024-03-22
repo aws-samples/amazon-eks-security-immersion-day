@@ -79,7 +79,7 @@ mtls-workshop-XXXXXXXXXXXX
 
 ::::expand{header="Check Output"}
 ```bash
-${S3_BUCKET}
+mtls-workshop-20240322135644
 ```
 ::::
 
