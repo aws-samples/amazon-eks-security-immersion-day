@@ -44,7 +44,6 @@ mkdir -p ~/.aws
 if test -f ~/.aws/config; then
 #test profile admin
 if ! grep -q "profile admin" ~/.aws/config; then
-
 cat << EoF >> ~/.aws/config
 [profile admin]
 role_arn=arn:aws:iam::${ACCOUNT_ID}:role/k8sClusterAdmin
@@ -56,7 +55,6 @@ fi
 
 #test profile dev
 if ! grep -q "profile dev" ~/.aws/config; then
-
 cat << EoF >> ~/.aws/config
 [profile dev]
 role_arn=arn:aws:iam::${ACCOUNT_ID}:role/k8sTeamADev
@@ -68,7 +66,6 @@ fi
 
 #test profile test
 if ! grep -q "profile test" ~/.aws/config; then
-
 cat << EoF >> ~/.aws/config
 [profile test]
 role_arn=arn:aws:iam::${ACCOUNT_ID}:role/k8sTeamATest
@@ -99,6 +96,30 @@ source_profile=eksTest
 
 EoF
 echo "config file with profiles added..."
+fi
+```
+
+#### Add in `~/.aws/credentials`:
+
+```bash
+if ! test -f ~/.aws/credentials; then
+cat << EoF >> ~/.aws/credentials
+
+[eksAdmin]
+aws_access_key_id=$(jq -r .AccessKey.AccessKeyId /tmp/User1Admin.json)
+aws_secret_access_key=$(jq -r .AccessKey.SecretAccessKey /tmp/User1Admin.json)
+
+[eksDev]
+aws_access_key_id=$(jq -r .AccessKey.AccessKeyId /tmp/User1TeamADev.json)
+aws_secret_access_key=$(jq -r .AccessKey.SecretAccessKey /tmp/User1TeamADev.json)
+
+[eksTest]
+aws_access_key_id=$(jq -r .AccessKey.AccessKeyId /tmp/User1TeamATest.json)
+aws_secret_access_key=$(jq -r .AccessKey.SecretAccessKey /tmp/User1TeamATest.json)
+
+EoF
+else
+  echo "AWS Credentials file ~/.aws/credentials already exists..."
 fi
 
 
