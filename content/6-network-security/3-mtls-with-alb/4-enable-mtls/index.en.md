@@ -3,7 +3,7 @@ title : "Enable mTLS in ALB"
 weight : 13
 ---
 
-Let’s enable mTLS by editing the ingress manifest we previously deployed to the cluster. In this example, the listener HTTPS:80 is set to passthrough mode, the listener HTTPS:443 will be set to verify mode and will be associated with the provided `trust-store-arn arn:aws:elasticloadbalancing:trustStoreArn` we created earlier. The remaining listeners HTTPS:8080 and HTTPS:8443 will be set to default mTLS mode (i.e., off).
+Let’s enable mTLS by editing the ingress manifest we previously deployed to the cluster. You can configure multiple listener options and decide to either turn on/off mTLS for each listener. In this example, we will configure 4 listeners. The listener HTTPS:80 is set to passthrough mode, the listener HTTPS:443 will be set to verify mode and will be associated with the provided `trust-store-arn arn:aws:elasticloadbalancing:trustStoreArn` we created earlier. The remaining listeners HTTPS:8080 and HTTPS:8443 will be set to default mTLS mode (i.e., off).
 
 ```bash
 cat << EOF > ingress.yaml
@@ -41,21 +41,25 @@ spec:
 EOF
 ```
 
+Notable configurations in the ingress manifests:
+- The ingress listen-ports specifies four HTTPS ports: 80, 443, 8080, 8443 to illustrate multiple listener configuration options that you can implement.
+- `ignoreClientCertificateExpiry` indicates whether expired client certificates are ignored.
+
 Apply the manifest to update the existing ingress:
 
 ```bash
 kubectl apply -f ingress.yaml
 ```
 
-Navigate to Application Loadbalancer in [AWS EC2 console](https://us-west-2.console.aws.amazon.com/ec2/home?region=us-west-2#LoadBalancers:) to verify that the listeners now been updated.
+Navigate to Application Loadbalancer in [AWS EC2 console](https://console.aws.amazon.com/ec2/home?#LoadBalancers:) to verify that the listeners now been updated.
 ![mtls-listeners](/static/images/6-network-security/3-mtls-with-alb/mtls-listeners.png)
 
 
-Navigate to Application Loadbalancer in [AWS EC2 console](https://us-west-2.console.aws.amazon.com/ec2/home?region=us-west-2#LoadBalancers:), confirm that the HTTPS 443 Listener now has Mutual authentication (mTLS) set to "Verify with trust store" using the trust store we created and HTTPS 80 Listener set to passthrough mode.
+Navigate to Application Loadbalancer in [AWS EC2 console](https://console.aws.amazon.com/ec2/home?#LoadBalancers), confirm that the HTTPS 443 Listener now has Mutual authentication (mTLS) set to "Verify with trust store" using the trust store we created and HTTPS 80 Listener set to passthrough mode.
 
 ![mtls-on](/static/images/6-network-security/3-mtls-with-alb/mtls-on.png)
 
-Confirm that you can no longer access the application exposed with the internal ALB without using a certificate trusted by the ACM PCA.
+Confirm that you can no longer access the application on the default HTTPS port 443 exposed with the internal ALB without using a certificate trusted by the ACM PCA.
 
 ```bash
 curl -k https://mtls.vpc-lattice-custom-domain.io
@@ -73,73 +77,7 @@ curl: (35) Recv failure: Connection reset by peer
 ```
 ::::
 
-
-Create a sample pod that will use the client certificate we requested from the ACM PCA with the manifest below with a file name `client.yaml`
-
-```bash
-cat << EOF > client.yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: mtls-client
-  namespace: mtls
-spec:
-  containers:
-    - name: mtls-client-container
-      image: nginx
-      args:
-      - /bin/sh
-      - -c
-      - >
-        while true;
-        do
-          curl -sk "\${ENDPOINT}" --cert /etc/secret-volume/tls.crt --key /etc/secret-volume/tls.key;
-          sleep 60
-        done
-      env:
-      - name: ENDPOINT
-        value: "https://mtls.${CUSTOM_DOMAIN_NAME}"
-      volumeMounts:
-        - name: secret-volume
-          mountPath: /etc/secret-volume
-          readOnly: true
-  volumes:
-    - name: secret-volume
-      secret:
-        secretName: mtls-cert-client
-EOF
-```
-
-Apply the manifest and confirm that the pod is running:
-
-```bash
-kubectl apply -f client.yaml
-kubectl get pods -n mtls
-```
-
-::::expand{header="Check Output"}
-```bash
-NAME                        READY   STATUS    RESTARTS   AGE
-mtls-app-6459cb6456-6tp7s   1/1     Running   0          37m
-mtls-client                 1/1     Running   0          11s
-```
-::::
-
-Verify that the pod is able to connect with the application using a mutual TLS
-
-```bash
-kubectl logs mtls-client -n mtls
-```
-
-::::expand{header="Check Output"}
-```
-kubectl logs mtls-client -n mtls
-Amazon EKS Security Immersion Workshop - mTLS with ALB in Amazon EKS
-```
-::::
-
-
-You can retrieve the certificate issued to the test client pod and use it to test the internal ALB enabled with mTLS
+To test connectivity outside of the Kubernetes cluster, you can retrieve the certificate issued to the client pod and use it to test connectivity to the internal ALB enabled with mTLS:
 
 ```bash
 kubectl get secret mtls-cert-client -n mtls -o jsonpath='{.data.tls\.crt}' | base64 --decode > tls.crt
@@ -149,8 +87,15 @@ kubectl get secret mtls-cert-client -n mtls -o jsonpath='{.data.tls\.key}' | bas
 Use the retrieved key pair to authenticate with the internal ALB.
 
 ```bash
-curl -k https://mtls.vpc-lattice-custom-domain.io --key tls.key --cert tls.crt -v
+curl https://mtls.vpc-lattice-custom-domain.io --cacert manifests/root_cert.pem --key tls.key --cert tls.crt
 ```
+
+::::expand{header="Check Output"}
+```bash
+WSOpsRole:~/environment $ curl https://mtls.vpc-lattice-custom-domain.io --cacert manifests/root_cert.pem --key tls.key --cert tls.crt
+Amazon EKS Security Immersion Workshop - mTLS with ALB in Amazon EKS
+```
+::::
 
 or
 
@@ -209,5 +154,69 @@ You should see a **200** HTTP response only when the certificate and key is spec
 < 
 Amazon EKS Security Immersion Workshop - mTLS with ALB in Amazon EKS
 * Connection #0 to host mtls.vpc-lattice-custom-domain.io left intact
+```
+::::
+
+Create a sample pod that will use the client certificate we requested from the ACM PCA with the manifest below with a file name `client.yaml`
+
+```bash
+cat << EOF > client.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mtls-client
+  namespace: mtls
+spec:
+  containers:
+    - name: mtls-client-container
+      image: nginx
+      args:
+      - /bin/sh
+      - -c
+      - >
+        while true;
+        do
+          curl -s "\${ENDPOINT}" --cert /etc/secret-volume/tls.crt --key /etc/secret-volume/tls.key --cacert /etc/secret-volume/ca.crt;
+          sleep 60
+        done
+      env:
+      - name: ENDPOINT
+        value: "https://mtls.${CUSTOM_DOMAIN_NAME}"
+      volumeMounts:
+        - name: secret-volume
+          mountPath: /etc/secret-volume
+          readOnly: true
+  volumes:
+    - name: secret-volume
+      secret:
+        secretName: mtls-cert-client
+EOF
+```
+
+Apply the manifest and confirm that the pod is running:
+
+```bash
+kubectl apply -f client.yaml
+kubectl get pods -n mtls
+```
+
+::::expand{header="Check Output"}
+```bash
+NAME                        READY   STATUS    RESTARTS   AGE
+mtls-app-6459cb6456-6tp7s   1/1     Running   0          37m
+mtls-client                 1/1     Running   0          11s
+```
+::::
+
+Verify that the pod is able to connect with the application using a mutual TLS. The client pod used the issued certificate stored as a secret and presented it to the Application Load Balancer for certificate authentication.
+
+```bash
+kubectl logs mtls-client -n mtls
+```
+
+::::expand{header="Check Output"}
+```
+kubectl logs mtls-client -n mtls
+Amazon EKS Security Immersion Workshop - mTLS with ALB in Amazon EKS
 ```
 ::::

@@ -5,7 +5,7 @@ weight : 12
 
 ## Deploy a Sample Workload
 
-The workload runs a web service that displays a simple text. The workload in the cluster is exposed to other clients using an internal Application loadbalancer.
+The workload is a backend web service that displays a simple text. The workload in the cluster is exposed to other clients using an internal Application Load Balancer.
 
 Create an example Workload with the manifest below and save the file as `mtls.yaml`
 
@@ -110,10 +110,12 @@ ingress.networking.k8s.io/mtls-ingress   alb     mtls.vpc-lattice-custom-domain.
 ```
 ::::
 
-You can also check Application Loadbalancer in [AWS EC2 console](https://us-west-2.console.aws.amazon.com/ec2/home?region=us-west-2#LoadBalancers:) to confirm the Internal loadbalancer created is in an active state"
+You can also check Application Loadbalancer in [AWS EC2 console](https://console.aws.amazon.com/ec2/home?#LoadBalancers:). Wait till you confirm that the Internal loadbalancer created is in an active state"
+
 ![ec2-alb.png](/static/images/6-network-security/3-mtls-with-alb/ec2-alb.png)
 
-Click the Application Loadbalancer HTTPS 443 Listener to confirm Mutual authentication (mTLS) is turned off
+Confirm that mTLS is turned off for all the listeners. For example, click the Application Load Balancer's HTTPS 443 Listener to confirm Mutual authentication (mTLS) is turned off
+
 ![mtls-off](/static/images/6-network-security/3-mtls-with-alb/mtls-off.png)
 
 Verify you can access the application exposed with the ALB internally
@@ -129,5 +131,10 @@ curl https://mtls.vpc-lattice-custom-domain.io --cacert manifests/root_cert.pem
 ```
 
 ::::expand{header="Check Output"}
-![without-mtls](/static/images/6-network-security/3-mtls-with-alb/without-mtls.png)
+```bash
+WSParticipantRole:~/environment $ curl -k https://mtls.vpc-lattice-custom-domain.io
+Amazon EKS Security Immersion Workshop - mTLS with ALB in Amazon EKS
+WSParticipantRole:~/environment $ curl https://mtls.vpc-lattice-custom-domain.io --cacert manifests/root_cert.pem 
+Amazon EKS Security Immersion Workshop - mTLS with ALB in Amazon EKS
+```
 ::::

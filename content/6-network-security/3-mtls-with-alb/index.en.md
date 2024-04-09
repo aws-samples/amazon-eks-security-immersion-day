@@ -14,9 +14,11 @@ Mutual TLS for Application Load Balancers provides the following two options for
 * **Mutual TLS passthrough:** When you use mutual TLS passthrough mode, Application Load Balancer sends the whole client certificate chain to the target using HTTP headers. Then, by using the client certificate chain, you can implement corresponding authentication and authorization logic in your application.
 * **Mutual TLS verify:** When you use mutual TLS verify mode, Application Load Balancer performs X.509 client certificate authentication for clients when a load balancer negotiates TLS connections.
 
-This module walks you through how to set up mTLS for an application running on Amazon Elastic Kubernetes Service (Amazon EKS) using [ALB Controller](https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html) and ACM Private CA. It can be used for business-to-business applications or standards such as [Open Banking](https://docs.aws.amazon.com/wellarchitected/latest/financial-services-industry-lens/open-banking.html).
+This module walks you through how to set up mTLS for an application running on Amazon Elastic Kubernetes Service (Amazon EKS) using [AWS Load Balancer Controller](https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html) and [AAWS Private CA](https://docs.aws.amazon.com/privateca/latest/userguide/PcaWelcome.html). It can be used for business-to-business applications or standards such as [Open Banking](https://docs.aws.amazon.com/wellarchitected/latest/financial-services-industry-lens/open-banking.html) and other use cases.
 
 ## How mTLS Works
+
+![MTLS vs TLS](/static/images/6-network-security/3-mtls-with-alb/mtls_vs_tls.png)
 
 In TLS, the server has a TLS certificate and a public/private key pair, while the client does not. The client connects to server, server presents its TLS certificate, client verifies the server's certificate and finally, the client and server exchange information over encrypted TLS traffic. While in mTLS, both the client and server have a certificate, and both sides authenticate using their public/private key pair, including an additional steps where both the client and server presents their certificate to verify both parties.
 
