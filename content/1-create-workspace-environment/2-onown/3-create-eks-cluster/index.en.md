@@ -25,7 +25,7 @@ managedNodeGroups:
   instanceTypes:
   - t3a.large
   - t3.large
-  - m4.large
+  - c5.large
   - m5a.large
   - m5.large
 
