@@ -50,6 +50,9 @@ HOSTED_ZONE_ID: /hostedzone/XXXXXXXXXXXXXXX
 ```
 ::::
 
+::alert[If all the variables are not filled in your command output, complete the [**Private Hosted Zone**](../../2-vpc-lattice-service-access/2-setup-base-infra/2-private-hosted-zone) **and** [**ACM PCA Infrastructure**](../../2-vpc-lattice-service-access/2-setup-base-infra/3-acm-pca) sections of the previous module]{header="WARNING" type="warning"}
+
+
 Ensure you switch to the main EKS Cluster
 
 ```bash
@@ -71,7 +74,7 @@ Create an S3 bucket with a unique name using the command below:
 
 ```bash
 aws s3 mb s3://mtls-workshop-$(date "+%Y%m%d%H%M%S")
-export S3_BUCKET=`aws s3api list-buckets --query "Buckets[].Name" --output text | grep mtls-workshop`
+xport S3_BUCKET=`aws s3api list-buckets --query "Buckets[?starts_with(Name,'mtls-')]|[].Name" --output text | grep mtls-workshop`
 echo $S3_BUCKET
 ```
 
@@ -211,7 +214,7 @@ cert-manager-webhook-847d7676c9-pjgbc     1/1     Running   0          22s
 The AWS PCA Issuer plugin works as an addon to the cert-manager that signs off certificate requests using AWS Certificate Manager Private Certificate Authority. The addon makes it easy to generate certificates for workload inside the Kubernetes cluster.
 
 
-1. Create file `pca-iam-policy.json` and save the following in it:
+Create file `pca-iam-policy.json` and save the following in it:
 
 ```bash
 cat << EOF > pca-iam-policy.json
@@ -233,7 +236,7 @@ cat << EOF > pca-iam-policy.json
 EOF
 ```
 
-1. Create and IAM policy called AWSPCAIssuerIAMPolicy with the command below:
+Create and IAM policy called AWSPCAIssuerIAMPolicy with the command below:
 
 ```bash
 AWSPCA_POLICY_ARN=`aws iam create-policy \
@@ -242,7 +245,7 @@ AWSPCA_POLICY_ARN=`aws iam create-policy \
 --query 'Policy.Arn' --output text`
 ```
 
-1. Create a Service Account for the AWS PCA Issuer plugin with the command below:
+Create a Service Account for the AWS PCA Issuer plugin with the command below:
 
 ```bash
 eksctl create iamserviceaccount \
@@ -254,7 +257,7 @@ eksctl create iamserviceaccount \
 --approve
 ```
 
-1. Add the AWS PCA Issuer Helm repository and run helm install command
+Add the AWS PCA Issuer Helm repository and run helm install command
 
 ```bash
 helm repo add awspca https://cert-manager.github.io/aws-privateca-issuer
@@ -262,7 +265,7 @@ helm repo update
 helm install aws-pca-issuer awspca/aws-privateca-issuer -n default --set serviceAccount.create=false --set serviceAccount.name=aws-pca-issuer
 ```
 
-1. Verify that AWS PCA issuer is configured correctly by running following command:
+Verify that AWS PCA issuer is configured correctly by running following command:
 
 ```bash
 kubectl get pods -l app.kubernetes.io/name=aws-privateca-issuer
@@ -276,7 +279,7 @@ aws-pca-issuer-aws-privateca-issuer-5ddf8ddfd9-sg5zs   1/1     Running   0      
 ```
 ::::
 
-1. Create the following files for Cluster Issuer and Certificates with your own values
+Create the following files for Cluster Issuer and Certificates with your own values
 
 ```bash
 cat << EOF > cluster-issuer.yaml
@@ -346,7 +349,7 @@ kubectl create namespace mtls
 kubectl apply -f mtls-cert.yaml -n mtls
 ```
 
-1. To confirm that the certificate was successfully issued:
+To confirm that the certificate was successfully issued:
 
 ```bash
  kubectl describe certificate.cert-manager.io/mtls-cert-acm-client -n mtls
