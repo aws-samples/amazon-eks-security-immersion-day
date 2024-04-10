@@ -74,7 +74,7 @@ Create an S3 bucket with a unique name using the command below:
 
 ```bash
 aws s3 mb s3://mtls-workshop-$(date "+%Y%m%d%H%M%S")
-xport S3_BUCKET=`aws s3api list-buckets --query "Buckets[?starts_with(Name,'mtls-')]|[].Name" --output text | grep mtls-workshop`
+export S3_BUCKET=`aws s3api list-buckets --query "Buckets[?starts_with(Name,'mtls-')]|[].Name" --output text | grep mtls-workshop`
 echo $S3_BUCKET
 ```
 
