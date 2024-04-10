@@ -41,60 +41,52 @@ It is possible to automate the retrieval of temporary credentials for the assume
 ```bash
 mkdir -p ~/.aws
 
+export AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
+export ADMIN_ROLE="k8sClusterAdmin"
+export ADMIN_PROFILE="eksAdmin"
+export DEV_ROLE="k8sTeamADev"
+export DEV_PROFILE="eksDev"
+export TEST_ROLE="k8sTeamATest"
+export TEST_PROFILE="eksTest"
+
+# function to insert profile
+insert_profile () {
+cat << EoF >> ~/.aws/config
+[profile ${1}]
+role_arn=arn:aws:iam::${ACCOUNT_ID}:role/${2}
+source_profile=${3}
+
+EoF
+}
+
 if test -f ~/.aws/config; then
 #test profile admin
 if ! grep -q "profile admin" ~/.aws/config; then
-cat << EoF >> ~/.aws/config
-[profile admin]
-role_arn=arn:aws:iam::${ACCOUNT_ID}:role/k8sClusterAdmin
-source_profile=eksAdmin
-
-EoF
+insert_profile "admin" $ADMIN_ROLE $ADMIN_PROFILE
 echo "added profile admin"
 fi
 
 #test profile dev
 if ! grep -q "profile dev" ~/.aws/config; then
-cat << EoF >> ~/.aws/config
-[profile dev]
-role_arn=arn:aws:iam::${ACCOUNT_ID}:role/k8sTeamADev
-source_profile=eksDev
-
-EoF
+insert_profile "dev" $DEV_ROLE $DEV_PROFILE
 echo "added profile dev"
 fi
 
 #test profile test
 if ! grep -q "profile test" ~/.aws/config; then
-cat << EoF >> ~/.aws/config
-[profile test]
-role_arn=arn:aws:iam::${ACCOUNT_ID}:role/k8sTeamATest
-source_profile=eksTest
-
-EoF
+insert_profile "test" $TEST_ROLE $TEST_PROFILE
 echo "added profile test"
 fi
 echo "all profiles added correctly..."
-
 else
-export AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
 cat << EoF >> ~/.aws/config
 [default]
 region = ${AWS_REGION}
 
-[profile admin]
-role_arn=arn:aws:iam::${ACCOUNT_ID}:role/k8sClusterAdmin
-source_profile=eksAdmin
-
-[profile dev]
-role_arn=arn:aws:iam::${ACCOUNT_ID}:role/k8sTeamADev
-source_profile=eksDev
-
-[profile test]
-role_arn=arn:aws:iam::${ACCOUNT_ID}:role/k8sTeamATest
-source_profile=eksTest
-
 EoF
+insert_profile "admin" $ADMIN_ROLE $ADMIN_PROFILE
+insert_profile "dev" $DEV_ROLE $DEV_PROFILE
+insert_profile "test" $TEST_ROLE $TEST_PROFILE
 echo "config file with profiles added..."
 fi
 ```
