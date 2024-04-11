@@ -9,6 +9,7 @@ weight : 12
 
 ```bash
 cd ~/environment
+mkdir -p ~/environment/manifests
 cat <<EOT > manifests/ca_config.json
 {
   "KeyAlgorithm":"RSA_2048",
