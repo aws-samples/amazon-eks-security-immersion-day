@@ -24,7 +24,7 @@ metadata:
     alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS13-1-2-2021-06 
     # mTLS configuration
     alb.ingress.kubernetes.io/mutual-authentication: '[{"port": 80, "mode": "passthrough"}, 
-                                        {"port": 443, "mode": "verify", "trustStore": "$TRUSTORE_ARN", "ignoreClientCertificateExpiry" : true}]'
+                                        {"port": 443, "mode": "verify", "trustStore": "$TRUSTORE_ARN", "ignoreClientCertificateExpiry" : false}]'
 spec:
   ingressClassName: alb
   rules:
@@ -43,7 +43,7 @@ EOF
 
 Notable configurations in the ingress manifests:
 - The ingress listen-ports specifies four HTTPS ports: 80, 443, 8080, 8443 to illustrate multiple listener configuration options that you can implement.
-- `ignoreClientCertificateExpiry` indicates whether expired client certificates are ignored.
+- `ignoreClientCertificateExpiry` indicates whether expired client certificates are ignored. We set it to false to not allow expired client certificates. The cert-manager helps to ensure that the certificate is [auto-renewed](https://cert-manager.io/docs/usage/certificate/#renewal-reissuance) before it expires.
 
 Apply the manifest to update the existing ingress:
 
