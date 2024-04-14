@@ -3,7 +3,7 @@ title : "Building Amazon Linux 2 CIS Benchmark AMIs for Amazon EKS"
 weight : 33
 ---
 
-The [Center for Internet Security (CIS)](https://www.cisecurity.org/) Benchmarks are best practices for the secure configuration of a target system. They define various Benchmarks for the Kubernetes control plane and the data plane. For [Amazon EKS](https://aws.amazon.com/eks/) clusters, it’s strongly recommended to follow the [CIS Amazon EKS Benchmark](https://aws.amazon.com/blogs/containers/introducing-cis-amazon-eks-benchmark/). However, many organizations also need to harden the operating system on the worker nodes for security and compliance purposes. If the data plane of an Amazon EKS cluster uses [ Amazon Linux 2 ](https://aws.amazon.com/amazon-linux-2/?amazon-linux-whats-new.sort-by=item.additionalFields.postDateTime&amazon-linux-whats-new.sort-order=desc) as a node group Operating System, it is recommended to implement the [ CIS Amazon Linux 2 Benchmark ](https://www.cisecurity.org/benchmark/amazon_linux). 
+The [Center for Internet Security (CIS)](https://www.cisecurity.org/) Benchmarks are best practices for the secure configuration of a target system. They define various Benchmarks for the Kubernetes control plane and the data plane. For [Amazon EKS](https://aws.amazon.com/eks/) clusters, it’s strongly recommended to follow the [CIS Amazon EKS Benchmark](https://aws.amazon.com/blogs/containers/introducing-cis-amazon-eks-benchmark/). However, many organizations also need to harden the operating system on the worker nodes for security and compliance purposes. If the data plane of an Amazon EKS cluster uses [ Amazon Linux 2 ](https://aws.amazon.com/amazon-linux-2/?amazon-linux-whats-new.sort-by=item.additionalFields.postDateTime&amazon-linux-whats-new.sort-order=desc) as a node Operating System, it is recommended to implement the [ CIS Amazon Linux 2 Benchmark ](https://www.cisecurity.org/benchmark/amazon_linux). 
 This workshop provides detailed, step-by-step instructions on how you  can build an Amazon EKS Amazon Machine Image (AMI) compliant with the CIS Amazon Linux 2 Benchmarks. It will also provide guidance on how to validate the worker nodes against the Benchmark after deployment.
 
 
@@ -63,11 +63,9 @@ If the installation was successful, the following message is returned.
 The Session Manager plugin is installed successfully. Use the AWS CLI to start a session.
 ```
 
-You’ll also need to configure the following environment variables:
+You’ll also need to configure the following environment variable:
 
 ```bash
-export AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
-export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
 export EKS_VERSION=$(aws eks describe-cluster --name $EKS_CLUSTER  --region $AWS_REGION --query "cluster.version")
 echo $EKS_VERSION
 ```

@@ -30,7 +30,7 @@ sg-0589016de7f3d2cee
 ```
 ::::
 
-Run the below command to create an Amazon EKS Cluster along with a managed node group using custom Amazon EKS AMI.
+Run the below command to create an Amazon EKS managed node group using custom Amazon EKS AMI.
 
 ```bash
 cd ~/environment/amazon-eks-custom-amis

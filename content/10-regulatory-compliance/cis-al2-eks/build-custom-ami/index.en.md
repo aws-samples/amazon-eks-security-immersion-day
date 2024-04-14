@@ -5,6 +5,13 @@ weight : 22
 
 In this section we will walk through the process of building custom ami hardened as per CIS specification benchmark using community provided script. We will be using Hasihcorp [packer](https://www.packer.io/) to build the ami.
 
+Remove binary already installed which is name packer to avoid  conflict with Hasihcorp packer installation.
+
+```bash
+sudo rm /usr/bin/packer
+sudo rm /usr/sbin/packer
+```
+
 Install the Packer tool. Below instructions assume you are using an Amazon Linux based machine to build the AMI.
 
 ```bash
@@ -13,7 +20,7 @@ sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinu
 sudo yum -y install packer
 
 ```
-Clone the repo for building a custom Amazon EKS AMI with CIS hardening script. The code used in this solution is available in GitHub. Please clone the repository to prepare for the walkthrough. The hardening scripts by default applies both Level 1 and Level 2 CIS benchmark for Amazon Linux 2.
+Clone the repo for building a custom Amazon EKS AMI with CIS hardening script. The code used in this solution is available in GitHub. Please clone the repository to prepare for the walkthrough. The hardening scripts by default applies both Level 1 and Level 2 [CIS benchmark for Amazon Linux 2](https://www.cisecurity.org/benchmark/amazon_linux).
 
 ```bash
 cd ~/environment
@@ -36,7 +43,7 @@ echo $SUBNET_ID
 vpc-0d1c5a474503e75cf
 subnet-009649a8332d30b9e
 ```
-
+::::
 
 Set the variables to AWS Regions and EKS version in packer variables file. The ami is built using the private ip address.
 

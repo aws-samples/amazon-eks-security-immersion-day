@@ -40,6 +40,10 @@ aws inspector2 enable --resource-types EC2
 
 ::::
 
+:::alert{header="Important" type="warning"}
+Amazon Inspector 2 activation may take some time. Make sure Amazon Instector status is Enabled before you proceed.
+:::
+
 Setup CIS scan configuration using either AWS CLI or AWS Console once Amazon Inspector status is **ENABLED**
 :::::tabs{variant="container"}
 
@@ -80,7 +84,7 @@ aws inspector2 create-cis-scan-configuration --cli-input-json file://inspector-c
 ::::
 ::::tab{id="console" label="Using AWS Console"}
 
-1. Let's go to the [Amazon Inspector console](https://us-west-2.console.aws.amazon.com/inspector/v2/home?region=us-west-2)  and  select On-demand scans "CIS scans". Choose "Create new scan".
+1. Let's go to the [Amazon Inspector console](https://console.aws.amazon.com/inspector/v2/home)  and  select On-demand scans "CIS scans". Choose "Create new scan".
 
 ![Amazon-Instector-1](/static/images/regulatory-compliance/cis-al2-eks/validatescan-1.png)
 
@@ -119,10 +123,10 @@ aws inspector2 create-cis-scan-configuration --cli-input-json file://inspector-c
 ::::
 
 :::::
-::alert[To grant permissions to run CIS scans, attach the “AmazonSSMManagedInstanceCore” and the “AmazonInspector2ManagedCispolicy” IAM policies to the EC2 instance profile role. We have added these roles while creating the managed node group.]{header="Note"}
+::alert[To grant permissions to run CIS scans, the “AmazonSSMManagedInstanceCore” and the “AmazonInspector2ManagedCispolicy” IAM policies needs to be attached to the EC2 instance profile role. We have added these roles while creating the managed node group.]{header="Note"}
 
 
- Let's go to the [Amazon Inspector console](https://us-west-2.console.aws.amazon.com/inspector/v2/home?region=us-west-2) to check CIS scan status
+ Let's go to the [Amazon Inspector console](https://console.aws.amazon.com/inspector/v2/home) to check CIS scan status
  
  Scan status  will be displayed as **IN_PROGRESS** while the instances are been scanned
 
@@ -158,6 +162,8 @@ The checks that requires manual steps to determine whether a system’s configur
 
 
 #### CIS Scan Results and Exceptions for failed controls
+
+The controls that did not pass, along with the rationale and potential remediations, are specified below. To satisfy security and compliance prerequisites, customers can remediate failed controls by adhering to the guidance in the [CIS benchmark for Amazon Linux 2](https://www.cisecurity.org/benchmark/amazon_linux) documentation. After remediating controls, it is advised that applications deployed on Amazon EKS are evaluated to confirm functionality.
 
 | CIS ID |   CIS Description  | Reason | *Recommendations
 | --- | --- | --- | --- |
