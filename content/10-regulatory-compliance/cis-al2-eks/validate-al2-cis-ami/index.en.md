@@ -163,7 +163,7 @@ The checks that requires manual steps to determine whether a system’s configur
 
 #### CIS Scan Results and Exceptions for failed controls
 
-The controls that did not pass, along with the rationale and potential remediations, are specified below. To satisfy security and compliance prerequisites, customers can remediate failed controls by adhering to the guidance in the [CIS benchmark for Amazon Linux 2](https://www.cisecurity.org/benchmark/amazon_linux) documentation. After remediating controls, it is advised that applications deployed on Amazon EKS are evaluated to confirm functionality.
+The CIS hardening script used in this workshop implement all controls for [CIS benchmark for Amazon Linux 2](https://www.cisecurity.org/benchmark/amazon_linux) Level 1 and Level 2. Instances created from this should pass all CIS benchmark tests. However, some configuration changes required for Kubernetes operation override settings applied during hardening. Below are failed findings, possible reasons, and recommendations where available. Organizations can re-apply controls according to their security and compliance requirements, then re-test to confirm application functionality.
 
 | CIS ID |   CIS Description  | Reason | *Recommendations
 | --- | --- | --- | --- |
