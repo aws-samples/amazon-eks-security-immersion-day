@@ -9,7 +9,7 @@ weight : 12
 kubectl delete clusterpolicy inject-sidecar
 ``` 
 
-## Redeploy the app1
+## Restart the app1
 
 ```bash
 kubectl --context $EKS_CLUSTER1_CONTEXT delete deployment/app1-v1 -n app1

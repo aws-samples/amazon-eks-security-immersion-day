@@ -11,7 +11,7 @@ We are going to dynamically inject the sigv4 sidecar proxy with Kyverno
 
 Kyverno is a security tool for kubernetes that can enforce security guardrails when deploying application and that can also mutate objects before they are stored into etcd database. We are going to leverage it's mutation capability to dynamically inject the sigv4-proxy to the required pods.
 
-Let us install the Kyverno policy engine and associated configurations into the EKS cluster using using this [Helm](https://helm.sh/)
+Let us install the Kyverno policy engine and associated configurations into the EKS cluster using using [eksdemo](https://github.com/awslabs/eksdemo)
 
 ```bash
 eksdemo install policy kyverno -c $EKS_CLUSTER1_NAME
@@ -226,5 +226,5 @@ From the above logs, we can verify sigv4proxy container sign the request and add
 The Signing sidecar was automatically added to our application thanks to the Kyverno `ClusterPolicy`, so we can benefit from Sigv4 signature used by VPC lattice without application changes. 
 
 
-While this setup is possible, we recommend to integrate the Sigv4 signature directly into your code with the AWS SDKs.
+While this setup is possible, we recommend for better performances to integrate the Sigv4 signature directly into your code with the AWS SDKs, so you do not need a sidecar proxy container for the signature.
 ::::

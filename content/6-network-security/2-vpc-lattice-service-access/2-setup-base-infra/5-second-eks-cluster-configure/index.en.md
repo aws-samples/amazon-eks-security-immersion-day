@@ -69,6 +69,18 @@ By this time, the Second EKS Cluster creation would have been completed. Go to t
 ```
 ::::
 
+Update the Kube config with the new cluster
+
+```bash
+aws eks update-kubeconfig --name $EKS_CLUSTER2_NAME --alias $EKS_CLUSTER2_NAME 
+```
+
+set also an alias from primary cluster so it will be easier to change
+
+```bash
+aws eks update-kubeconfig --name $EKS_CLUSTER1_NAME --alias $EKS_CLUSTER1_NAME 
+```
+
 Run below command to check the current kube context. Ensure that it will show the second EKS cluster context.
 
 ```bash
@@ -78,7 +90,7 @@ kubectl config current-context
 The output should show like below.
 
 ```bash
-i-0cc5291b1d346659f@eksworkshop-eksctl-2.us-west-2.eksctl.io
+eksworkshop-eksctl-2
 ```
 
 Let us setup environment variables for the second EKS Cluster `eksworkshop-eksctl-2`
@@ -87,7 +99,7 @@ Let us setup environment variables for the second EKS Cluster `eksworkshop-eksct
 export EKS_CLUSTER2_VPC_ID=$(eksctl get cluster $EKS_CLUSTER2_NAME -ojson | jq -r '.[0]["ResourcesVpcConfig"]["VpcId"]')
 echo "EKS_CLUSTER2_VPC_ID=$EKS_CLUSTER2_VPC_ID"
 echo "export EKS_CLUSTER2_VPC_ID=$EKS_CLUSTER2_VPC_ID" >> ~/.bash_profile
-export EKS_CLUSTER2_CONTEXT=$(kubectl config current-context)
+export EKS_CLUSTER2_CONTEXT=$EKS_CLUSTER2_NAME
 echo "export EKS_CLUSTER2_CONTEXT=$EKS_CLUSTER2_CONTEXT" >> ~/.bash_profile
 kubectl  --context $EKS_CLUSTER2_CONTEXT get node
 ```
