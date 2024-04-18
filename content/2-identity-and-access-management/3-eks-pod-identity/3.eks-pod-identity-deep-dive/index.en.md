@@ -165,6 +165,8 @@ Run the command `exit` to `exit from the pod`
 
 The EKS Pod Identity Agent runs as a Kubernetes `DaemonSet` and only provides credentials to pods on the node that it runs on.  The EKS Pod Identity Agent uses the `hostNetwork` and uses `port 80` and `port 2703` on a `link-local address` on the node. This address is `169.254.170.23` for IPv4 and `[fd00:ec2::23]` for IPv6 clusters.
 
+#### EKS Pod Identity agent
+
 Let us see the EKS Pod Identity Agent pods running in the cluster.
 
 ```bash
@@ -329,10 +331,16 @@ metadata:
 ```
 ::::
 
+#### EKS Pod Identity calling EKS Auth API
+
 When the application Pod make a HTTP call to `169.254.170.23/v1/credentials`, the EKS Pod Identity agent running on that node, receives this call. The EKS Pod Identity Agent further call below API to the EKS Auth API Service.
 
 ```bash
-aws eks-auth assume-role-for-pod-identity --cluster-name <cluster_name> --token <token>
+(
+TOKEN=$(kubectl -n $NS exec -it $APP -- /bin/bash -c 'cat $AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE')
+echo TOKEN=$TOKEN
+aws eks-auth assume-role-for-pod-identity --cluster-name $EKS_CLUSTER --token $TOKEN
+)
 ```
 
 The EKS worker node role need to have IAM permissions for the Pod Identity Agent to call `AssumeRoleForPodIdentity` action in EKS Auth API. You can use the AWS managed policy: `AmazonEKSWorkerNodePolicy` which is updated to include this permission. Alternatively you can also add custom policy like below.
@@ -352,9 +360,9 @@ The EKS worker node role need to have IAM permissions for the Pod Identity Agent
 }
 ```
 
-An example output from the above call `aws eks-auth assume-role-for-pod-identity` is mentioned below just for reference.
+An example output from the above call `aws eks-auth assume-role-for-pod-identity` is mentioned below just for reference. We can see the namespace and service account, the associationArn, and the AssumeRoleArn, with the IAM credentials for this session.
 
-```json
+:::code{language=json showCopyAction=false showLineNumbers=false highlightLines='3,4,6,8,12,15'}
 {
     "subject": {
         "namespace": "ns-a",
@@ -376,7 +384,7 @@ An example output from the above call `aws eks-auth assume-role-for-pod-identity
         "expiration": "2023-12-10T11:10:32+00:00"
     }
 }
-```
+:::
 
 You can also lookup for the CloudTrail event for the above call.
 
@@ -386,7 +394,7 @@ aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,Attribut
 ```
 
 ::::expand{header="Check Output"}
-```json
+:::code{language=json showCopyAction=false showLineNumbers=false highlightLines='9,13,14'}
 {
   "Events": [
     {
@@ -421,91 +429,172 @@ Few things to observe from above output:
 
 **eventSource** at which this event occurred is EKS Auth API Service i.e. `eks-auth.amazonaws.com`
 
-**requestParameters** in the above call includes **clusterName** i.e. `eksworkshop-eksctl` and EKS Pod Identity Service Account **token** which is `HIDDEN_DUE_TO_SECURITY_REASONS`
+In the **CloudTrailEvent**, there are other informations, and you can tweak the previous command to have a prettier print of this part: 
+
+```bash
+aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,AttributeValue=$EVENT_NAME --max-items=1 | jq '.Events[] | (.CloudTrailEvent | fromjson)' 
+```
+
+::::expand{header="Check Output"}
+:::code{language=json showCopyAction=false showLineNumbers=true highlightLines='30,31,32'}
+{
+  "eventVersion": "1.09",
+  "userIdentity": {
+    "type": "AssumedRole",
+    "principalId": "AROA37QFXJP5E2DPF472Q:i-07574d724fb843fda",
+    "arn": "arn:aws:sts::823571991546:assumed-role/eks-security-workshop/i-07574d724fb843fda",
+    "accountId": "823571991546",
+    "accessKeyId": "ASIA37QFXJP5LMALW5PH",
+    "sessionContext": {
+      "sessionIssuer": {
+        "type": "Role",
+        "principalId": "AROA37QFXJP5E2DPF472Q",
+        "arn": "arn:aws:iam::823571991546:role/eks-security-workshop",
+        "accountId": "823571991546",
+        "userName": "eks-security-workshop"
+      },
+      "attributes": {
+        "creationDate": "2024-04-16T08:23:33Z",
+        "mfaAuthenticated": "false"
+      },
+      "ec2RoleDelivery": "2.0"
+    }
+  },
+  "eventTime": "2024-04-16T08:29:33Z",
+  "eventSource": "eks-auth.amazonaws.com",
+  "eventName": "AssumeRoleForPodIdentity",
+  "awsRegion": "us-west-2",
+  "sourceIPAddress": "34.222.6.96",
+  "userAgent": "aws-cli/2.15.38 Python/3.11.8 Linux/5.10.213-201.855.amzn2.x86_64 exe/x86_64.amzn.2 prompt/off command/eks-auth.assume-role-for-pod-identity",
+  "requestParameters": {
+    "clusterName": "eksworkshop-eksctl",
+    "token": "HIDDEN_DUE_TO_SECURITY_REASONS"
+  },
+  "responseElements": null,
+  "requestID": "1f3aa1ae-d897-4310-bab4-3e89f8d42f5d",
+  "eventID": "eaef7c6d-f6d0-4a9a-8380-4547a9ac326e",
+  "readOnly": true,
+  "eventType": "AwsApiCall",
+  "managementEvent": true,
+  "recipientAccountId": "823571991546",
+  "eventCategory": "Management",
+  "tlsDetails": {
+    "tlsVersion": "TLSv1.3",
+    "cipherSuite": "TLS_AES_128_GCM_SHA256",
+    "clientProvidedHostHeader": "eks-auth.us-west-2.api.aws"
+  }
+}
+:::
+::::
+
+the **requestParameters** in the above call includes **clusterName** i.e. `eksworkshop-eksctl` and EKS Pod Identity Service Account **token** which is `HIDDEN_DUE_TO_SECURITY_REASONS`
+
+#### EKS Pod Identity validation
 
 The EKS Auth API Service extracts the Service Account and Namespace details from the token and validates them against the EKS Pod Identity association we created earlier.
 
+#### EKS Pod Identity call to AWS STS service
+
 Once verified, the EKS Auth API also extracts the IAM Role `eks-pod-s3-read-access-role` mapped in EKS Pod Identity association and calls AWS STS Service to get the temporary credentials. It then sends these credentials to EKS Pod Identity agent, which again sends it back to the Application pod.
 
-You can also lookup for the CloudTrail event for the call to AWS STS Service to get the temporary credentials.
+You can also lookup for the CloudTrail event for the call to AWS STS Service to get the temporary credentials. We filter on the `CloudTrailEvent` parameter of the API call containing a tag with name 'eks-cluster-arn' so that it is one from the EKS Pod Identity:
 
-```json
+```bash
+events=$(aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=sts.amazonaws.com --max-items 100) 
+
+echo $events | jq '.Events[] | (.CloudTrailEvent | fromjson | select(.requestParameters.tags[]?.key=="eks-cluster-arn"))'
+```
+
+> If there is no result, that means that the call was not in the last 100 events, you can ask the pod-identity daemonset to restart, so that it will make this call again
+> ```
+> kubectl rollout restart daemonset eks-pod-identity-agent -n kube-system
+> ```
+
+::::expand{header="AWS STS event" defaultExpanded=true}
+:::code{language=json showCopyAction=false showLineNumbers=true highlightLines='11,14,17,23,27,53,71'}
 {
-  "Events": [
+  "eventVersion": "1.08",
+  "userIdentity": {
+    "type": "AWSService",
+    "invokedBy": "pods.eks.amazonaws.com"
+  },
+  "eventTime": "2024-04-16T09:20:04Z",
+  "eventSource": "sts.amazonaws.com",
+  "eventName": "AssumeRole",
+  "awsRegion": "us-west-2",
+  "sourceIPAddress": "pods.eks.amazonaws.com",
+  "userAgent": "pods.eks.amazonaws.com",
+  "requestParameters": {
+    "roleArn": "arn:aws:iam::823571991546:role/eks-pod-s3-read-access-role",
+    "roleSessionName": "eks-eksworksho-app1-498124c2-a555-40bf-9059-ca9a26821eb0",
+    "durationSeconds": 21600,
+    "tags": [
+      {
+        "key": "eks-cluster-arn",
+        "value": "arn:aws:eks:us-west-2:823571991546:cluster/eksworkshop-eksctl"
+      },
+      {
+        "key": "eks-cluster-name",
+        "value": "eksworkshop-eksctl"
+      },
+      {
+        "key": "kubernetes-namespace",
+        "value": "ns-a"
+      },
+      {
+        "key": "kubernetes-service-account",
+        "value": "sa1"
+      },
+      {
+        "key": "kubernetes-pod-name",
+        "value": "app1"
+      },
+      {
+        "key": "kubernetes-pod-uid",
+        "value": "0cda7f85-c1f9-4dee-b6e9-a0b50c8f3012"
+      }
+    ],
+    "transitiveTagKeys": [
+      "eks-cluster-arn",
+      "eks-cluster-name",
+      "kubernetes-namespace",
+      "kubernetes-service-account",
+      "kubernetes-pod-name",
+      "kubernetes-pod-uid"
+    ]
+  },
+  "responseElements": {
+    "credentials": {
+      "accessKeyId": "ASIA37QFXJP5MQOWRZ6Q",
+      "sessionToken": "IQoJb3JpZ2luX2VjEIL//////////wEaCXVzLXdlc3QtMiJHMEUCIBIC8yw6n5TTiLCWM1YTOCvGCfjSgZHJZFU1sj5+qqvhAiEAm7lq4NL7joREHEA3kxCbr6ZP3Hftbm7WjdqO/LJTG2QqvgQIuv//////////ARAAGgw4MjM1NzE5OTE1NDYiDA/OosTJYTQlWD1LeyqSBA7ueUmFbbPZ850h5rEByl/Bg4kLz6Sp+61MkrhN3UQKmGWgQkLaSbZNj8fhVvFxpNy7HdLryOz0Nm3MQ4NK6alFMnogF3AMvt0Hz0qxoaWNqTnK2YS1O9bqpVt5nay03KoryjQjdM+fxE67e5IPDi6pbSzAnkfkfwMMD8VPtZyCckZ3+/b7KASEk5wGO8pJ28Ic2eI499VxZxEJ/obooLmjTJKizxMidUnmHGrBmFTCuHCZVOlL8xC2YFMT7acHvfoGqG3QjjdpGHbIdTw1kETrnxWJuken2AD46NbybI2XxDfVPWaU4RDrnHpDGmUwsSZl5l3lcN5HIvEEuGZrhfV/WErtsGeXLPFNSlRpUMuXEMGJHeZHmRA4aTeWDtFgzqfbYmB6e7NARuEQuzDmyhphbKx7PAd5Lm7dpgqT6D8Ejs3SqCBDaLe4XgOwWcGkAdXBaipsw4eQGmLlk2P/OXajbc7peTbhmXeZPWWQFWXTW8D9zLj5cmGZDuLE5HApfjiHwEcI80X1+XKalXXWAfsd6zytlkVHriv7Jm+7gwP2hGKtLCqmjC2ZAeNSPPQwXshFKJEQYaGJxJUHDxqVmzZI54Bl+9UCgDPnt5OPrraeBARoroyYXG3QN5mqf1sX+2kKhpSAN17rZdtp+uCUtOo5LN8CFOjwNDe7OQ339IWzOh8WJF2f/lE6g5SeegvwJPv3MMSF+bAGOo4BQueeZmOUoDcTyvXqvTRqrurdwole4HRq8D4V3F9viF/CXBYlkN18xdaM+dHwjdyD4fYGLVmoR1NWx8koKWICRiFv7JAG0MB/pd085pldHQ7Ea6uhS16AXK473ceRGEVL4GogjsASKi/gYGen7uCoKdIJR48yA2Fz19nUR5sYOUMnGtggmJHQyvbZMlJzGQ==",
+      "expiration": "Apr 16, 2024, 3:20:04 PM"
+    },
+    "assumedRoleUser": {
+      "assumedRoleId": "AROA37QFXJP5LOO5CGXEC:eks-eksworksho-app1-498124c2-a555-40bf-9059-ca9a26821eb0",
+      "arn": "arn:aws:sts::823571991546:assumed-role/eks-pod-s3-read-access-role/eks-eksworksho-app1-498124c2-a555-40bf-9059-ca9a26821eb0"
+    },
+    "packedPolicySize": 56
+  },
+  "requestID": "3821a55e-cecc-4d68-9c9b-fc8b6d6994f4",
+  "eventID": "7b7e4636-4713-3d04-b86a-cd6774cdbae9",
+  "readOnly": true,
+  "resources": [
     {
-      "EventId": "55621424-173a-3b4e-a321-661c4206278c",
-      "EventName": "AssumeRole",
-      "ReadOnly": "true",
-      "EventTime": "2023-12-13T01:14:20+00:00",
-      "EventSource": "sts.amazonaws.com",
-      "Resources": [
-        {
-          "ResourceType": "AWS::IAM::AccessKey",
-          "ResourceName": "ASIAQAHCJ2QPJEYFB36U"
-        },
-        {
-          "ResourceType": "AWS::STS::AssumedRole",
-          "ResourceName": "arn:aws:sts::ACCOUNT_ID:assumed-role/eks-pod-s3-read-access-role/eks-eks-ref-sc-app1-b81f0fef-97e9-47da-97a2-948c5bbcd1b3"
-        },
-        {
-          "ResourceType": "AWS::STS::AssumedRole",
-          "ResourceName": "AROAQAHCJ2QPKFESI56SW:eks-eks-ref-sc-app1-b81f0fef-97e9-47da-97a2-948c5bbcd1b3"
-        },
-        {
-          "ResourceType": "AWS::STS::AssumedRole",
-          "ResourceName": "eks-eks-ref-sc-app1-b81f0fef-97e9-47da-97a2-948c5bbcd1b3"
-        },
-        {
-          "ResourceType": "AWS::IAM::Role",
-          "ResourceName": "arn:aws:iam::ACCOUNT_ID:role/eks-pod-s3-read-access-role"
-        }
-      ],
-      "CloudTrailEvent": "{\"eventVersion\":\"1.08\",\"userIdentity\":{\"type\":\"AWSService\",\"invokedBy\":\"pods.eks.amazonaws.com\"},\"eventTime\":\"2023-12-13T01:14:20Z\",\"eventSource\":\"sts.amazonaws.com\",\"eventName\":\"AssumeRole\",\"awsRegion\":\"us-west-2\",\"sourceIPAddress\":\"pods.eks.amazonaws.com\",\"userAgent\":\"pods.eks.amazonaws.com\",\"requestParameters\":{\"roleArn\":\"arn:aws:iam::ACCOUNT_ID:role/eks-pod-s3-read-access-role\",\"roleSessionName\":\"eks-eks-ref-sc-app1-b81f0fef-97e9-47da-97a2-948c5bbcd1b3\",\"durationSeconds\":21600,\"tags\":[{\"key\":\"eks-cluster-arn\",\"value\":\"arn:aws:eks:us-west-2:ACCOUNT_ID:cluster/eksworkshop-eksctl\"},{\"key\":\"eks-cluster-name\",\"value\":\"eksworkshop-eksctl\"},{\"key\":\"kubernetes-namespace\",\"value\":\"ns-a\"},{\"key\":\"kubernetes-service-account\",\"value\":\"sa1\"},{\"key\":\"kubernetes-pod-name\",\"value\":\"app1\"},{\"key\":\"kubernetes-pod-uid\",\"value\":\"91eee131-74f3-49d4-8f7c-bcde305c120b\"}],\"transitiveTagKeys\":[\"eks-cluster-arn\",\"eks-cluster-name\",\"kubernetes-namespace\",\"kubernetes-service-account\",\"kubernetes-pod-name\",\"kubernetes-pod-uid\"]},\"responseElements\":{\"credentials\":{\"accessKeyId\":\"ASIAQAHCJ2QPJEYFB36U\",\"sessionToken\":\"IQoJb3JpZ2luX2VjEML//////////wEaCXVzLWVhc3QtMSJHMEUCIFKwhV7flTaqBATa/jOaAfAeGVYeh0P0BJGnVdqvrlL5AiEA6JqJAMbZipbskB7ZIqaaynp65z1Z2L/nTmPhwaN9QxAqsgQIOhAEGgwwMDA0NzQ2MDA0NzgiDGBj+pVygJ1dJRIz1yqPBI6G4EBU6SEHH6Sf7rfaNSuaptbRfNVRmaIA69IpFdwrHcMCUxI9x7jmHAVB8CIYegct6fNAFQEXTqVCCOI+Lbyk6tCTZbFcN2Eqv60sb04eU2/Be7MB1yKAJREMvdJV04lvUHSb+ocQwGyXlnGbgF4J3j/OSB7DqetXAV7JY6yIJrzb09Ky15fkXDxAYK/T1NufGmXNNjQO5h6WMkDR7ZRb/qubJ8oL42ArWMxRrTiXE0+2XjDEBuzgQmpxIRRnBqpaBcFsBCTZcIdIkzIHArUpGzPQqj5knEoB2KFfQntRXszHfcTWZYnEfpwkiMT8H1qu7iJth3Q4Gck6ihDPtICzR7VUMY45THvAdkw+qaa4PHMy7J3cAcQ/gWlIhJXQcQBVYz0qjxyIRZfWc/MYh1lSRHTE+nTQDnvBzPne2rRRcsP5EpJk9N2NrtBxQgNYmKbm3bwAfngx9gvhTzA7oTWwjYr04f/96wO+o104p6L4j7oufzgOfQ6AGaHc3bb0okDylH8Wgj+uPDG1PZQcXsEVIhX7c4mnVPEzT8kxPxHXjw1SCKYPcJU1uYvb+0ooa72VqjmwseqjoBYz+xXg6e23ULJJUhTsF/PUKHyU9PIfREZc/CwyBb9C4N8NmalvKfg+/do5bxER8v62OyOZifq2Wc8YcwEuOKzcOXQduYjNaSiIJPHP7xh53nMQ4xuzMOyK5KsGOo8BSdEJ3ldfs5znvyOa8AOs3WALXers7RxTdyN+GLHFfRP49uNmGszyyxXNiiMcTeOIUgrNVV9G0Blp0Yfm6ss8ivLMbnt0h4dl3zIXJEBBWbNPUBQOyquEkxgyq5WGa3sB/uhpLufaWb2KP6PvEHuS5iJ0dHkr4NxrmP98r+QvOb8lfqFK+wIOLPV28H+yMI0=\",\"expiration\":\"Dec 13, 2023, 7:14:20 AM\"},\"assumedRoleUser\":{\"assumedRoleId\":\"AROAQAHCJ2QPKFESI56SW:eks-eks-ref-sc-app1-b81f0fef-97e9-47da-97a2-948c5bbcd1b3\",\"arn\":\"arn:aws:sts::ACCOUNT_ID:assumed-role/eks-pod-s3-read-access-role/eks-eks-ref-sc-app1-b81f0fef-97e9-47da-97a2-948c5bbcd1b3\"},\"packedPolicySize\":55},\"requestID\":\"b24654c7-be30-474d-903e-caf147dd7286\",\"eventID\":\"55621424-173a-3b4e-a321-661c4206278c\",\"readOnly\":true,\"resources\":[{\"accountId\":\"ACCOUNT_ID\",\"type\":\"AWS::IAM::Role\",\"ARN\":\"arn:aws:iam::ACCOUNT_ID:role/eks-pod-s3-read-access-role\"}],\"eventType\":\"AwsApiCall\",\"managementEvent\":true,\"recipientAccountId\":\"ACCOUNT_ID\",\"sharedEventID\":\"3bf1ef4e-27b9-4653-b368-cdab2cc98411\",\"eventCategory\":\"Management\"}"
+      "accountId": "823571991546",
+      "type": "AWS::IAM::Role",
+      "ARN": "arn:aws:iam::823571991546:role/eks-pod-s3-read-access-role"
     }
-  ]
+  ],
+  "eventType": "AwsApiCall",
+  "managementEvent": true,
+  "recipientAccountId": "823571991546",
+  "sharedEventID": "c30ac43f-e051-426b-94bc-ab73b05e34e9",
+  "eventCategory": "Management"
 }
-```
+:::
+::::
 
-Few things to observe from above output:
-
-**Resource Type** for this API include multiple types such as `AWS::IAM::AccessKey`, `AWS::STS::AssumedRole` and `AWS::IAM::Role`
-
-One of **Resource name** corresponding to the above **Resource Type** is our S3 read access role i.e. `eks-pod-s3-read-access-role`.
-
-**userIdentity** making the above call is **AWSService** i.e. EKS Auth API with name as `pods.eks.amazonaws.com`
-
-**eventSource** at which this event occurred is AWS STS Service i.e. `sts.amazonaws.com`
-
-**requestParameters** in the above call includes Role Session Tags such as
-
-```json
-        "tags": [
-            {
-                "key": "eks-cluster-arn",
-                "value": "arn:aws:eks:us-west-2:ACCOUNT_ID:cluster/eksworkshop-eksctl"
-            },
-            {
-                "key": "eks-cluster-name",
-                "value": "eksworkshop-eksctl"
-            },
-            {
-                "key": "kubernetes-namespace",
-                "value": "ns-a"
-            },
-            {
-                "key": "kubernetes-service-account",
-                "value": "sa1"
-            },
-            {
-                "key": "kubernetes-pod-name",
-                "value": "app1"
-            },
-            {
-                "key": "kubernetes-pod-uid",
-                "value": "91eee131-74f3-49d4-8f7c-bcde305c120b"
-            }
-        ]
-```
+We can see from the output, the source of this call if from AWSService pods.eks.amazonaws.com. That means that EKS Pod Identity retrieve the temporary credentials (l53) for our IAM Role (l71) and that it has attached some Session Tags (l17)  that can be use to filter access to AWS resources.
 
 This means, we can further configure our S3 read access IAM Role for fine grained IAM permissions to restrict the access to this Role for any specifc EKS Cluster, Namespace, Service Account, Pod Name or Pod UID. We will explore on how this works in the next module.
 

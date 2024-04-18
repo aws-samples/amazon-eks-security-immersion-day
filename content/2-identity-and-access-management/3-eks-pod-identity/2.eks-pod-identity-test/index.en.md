@@ -13,8 +13,6 @@ In this section, we test EKS Pod Identity feature to grant access to a Pod to li
 First let's create a Amazon S3 bucket
 
 ```bash
-export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
-export AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
 export S3_BUCKET="ekspodidentity-$ACCOUNT_ID-$AWS_REGION"
 aws s3 mb s3://$S3_BUCKET --region $AWS_REGION
 ```
@@ -47,7 +45,7 @@ This is because the Pod Identity association was created `after` the Pod was cre
 Delete the Pod and re-create it.
 
 ```bash
-kubectl -n $NS delete pod $APP
+kubectl -n $NS delete pod $APP --force --grace-period=0
 kubectl  apply -f $APP.yaml
 ```
 
