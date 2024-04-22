@@ -54,7 +54,8 @@ replicaset.apps/app4-v1-77dcb6444c   1         1         1       7s
 ### Deploy HTTPRoute for Service `app4` with `HTTPS` listener with Custom Lattice Domain
 
 ```bash
-export SOURCENAMESPACE=app1
+export SOURCE_CLUSTER=$EKS_CLUSTER1_NAME
+export SOURCE_NAMESPACE=app1
 envsubst < templates/route-template-https-custom-domain.yaml > manifests/$APPNAME-https-custom-domain.yaml
 c9 manifests/$APPNAME-https-custom-domain.yaml
 kubectl --context $EKS_CLUSTER1_CONTEXT apply -f manifests/$APPNAME-https-custom-domain.yaml
@@ -78,96 +79,7 @@ httproute.gateway.networking.k8s.io/app4 condition met
 ```
 ::::
 
-View the VPC Lattice Service `app4-app4` in the [Amazon VPC Console](https://us-west-2.console.aws.amazon.com/vpc/home?region=us-west-2#Services:)
-
-![app4-service.png](/static/images/6-network-security/2-vpc-lattice-service-access/app4-service.png)
-
-
-Note that there are two listeners created one for `HTTP` and other for `HTTPS` under **Routing** Tab for VPC Service `app4-app4` in the Console.
-
-![app4-routes.png](/static/images/6-network-security/2-vpc-lattice-service-access/app4-routes.png)
-
-Also note that both of these listeners are configured with the same Target group `k8s-app4-v1-app4-http-http1`
-
-<!-- This is not needed - to remove
-## Get the DNS Names for `app4` service
-
-### 1. List the route’s yaml file to see the DNS address (highlighted here on the message line): 
-
-```bash
-kubectl --context $EKS_CLUSTER1_CONTEXT get httproute $APPNAME -n $APPNAME -o yaml
-```
-
-::::expand{header="Check Output"}
-```yaml
-apiVersion: gateway.networking.k8s.io/v1beta1
-kind: HTTPRoute
-metadata:
-  annotations:
-    application-networking.k8s.aws/lattice-assigned-domain-name: app4-app4-06d489b63a7bc4295.7d67968.vpc-lattice-svcs.us-west-2.on.aws
-    kubectl.kubernetes.io/last-applied-configuration: |
-      {"apiVersion":"gateway.networking.k8s.io/v1beta1","kind":"HTTPRoute","metadata":{"annotations":{},"name":"app4","namespace":"app4"},"spec":{"hostnames":["app4.vpc-lattice-custom-domain.io"],"parentRefs":[{"kind":"Gateway","name":"app-services-gw","namespace":"app-services-gw","sectionName":"http-listener"},{"kind":"Gateway","name":"app-services-gw","namespace":"app-services-gw","sectionName":"https-listener-with-custom-domain"}],"rules":[{"backendRefs":[{"kind":"Service","name":"app4-v1","port":80}],"matches":[{"path":{"type":"PathPrefix","value":"/"}}]}]}}
-  creationTimestamp: "2023-10-27T00:49:26Z"
-  finalizers:
-  - httproute.k8s.aws/resources
-  generation: 1
-  name: app4
-  namespace: app4
-  resourceVersion: "525940"
-  uid: 9d657b2e-f0bf-4e74-92a7-8b3cdb9fc9d3
-spec:
-  hostnames:
-  - app4.vpc-lattice-custom-domain.io
-  parentRefs:
-  - group: gateway.networking.k8s.io
-    kind: Gateway
-    name: app-services-gw
-    namespace: app-services-gw
-    sectionName: http-listener
-  - group: gateway.networking.k8s.io
-    kind: Gateway
-    name: app-services-gw
-    namespace: app-services-gw
-    sectionName: https-listener-with-custom-domain
-  rules:
-  - backendRefs:
-    - group: ""
-      kind: Service
-      name: app4-v1
-      port: 80
-      weight: 1
-    matches:
-    - path:
-        type: PathPrefix
-        value: /
-status:
-  parents:
-  - conditions:
-    - lastTransitionTime: "2023-10-27T00:50:32Z"
-      message: 'DNS Name: app4-app4-06d489b63a7bc4295.7d67968.vpc-lattice-svcs.us-west-2.on.aws'
-      observedGeneration: 1
-      reason: Accepted
-      status: "True"
-      type: Accepted
-    - lastTransitionTime: "2023-10-27T00:50:32Z"
-      message: 'DNS Name: app4-app4-06d489b63a7bc4295.7d67968.vpc-lattice-svcs.us-west-2.on.aws'
-      observedGeneration: 1
-      reason: ResolvedRefs
-      status: "True"
-      type: ResolvedRefs
-    controllerName: application-networking.k8s.aws/gateway-api-controller
-    parentRef:
-      group: gateway.networking.k8s.io
-      kind: Gateway
-      name: app-services-gw
-      namespace: app-services-gw
-      sectionName: http-listener
-```
-::::
-
-The `status` field in the above output contains the DNS Name of the Service `message: 'DNS Name: app4-app4-06d489b63a7bc4295.7d67968.vpc-lattice-svcs.us-west-2.on.aws'`
-
-### 2. Store assigned DNS names to variables.
+Check that the HTTPRoute has created the VPC Lattive endpoint:
 
 ```bash
 app4DNS=$(kubectl --context $EKS_CLUSTER1_CONTEXT get httproute app4 -n app4 -o json | jq -r '.metadata.annotations."application-networking.k8s.aws/lattice-assigned-domain-name"')
@@ -176,13 +88,23 @@ echo "app4DNS=$app4DNS"
 
 ::::expand{header="Check Output"}
 ```
-demo3:~/environment $ echo "app4DNS=$app4DNS"
-app4DNS=app4-app4-05a7179225d38fd2d.7d67968.vpc-lattice-svcs.us-west-2.on.aws
+app4DNS=app4-app4-0d3af5018a559ba8c.7d67968.vpc-lattice-svcs.eu-west-1.on.aws
 ```
 ::::
 
-::alert[If you have a null in response, wait a little for the HTTPRoute to be properly created and replay the last command.]{header="Note"}
--->
+::alert[If the above command returns `null`, wait a little and re-run the command again]{header="Note"}
+
+
+View the VPC Lattice Service `app4-app4` in the [Amazon VPC Console](https://us-west-2.console.aws.amazon.com/vpc/home?region=us-west-2#Services:)
+
+![app4-service.png](/static/images/6-network-security/2-vpc-lattice-service-access/app4-service.png)
+
+
+Note that there is only 1 listener created for `HTTPS` under **Routing** Tab for VPC Service `app4-app4` in the Console.
+
+![app4-routes.png](/static/images/6-network-security/2-vpc-lattice-service-access/app4-routes.png)
+
+Also note that both of this listener is configured with the  Target group `k8s-app4-app4-v1-roniknmnge`, which itself point to the appv4 pod IP adress.
 
 ## Install and configure External DNS to manage records automatically
 
@@ -283,42 +205,10 @@ metadata:
 :::
 ::::
 
-#### 3. Exec into an `app1-v1` pod to check connectivity to `app4` service using custom domain at `HTTP` listener.
+#### 3. Exec into an `app1-v1` pod to check connectivity to `app4` service using custom domain at `HTTPS` listener
 
 ```bash
-kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -c app1-v1 -n app1 -- curl app4.vpc-lattice-custom-domain.io
-```
-
-::::expand{header="Check Output"}
-```
-AccessDeniedException: User: anonymous is not authorized to perform: vpc-lattice-svcs:Invoke on resource: arn:aws:vpc-lattice:us-west-2:382076407153:service/svc-05a7179225d38fd2d/ because no network-based policy allows the vpc-lattice-svcs:Invoke action
-```
-::::
-
-OK We still have activated our Authentication so we need to use the curl command with integration of SigV4 signature
-
-#### 4. Exec into an `app1-v1` pod to check connectivity to `app4` service using custom domain at `HTTP` listener, with Sigv4 signature
-
-```bash
-kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -n app1 -c app1-v1 -- /bin/bash -c '\
-TOKEN=$(cat $AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE) && \
-STS=$(curl -s 169.254.170.23/v1/credentials -H "Authorization: $TOKEN") && \
-curl -s --aws-sigv4 "aws:amz:${AWS_REGION}:vpc-lattice-svcs" --user $(echo $STS | jq ".AccessKeyId" -r):$(echo $STS | jq ".SecretAccessKey" -r) -H "x-amz-content-sha256: UNSIGNED-PAYLOAD" -H "x-amz-security-token: $(echo $STS | jq ".Token" -r)" \
-'http://app4.vpc-lattice-custom-domain.io
-```
-
-::::expand{header="Check Output"}
-```
-Requsting to Pod(app4-v1-77dcb6444c-mfjv2): Hello from app4-v1
-```
-::::
-
-## Now test HTTPS Connectivity 
-
-#### 5. Exec into an `app1-v1` pod to check connectivity to `app4` service using custom domain at `HTTPS` listener
-
-```bash
-kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -c app1-v1 -n app1 -- curl https://app4.vpc-lattice-custom-domain.io:443
+kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -c app1-v1 -n app1 -- curl https://app4.vpc-lattice-custom-domain.io
 ```
 
 ::::expand{header="Check Output"}
@@ -338,7 +228,7 @@ command terminated with exit code 60
 
 So, let us copy the Root CA certificate generated in the earlier module, to `app1-v1` pod and then try curl again using this certificate.
 
-#### 6. Deploy the Root CA certificate to `app1-v1` pod
+#### 4. Deploy the Root CA certificate to `app1-v1` pod
 
 ```bash
 export APPNAME=app1
@@ -366,10 +256,13 @@ With this command, we add the environment variable `CA_ARN` in the Application c
 
 This environment variable is used by our application entrypoint script, and if present, will install the associated certificat in the running container. This is for this call that we added the `AWSCertificateManagerPrivateCAReadOnly` policy to our `aws-sigv4-client` IAM role. 
 
-Our entrypoint script looks like (from app1-v1 container):
+Our entrypoint script looks like this, and download and install our PCA root certificate:
 
 ```bash
-bash-4.2# cat /app/launch_app.sh 
+kubectl  --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -c app1-v1 -n app1 -- cat /app/launch_app.sh 
+```
+
+:::code{language=bash showCopyAction=false showLineNumbers=false highlightLines='5'}
 #!/bin/sh
 
 #Add our private CA in our trust store
@@ -377,33 +270,11 @@ if [ -n "$CA_ARN" ]; then
   aws acm-pca get-certificate-authority-certificate --certificate-authority-arn $CA_ARN --region $AWS_REGION --output text > /etc/pki/ca-trust/source/anchors/internal.pem
   update-ca-trust extract
 fi
-```
+:::
 
 > Another way to do this could be to create a secret with the certificate and inject it in the pod.
 
-<!--
-```bash
-export APPNAME=app1
-export VERSION=v1
-
-#Create ConfigMap with certificat
-kubectl --context $EKS_CLUSTER1_CONTEXT create configmap -n app1 app-root-cert --from-file=/home/ec2-user/environment/manifests/root_cert.pem
-#Load configmap in App
-sed -i "s/#addcert//g" manifests/$APPNAME-$VERSION-deploy.yaml
-kubectl  --context $EKS_CLUSTER1_CONTEXT apply -f manifests/$APPNAME-$VERSION-deploy.yaml
-```
-
-::::expand{header="Check Output"}
-```
-configmap/app-root-cert created
-namespace/app1 unchanged
-deployment.apps/app1-v1 configured
-service/app1-v1 unchanged
-```
-::::
--->
-
-#### 7. Exec into an `app1-v1` pod to check connectivity again to `app4` service using custom domain at `HTTPS` listener, along with Root CA certificate.
+#### 5. Exec into an `app1-v1` pod to check connectivity again to `app4` service using custom domain at `HTTPS` listener, along with Root CA certificate.
 
 Because the certificat is now part of the trusted ca store of our container, we can call directly our application in https
 ```bash
@@ -419,7 +290,7 @@ AccessDeniedException: User: anonymous is not authorized to perform: vpc-lattice
 ```
 ::::
 
-#### 8. Exec into an `app1-v1` pod to check connectivity again to `app4` service using custom domain at `HTTPS` listener, along with Root CA certificate and Sigv4 signature
+#### 6. Exec into an `app1-v1` pod to check connectivity again to `app4` service using custom domain at `HTTPS` listener, along with Root CA certificate and Sigv4 signature
 
 We can rely like previously on curl sigv4 feature to sign our request to vpc lattice: 
 

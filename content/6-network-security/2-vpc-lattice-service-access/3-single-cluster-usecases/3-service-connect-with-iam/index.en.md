@@ -188,7 +188,8 @@ Create a new IAM Auth Policy for the service app2:
 ```bash
 export APPNAME=app2
 export VERSION=v1
-export SOURCENAMESPACE=app1
+export SOURCE_CLUSTER=$EKS_CLUSTER1_NAME
+export SOURCE_NAMESPACE=app1
 cat << EOF > ~/environment/templates/app-iam-auth-policy.yaml
 apiVersion: application-networking.k8s.aws/v1alpha1
 kind: IAMAuthPolicy
@@ -220,8 +221,8 @@ spec:
                                 "\$EKS_CLUSTER1_VPC_ID",
                                 "\$EKS_CLUSTER2_VPC_ID"
                             ],
-                            "aws:PrincipalTag/eks-cluster-name": "\$EKS_CLUSTER1_NAME",
-                            "aws:PrincipalTag/kubernetes-namespace": "\$SOURCENAMESPACE"                                              
+                            "aws:PrincipalTag/eks-cluster-name": "\$SOURCE_CLUSTER",
+                            "aws:PrincipalTag/kubernetes-namespace": "\$SOURCE_NAMESPACE"                                              
                         }                    
                     }
                 }
@@ -247,6 +248,8 @@ echo APP2_SERVICE_ID=$APP2_SERVICE_ID
 ```
 
 ```bash
+export SOURCE_CLUSTER=$EKS_CLUSTER1_NAME
+export SOURCE_NAMESPACE=app1
 cat > manifests/service-policy.json <<EOF
 {
     "Version": "2008-10-17",
@@ -262,8 +265,8 @@ cat > manifests/service-policy.json <<EOF
                         "$EKS_CLUSTER1_VPC_ID",
                         "$EKS_CLUSTER2_VPC_ID"
                     ],
-                    "aws:PrincipalTag/eks-cluster-name": "$EKS_CLUSTER1_NAME",
-                    "aws:PrincipalTag/kubernetes-namespace": "$SOURCENAMESPACE"                    
+                    "aws:PrincipalTag/eks-cluster-name": "$SOURCE_CLUSTER",
+                    "aws:PrincipalTag/kubernetes-namespace": "$SOURCE_NAMESPACE"                    
                 }
             }
         }
@@ -278,7 +281,7 @@ aws vpc-lattice put-auth-policy \
 ::::expand{header="Check Output"}
 :::code{language=json showCopyAction=false showLineNumbers=false highlightLines='2'}
 {
-    "policy": "{\"Version\":\"2008-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":\"*\",\"Action\":\"vpc-lattice-svcs:Invoke\",\"Resource\":\"*\",\"Condition\":{\"StringEquals\":{\"vpc-lattice-svcs:SourceVpc\":[\"vpc-0bf4d6ef77964c6dd\",\"vpc-0f843979491022d91\"],\"aws:PrincipalTag/AllowTag\":\"true\",\"aws:PrincipalTag/eks-cluster-name\":\"$EKS_CLUSTER1_NAME\",\"aws:PrincipalTag/k8s-namespace\":\"$SOURCENAMESPACE\"}}}]}",
+    "policy": "{\"Version\":\"2008-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":\"*\",\"Action\":\"vpc-lattice-svcs:Invoke\",\"Resource\":\"*\",\"Condition\":{\"StringEquals\":{\"vpc-lattice-svcs:SourceVpc\":[\"vpc-0bf4d6ef77964c6dd\",\"vpc-0f843979491022d91\"],\"aws:PrincipalTag/AllowTag\":\"true\",\"aws:PrincipalTag/eks-cluster-name\":\"$SOURCE_CLUSTER\",\"aws:PrincipalTag/k8s-namespace\":\"$SOURCE_NAMESPACE\"}}}]}",
     "state": "Active"
 }
 ::::

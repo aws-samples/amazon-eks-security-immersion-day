@@ -108,7 +108,8 @@ spec:
 #addcacert        - name: CA_ARN
 #addcacert          value: "\$CA_ARN"
         securityContext:
-          runAsUser: 101
+          runAsUser: 0
+          runAsGroup: 1000          
 #addprestop        lifecycle:
 #addprestop          preStop:
 #addprestop            exec:
@@ -200,7 +201,7 @@ spec:
 EOF
 ```
 
-### Create Template for HTTPRoute with Custom Domain and HTTPS Listener and Create IAMAuthPolicy
+### Create Template for HTTPRoute with Custom Domain and HTTPS Only Listener and Create IAMAuthPolicy
 
 ```bash
 cat > templates/route-template-https-custom-domain.yaml  <<EOF
@@ -213,10 +214,6 @@ spec:
   hostnames:
   - \$APPNAME.\$CUSTOM_DOMAIN_NAME
   parentRefs:
-  - kind: Gateway
-    name: \$GATEWAY_NAME
-    namespace: \$GATEWAY_NAMESPACE  
-    sectionName: http-listener
   - kind: Gateway
     name: \$GATEWAY_NAME
     namespace: \$GATEWAY_NAMESPACE  
@@ -259,8 +256,8 @@ spec:
                                 "\$EKS_CLUSTER1_VPC_ID",
                                 "\$EKS_CLUSTER2_VPC_ID"
                             ],
-                            "aws:PrincipalTag/eks-cluster-name": "\$EKS_CLUSTER1_NAME",
-                            "aws:PrincipalTag/kubernetes-namespace": "\$SOURCENAMESPACE"                             
+                            "aws:PrincipalTag/eks-cluster-name": "\$SOURCE_CLUSTER",
+                            "aws:PrincipalTag/kubernetes-namespace": "\$SOURCE_NAMESPACE"                             
                         }
                     }                    
                 }
@@ -330,9 +327,8 @@ spec:
                                 "\$EKS_CLUSTER1_VPC_ID",
                                 "\$EKS_CLUSTER2_VPC_ID"
                             ],
-                            "aws:PrincipalTag/AllowTag": "true",
-                            "aws:PrincipalTag/eks-cluster-name": "\$EKS_CLUSTER1_NAME",
-                            "aws:PrincipalTag/k8s-namespace": "\$SOURCENAMESPACE"
+                            "aws:PrincipalTag/eks-cluster-name": "\$SOURCE_CLUSTER",
+                            "aws:PrincipalTag/kubernetes-namespace": "\$SOURCE_NAMESPACE"
                         }
                     }                    
                 }

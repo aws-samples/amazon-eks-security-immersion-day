@@ -3,7 +3,9 @@ title : "Use envoy proxy to sign requests"
 weight : 26
 ---
 
-In this module let's see how we can use envoy proxy to do the signv4 signature of our requests for https requests to VPC lattice, and again we will rely on Kyverno to dynamically inject the sidecar configuration into the application pod
+In this module let's see how we can use envoy proxy to do the signv4 signature of our requests and proxify https requests to VPC lattice, and again we will rely on Kyverno to dynamically inject the sidecar configuration into the application pod
+
+![](/static/images/6-network-security/2-vpc-lattice-service-access/lattice-usecase4-kyverno.png)
 
 First, check that Kyverno is installed:
 
@@ -58,12 +60,14 @@ spec:
                 - >
                   iptables -t nat -N EGRESS_PROXY;
                   iptables -t nat -A OUTPUT -p tcp -d 169.254.171.0/24 -j EGRESS_PROXY;
-                  iptables -t nat -A EGRESS_PROXY -m owner --uid-owner 0 -j RETURN;
+                  iptables -t nat -A EGRESS_PROXY -m owner --gid-owner 0 -j RETURN;
                   iptables -t nat -A EGRESS_PROXY -p tcp -j REDIRECT --to-ports 8080;
                   iptables -t nat -L -n -v;
               containers: 
               - name: envoy-sigv4
-                image: public.ecr.aws/seb-demo/envoy-sigv4:v0.4
+                image: public.ecr.aws/seb-demo/envoy-sigv4:v0.5
+                securityContext:
+                  runAsGroup: 0
                 env:
                 - name: APP_DOMAIN
                   value: "vpc-lattice-custom-domain.io"
@@ -87,7 +91,7 @@ Let's force restart of our app1:
 kubectl --context $EKS_CLUSTER1_CONTEXT rollout restart deployment/app1-v1 -n app1
 ```
 
-
+No try again to connect to our service:
 
 
 ```bash
@@ -101,10 +105,18 @@ Requsting to Pod(app4-v1-85d4d9c455-7hwmx): Hello from app4-v1
 ```
 ::::
 
+You can see the logs of the envoy proxy computing the sigv4 signature by looking at the logs:
+
+```bash
+kubectl stern --context $EKS_CLUSTER1_CONTEXT -n app1 app1 -c envoy-sigv4 --tail=10 | grep token
+```
+
 
 ::::alert{type="info" header="Congratulation!!"}
 With this setup, we do not need to make any change into our application code:
-- We let our app connect to the remote application in HTTP. 
+- We let our app connect to the remote application in HTTP. (note: the app4 service does not listen on HTTP) 
 - The iptable rule, redirect the traffic to the envoy proxy in HTTP (using local host)
 - Envoy proxy sign the request, and proxify it to the lattice service in HTTPS, using PCA certificate, installed by the docker entrypoint.
+- VPC Lattice receive the request in HTTPS with valid sigv4 signature. It verify the signature, extract the IAM session tags, and checks with the service IAM Policy that the entity is allowed to access the service.
+- The app4 service receive an HTTP request from the VPC Lattice service, and can respond to the requester through VPC lattice.
 ::::

@@ -63,7 +63,8 @@ httproute.gateway.networking.k8s.io/app3 created
 We also deploy the IAM authentication Policy to the app3 service, so both Authentication and HTTPS will be use.
 
 ```bash
-SOURCENAMESPACE=app1
+export SOURCE_CLUSTER=$EKS_CLUSTER1_NAME
+export SOURCE_NAMESPACE=app1
 envsubst < ~/environment/templates/app-iam-auth-policy.yaml > ~/environment/manifests/${APPNAME}-iam-auth-policy.yaml
 c9  ~/environment/manifests/${APPNAME}-iam-auth-policy.yaml
 kubectl --context $EKS_CLUSTER1_CONTEXT apply -f ~/environment/manifests/${APPNAME}-iam-auth-policy.yaml
