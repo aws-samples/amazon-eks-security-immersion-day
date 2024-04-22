@@ -8,4 +8,4 @@ aws acm-pca get-certificate-authority-certificate --certificate-authority-arn $C
 update-ca-trust extract
 
 cat /etc/envoy/envoy.yaml
-/tmp/envoy --base-id 1 -l trace -c /etc/envoy/envoy.yaml
+/usr/local/bin/envoy --base-id 1 -l trace -c /etc/envoy/envoy.yaml
