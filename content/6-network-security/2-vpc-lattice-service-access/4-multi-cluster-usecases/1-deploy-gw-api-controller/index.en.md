@@ -18,7 +18,7 @@ eksdemo install vpc-lattice-controller -c $EKS_CLUSTER2_NAME \
   --set "defaultServiceNetwork=$GATEWAY_NAME"
 ```
 
-> because we are specifying the default service network associated with our gateway name `app-service-gw`, then the controller will register our EKS VPC with lattice
+> Because we are specifying the default service network associated with our gateway name `app-service-gw`, then the controller will register our EKS VPC with lattice
 
 You can see the logs of the controller. Open an new terminal and execute the following command:
 
