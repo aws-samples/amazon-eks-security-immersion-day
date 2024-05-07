@@ -16,7 +16,7 @@ To configure Service access controls, you can use access policies. An access pol
 
 We need to first configure the Auth type for Service network `app-services-gw` to `AWS_IAM` and then configure Auth Access policy.
 
-We are going to associate an IAM Auth Policy with our VPC lattice service network. The rule we are going to put is to not accept unauthenticated traffic, and to only accept requests from my 2 VPCs. To know more about configurations options, you can look at the [documentation](https://docs.aws.amazon.com/vpc-lattice/latest/ug/auth-policies.html).
+We are going to associate an IAM Auth Policy with our VPC lattice service network. The rule we are going to put is to not accept unauthenticated traffic, and to only accept requests from the 2 VPCs we created. To know more about configurations options, you can look at the [documentation](https://docs.aws.amazon.com/vpc-lattice/latest/ug/auth-policies.html).
 
 :::::tabs{variant="container"}
 
