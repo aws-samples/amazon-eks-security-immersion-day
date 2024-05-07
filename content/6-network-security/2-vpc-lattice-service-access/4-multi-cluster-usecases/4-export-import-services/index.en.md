@@ -386,7 +386,7 @@ Following the [EKS Best Practice guide for resiliency](https://aws.github.io/aws
       terminationGracePeriodSeconds: 15
 :::
 
-let's apply this in both manifest for app4-v1 and app4-v2 using following command, and try again the previous test to see the differences.
+Let's apply this in both manifest for app4-v1 and app4-v2 using following command, and try again the previous test to see the differences.
 
 ```bash
 sed -i "s/#addprestop//g" manifests/app4-v1-deploy.yaml
