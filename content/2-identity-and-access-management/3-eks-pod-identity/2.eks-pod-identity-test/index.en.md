@@ -46,7 +46,7 @@ Delete the Pod and re-create it.
 
 ```bash
 kubectl -n $NS delete pod $APP --force --grace-period=0
-kubectl  apply -f $APP.yaml
+kubectl  apply -f ~/environment/$APP.yaml
 ```
 
 ::::expand{header="Check Output"}

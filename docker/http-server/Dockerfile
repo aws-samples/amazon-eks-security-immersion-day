@@ -22,6 +22,3 @@ RUN chmod 755 /app/launch_app.sh
 # EXPOSE $HTTP_PORT
 
 ENTRYPOINT ["sh","/app/launch_app.sh"]
-
-
-

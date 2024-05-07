@@ -187,7 +187,7 @@ kubectl -n kube-system get ds -lapp.kubernetes.io/name=eks-pod-identity-agent -o
 ```
 
 ::::expand{header="Check Output"}
-```yaml
+:::code{language=yaml showCopyAction=false showLineNumbers=true highlightLines='106'}
 apiVersion: v1
 items:
 - apiVersion: apps/v1
@@ -328,7 +328,7 @@ items:
 kind: List
 metadata:
   resourceVersion: ""
-```
+:::
 ::::
 
 #### EKS Pod Identity calling EKS Auth API
