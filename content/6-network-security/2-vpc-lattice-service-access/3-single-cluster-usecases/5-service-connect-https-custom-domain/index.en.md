@@ -67,7 +67,7 @@ httproute.gateway.networking.k8s.io/app4 created
 ```
 ::::
 
-Check the HTTPRoute is created:
+Check the created HTTPRoute:
 
 ```bash
 kubectl --context $EKS_CLUSTER1_CONTEXT  wait --for=jsonpath='{.status.parents[-1:].conditions[-1:].reason}'=ResolvedRefs httproute/$APPNAME -n $APPNAME
