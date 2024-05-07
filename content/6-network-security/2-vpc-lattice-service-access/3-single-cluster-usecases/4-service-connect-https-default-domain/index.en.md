@@ -70,7 +70,7 @@ c9  ~/environment/manifests/${APPNAME}-iam-auth-policy.yaml
 kubectl --context $EKS_CLUSTER1_CONTEXT apply -f ~/environment/manifests/${APPNAME}-iam-auth-policy.yaml
 ```
 
-Check the HTTPRoute is created:
+Check the created HTTPRoute:
 
 ```bash
 kubectl --context $EKS_CLUSTER1_CONTEXT  wait --for=jsonpath='{.status.parents[-1:].conditions[-1:].reason}'=ResolvedRefs httproute/$APPNAME -n $APPNAME
