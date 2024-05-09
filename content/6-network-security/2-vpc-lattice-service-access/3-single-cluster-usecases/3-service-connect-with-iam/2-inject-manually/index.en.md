@@ -170,6 +170,8 @@ Requsting to Pod(app2-v1-56f7c48bbf-nl6gg): Hello from app2-v1
 ```
 ::::
 
+::alert[With this manually setup of the sidecar, we are able to intercept the traffic with the proxy to sign the requests with sigv4.]{header="Congratulations"}
+
 Since we are signing the requests using the sigv4proxy proxy container, access to `app2` is now allowed. The logs from the `app1-v1` does not show the SIGV4 authentication headers. For that, let us look at the sigv4proxy container logs.
 
 
@@ -194,6 +196,9 @@ time="2023-10-26T06:56:48Z" level=debug msg="proxying request" request="GET / HT
 ::::
 
 From the above logs, we can verify sigv4proxy container sign the request and adds the headers `Authorization`, `x-amz-content-sha256`, `x-amz-date` and `x-amz-security-token`
+
+
+## Remove the manually injected proxy
 
 Before moving to the next section, let us undo the manual changes to the `app1-v1` deployment by deleting the deployment and then re-deploy the original configuration.
 

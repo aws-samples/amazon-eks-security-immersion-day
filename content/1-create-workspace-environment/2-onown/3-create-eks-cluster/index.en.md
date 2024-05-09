@@ -72,9 +72,9 @@ ip-10-254-217-72.us-west-2.compute.internal    Ready    <none>   3h9m   v1.28.1-
 Export variables:
 
 ```bash
-export EKS_CLUSTER=eksworkshop-eksctl >> ~/.bash_profile
-export EKS_CLUSTER1_NAME=eksworkshop-eksctl >> ~/.bash_profile
-export EKS_CLUSTER1_CONTEXT=$(kubectl config current-context)
-echo "export EKS_CLUSTER1_CONTEXT=$EKS_CLUSTER1_CONTEXT" >> ~/.bash_profile
+echo "export EKS_CLUSTER=eksworkshop-eksctl" >> ~/.bash_profile
+echo "export EKS_CLUSTER1_NAME=eksworkshop-eksctl" >> ~/.bash_profile
+echo "export EKS_CLUSTER1_CONTEXT=eksworkshop-eksctl" >> ~/.bash_profile
 source ~/.bash_profile
+aws eks update-kubeconfig --name $EKS_CLUSTER1_NAME --alias $EKS_CLUSTER1_NAME 
 ```

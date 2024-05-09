@@ -14,201 +14,11 @@ echo "export GATEWAY_NAME=app-services-gw" >> ~/.bash_profile
 echo "export GATEWAY_NAMESPACE=app-services-gw" >> ~/.bash_profile
 source ~/.bash_profile
 
-eksdemo install vpc-lattice-controller -c $EKS_CLUSTER1_NAME --set "defaultServiceNetwork=$GATEWAY_NAME" --dry-run
+eksdemo install vpc-lattice-controller -c $EKS_CLUSTER1_NAME --set "defaultServiceNetwork=$GATEWAY_NAME" #--dry-run
 ```
 
-<!--
-1. Clone the AWS Gateway API Controller Github Repository.
-
-```bash
-cd ~/environment
-git clone https://github.com/aws/aws-application-networking-k8s.git
-cd aws-application-networking-k8s
-```
-
-2. Configure security group to receive traffic from the VPC Lattice fleet. You must set up security groups so that they allow all Pods communicating with VPC Lattice to allow traffic on all ports from the `169.254.171.0/24` address range.
-
-```bash
-PREFIX_LIST_ID=$(aws ec2 describe-managed-prefix-lists --query "PrefixLists[?PrefixListName=="\'com.amazonaws.$AWS_REGION.vpc-lattice\'"].PrefixListId" | jq -r '.[]')
-echo "PREFIX_LIST_ID=$PREFIX_LIST_ID"
-MANAGED_PREFIX=$(aws ec2 get-managed-prefix-list-entries --prefix-list-id $PREFIX_LIST_ID --output json  | jq -r '.Entries[0].Cidr')
-echo "MANAGED_PREFIX=$MANAGED_PREFIX"
-CLUSTER_SG=$(aws eks describe-cluster --name $EKS_CLUSTER1_NAME --output json| jq -r '.cluster.resourcesVpcConfig.clusterSecurityGroupId')
-echo "CLUSTER_SG=$CLUSTER_SG"
-aws ec2 authorize-security-group-ingress --group-id $CLUSTER_SG --cidr $MANAGED_PREFIX --protocol -1
-```
-
-
-::::expand{header="Check Output"}
-```json
-PREFIX_LIST_ID=pl-07cbd8b5e26960eac
-MANAGED_PREFIX=169.254.171.0/24
-CLUSTER_SG=sg-040765a152dcc53f2
-{
-    "Return": true,
-    "SecurityGroupRules": [
-        {
-            "SecurityGroupRuleId": "sgr-0198901caed795af1",
-            "GroupId": "sg-040765a152dcc53f2",
-            "GroupOwnerId": "ACCOUNT_ID",
-            "IsEgress": false,
-            "IpProtocol": "-1",
-            "FromPort": -1,
-            "ToPort": -1,
-            "CidrIpv4": "169.254.171.0/24"
-        }
-    ]
-}
-```
-::::
-
-3. Create an IAM OIDC provider: See [Creating an IAM OIDC provider](https://docs.aws.amazon.com/eks/latest/userguide/enable-iam-roles-for-service-accounts.html) for your cluster for details. 
-
-```bash
-eksctl utils associate-iam-oidc-provider --cluster $EKS_CLUSTER1_NAME --approve --region $AWS_REGION
-```
-
-::::expand{header="Check Output"}
-```
-2023-10-19 11:04:48 [ℹ]  IAM Open ID Connect provider is already associated with cluster "eksworkshop-eksctl" in "us-west-2"
-```
-::::
-
-4. Create a policy (`recommended-inline-policy.json`) in IAM with the following content that can invoke the gateway API.
-
-```bash
-cat > recommended-inline-policy.json <<EOF
-{
- "Version": "2012-10-17",
- "Statement": [
-     {
-         "Effect": "Allow",
-         "Action": [
-             "vpc-lattice:*",
-             "ec2:DescribeVpcs",
-             "ec2:DescribeSubnets",
-             "ec2:DescribeTags",
-             "ec2:DescribeSecurityGroups",
-             "logs:CreateLogDelivery",
-             "logs:GetLogDelivery",
-             "logs:DescribeLogGroups",
-             "logs:PutResourcePolicy",
-             "logs:DescribeResourcePolicies",
-             "logs:UpdateLogDelivery",
-             "logs:DeleteLogDelivery",
-             "logs:ListLogDeliveries",
-             "tag:GetResources",
-             "firehose:TagDeliveryStream",
-             "s3:GetBucketPolicy",
-             "s3:PutBucketPolicy"
-         ],
-         "Resource": "*"
-     },
-     {
-         "Effect" : "Allow",
-         "Action" : "iam:CreateServiceLinkedRole",
-         "Resource" : "arn:aws:iam::*:role/aws-service-role/vpc-lattice.amazonaws.com/AWSServiceRoleForVpcLattice",
-         "Condition" : {
-             "StringLike" : {
-                 "iam:AWSServiceName" : "vpc-lattice.amazonaws.com"
-             }
-         }
-     },
-     {
-         "Effect" : "Allow",
-         "Action" : "iam:CreateServiceLinkedRole",
-         "Resource" : "arn:aws:iam::*:role/aws-service-role/delivery.logs.amazonaws.com/AWSServiceRoleForLogDelivery",
-         "Condition" : {
-             "StringLike" : {
-                 "iam:AWSServiceName" : "delivery.logs.amazonaws.com"
-             }
-         }
-     }
-   ]
-}
-EOF
-```
-Create the IAM policy
-
-```bash
-export VPCLatticeControllerIAMPolicyArn=$(aws iam create-policy \
-   --policy-name VPCLatticeControllerIAMPolicy \
-   --policy-document file://recommended-inline-policy.json --output text --query Policy.Arn)
-echo "VPCLatticeControllerIAMPolicyArn=$VPCLatticeControllerIAMPolicyArn"
-echo "export VPCLatticeControllerIAMPolicyArn=$VPCLatticeControllerIAMPolicyArn" >> ~/.bash_profile
-
-```
-::::expand{header="Check Output"}
-```
-VPCLatticeControllerIAMPolicyArn=arn:aws:iam::ACCOUNT_ID:policy/VPCLatticeControllerIAMPolicy
-```
-::::
-
-5. Create the `aws-application-networking-system` Namespace.
-
-```bash
-kubectl --context $EKS_CLUSTER1_CONTEXT apply -f examples/deploy-namesystem.yaml
-```
-
-::::expand{header="Check Output"}
-```
-namespace/aws-application-networking-system created
-```
-::::
-
-
-6. Create an IRSA for Pod level permission: 
-
-```bash
-eksctl create iamserviceaccount \
-   --cluster=$EKS_CLUSTER1_NAME \
-   --namespace=aws-application-networking-system \
-   --name=gateway-api-controller \
-   --attach-policy-arn=$VPCLatticeControllerIAMPolicyArn \
-   --override-existing-serviceaccounts \
-   --region $AWS_REGION \
-   --approve
-```
-
-::::expand{header="Check Output"}
-```
-2023-10-19 11:12:51 [ℹ]  1 iamserviceaccount (aws-application-networking-system/gateway-api-controller) was included (based on the include/exclude rules)
-2023-10-19 11:12:51 [!]  metadata of serviceaccounts that exist in Kubernetes will be updated, as --override-existing-serviceaccounts was set
-2023-10-19 11:12:51 [ℹ]  1 task: { 
-    2 sequential sub-tasks: { 
-        create IAM role for serviceaccount "aws-application-networking-system/gateway-api-controller",
-        create serviceaccount "aws-application-networking-system/gateway-api-controller",
-    } }2023-10-19 11:12:51 [ℹ]  building iamserviceaccount stack "eksctl-eksworkshop-eksctl-addon-iamserviceaccount-aws-application-networking-system-gateway-api-controller"
-2023-10-19 11:12:52 [ℹ]  deploying stack "eksctl-eksworkshop-eksctl-addon-iamserviceaccount-aws-application-networking-system-gateway-api-controller"
-2023-10-19 11:12:52 [ℹ]  waiting for CloudFormation stack "eksctl-eksworkshop-eksctl-addon-iamserviceaccount-aws-application-networking-system-gateway-api-controller"
-2023-10-19 11:13:22 [ℹ]  waiting for CloudFormation stack "eksctl-eksworkshop-eksctl-addon-iamserviceaccount-aws-application-networking-system-gateway-api-controller"
-2023-10-19 11:13:22 [ℹ]  created serviceaccount "aws-application-networking-system/gateway-api-controller"
-```
-::::
-
-7. Run helm command to deploy the controller.
-
-```bash
-# export Gateway name and namespace
-echo "export GATEWAY_NAME=app-services-gw" >> ~/.bash_profile
-echo "export GATEWAY_NAMESPACE=app-services-gw" >> ~/.bash_profile
-source ~/.bash_profile
-
-# login to ECR
-aws ecr-public get-login-password --region us-east-1 | helm registry login --username AWS --password-stdin public.ecr.aws
-
-# Run helm with either install or upgrade
-export HELM_EXPERIMENTAL_OCI=1
-helm --kube-context $EKS_CLUSTER1_CONTEXT install gateway-api-controller \
-   oci://public.ecr.aws/aws-application-networking-k8s/aws-gateway-controller-chart \
-   --version=v1.0.3 \
-   --set=serviceAccount.create=false --namespace aws-application-networking-system \
-   --set=log.level=info \
-   --set=defaultServiceNetwork=$GATEWAY_NAME
-```
--->
 ::::alert{type="info" header="Note"}
-By setting `defaultServiceNetwork`, the Gateway API controller will create a serviceNetwork (Lattice Service Network) with the name provided, and associat it with the EKS cluster's VPC. 
+By setting `defaultServiceNetwork`, the Gateway API controller will create a serviceNetwork (VPC Lattice Service Network) with the name provided, and associate it with the EKS cluster's VPC. 
 Alternatively, you can use AWS CLI to manually create a VPC Lattice service network
 ```bash
 aws vpc-lattice create-service-network --name <my-service-network-name> # grab service network ID
@@ -306,36 +116,6 @@ View the VPC Lattice Service network `app-services-gw` in the [Amazon VPC Consol
 
 ![](/static/images/6-network-security/2-vpc-lattice-service-access/vpc-service-network.png)
 
-<!--
-## Deploy `GatewayClass` Resource in First EKS Cluster `eksworkshop-eksctl`
-
-1. Create the `GatewayClass` Object with name `amazon-vpc-lattice`.
-
-Let us see how the configuration looks like.
-
-```bash
-cd ~/environment
-cat > manifests/gatewayclass.yaml <<EOF
-# Create a new Gateway Class for AWS VPC lattice provider
-apiVersion: gateway.networking.k8s.io/v1beta1
-kind: GatewayClass
-metadata:
-  name: amazon-vpc-lattice
-spec:
-  controllerName: application-networking.k8s.aws/gateway-api-controller
-EOF
-kubectl  --context $EKS_CLUSTER1_CONTEXT apply -f manifests/gatewayclass.yaml
-```
-
-The above configuration creates Kubernetes `GatewayClass` object **amazon-vpc-lattice** to identify Amazon VPC Lattice as the Infrastructure provider, and apply the configuration.
-
-
-::::expand{header="Check Output"}
-```
-gatewayclass.gateway.networking.k8s.io/amazon-vpc-lattice created
-```
-::::
--->
 ## Deploy `Gateway` Resource in First EKS Cluster `eksworkshop-eksctl`
 
 ### 1. Create the Kubernetes `Gateway` object **app-services-gw** ($GATEWAY_NAME)
@@ -371,8 +151,6 @@ spec:
       kinds:
       - kind: HTTPRoute
       namespaces:
-        #from: Same
-        #from: All
         from: Selector
         selector:
           matchLabels:
@@ -384,8 +162,6 @@ spec:
       kinds:
       - kind: HTTPRoute
       namespaces:
-        #from: Same
-        #from: All
         from: Selector
         selector:
           matchLabels:
@@ -397,8 +173,6 @@ spec:
       kinds:
       - kind: HTTPRoute
       namespaces:
-        #from: Same
-        #from: All
         from: Selector
         selector:
           matchLabels:
@@ -426,7 +200,7 @@ gateway.gateway.networking.k8s.io/app-services-gw created
 ```
 ::::
 
-### 2. Verify that `app-services-gw` Gateway is created (this could take about five minutes): 
+### 2. Verify that `app-services-gw` Gateway is created : 
 
 ```bash
 kubectl  --context $EKS_CLUSTER1_CONTEXT get gateway -n $GATEWAY_NAMESPACE
@@ -581,4 +355,9 @@ echo "export gatewayID=$gatewayID" | tee -a ~/.bash_profile
 export gatewayARN=arn:aws:vpc-lattice:us-west-2:734345834211:servicenetwork/sn-03cc2d23efd95fd14
 export gatewayID=sn-03cc2d23efd95fd14
 ```
+::::
+
+
+::::alert{type="info" header="Note"}
+Don't proceed until `gatewayARN` and `gatewayID` are properly populated (that can take couple of minutes)
 ::::

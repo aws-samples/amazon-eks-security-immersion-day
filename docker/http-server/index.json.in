@@ -1,0 +1,180 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: MIT-0
+
+var express = require('express')
+const morgan = require('morgan');
+var http = require('http')
+var app = express()
+const os = require('os');
+const jwt = require('jsonwebtoken');
+var concat = require('concat-stream');
+
+const crt = require("aws-crt");
+const { HttpRequest } = require("aws-crt/dist/native/http");
+
+const region = '${DEPLOY_REGION}'
+
+function sigV4SignBasic(method, endpoint, service) {
+    const host = new URL(endpoint).host;
+    const request = new HttpRequest(method, endpoint);
+    request.headers.add('host', host);
+    crt.io.enable_logging(crt.io.LogLevel.INFO);
+    const config = {
+        service: service,
+        region: region,
+        algorithm: crt.auth.AwsSigningAlgorithm.SigV4,
+        signature_type: crt.auth.AwsSignatureType.HttpRequestViaHeaders,
+        signed_body_header: crt.auth.AwsSignedBodyHeaderType.XAmzContentSha256,
+        signed_body_value: crt.auth.AwsSignedBodyValue.UnsignedPayload,
+        provider: crt.auth.AwsCredentialsProvider.newDefault()
+    };
+
+    return crt.auth.aws_sign_request(request, config);
+}
+
+app.set('json spaces', 2);
+app.set('trust proxy', ['loopback', 'linklocal', 'uniquelocal']);
+
+if (process.env.DISABLE_REQUEST_LOGS !== 'true') {
+    app.use(morgan('combined'));
+}
+
+app.use(function (req, res, next) {
+    req.pipe(concat(function (data) {
+        req.body = data.toString('utf8');
+        next();
+    }));
+});
+
+app.all('/app[123]/call-to-app[123]', (req, res) => {
+    const https = require("https");
+
+    const host = req.path.slice(-4) + '.' + '${APP_DOMAIN}'
+    const url = 'https://' + host
+
+    var headers = {}
+
+    sigV4SignBasic("GET", url, "vpc-lattice-svcs").then(
+        (httpResponse) => {
+            for (const sigv4header of httpResponse.headers) {
+                headers[sigv4header[0]] = sigv4header[1]
+            }
+            const options = {
+                hostname: host,
+                port: 443,
+                path: '/',
+                method: 'GET',
+                headers: headers
+            }
+
+            req = https.request(options, (resp) => {
+                let data = [];
+                resp.on('data', chunk => {
+                    data.push(chunk);
+                });
+                resp.on('end', () => {
+                    try {
+                        res.send(JSON.parse(Buffer.concat(data).toString()));
+                    }
+                    catch {
+                        res.send({ 'upstreamResponse': Buffer.concat(data).toString() });
+                    }
+                });
+            })
+            .on("error", err => {
+                console.log("Error: " + err);
+            });
+            req.on('error', (e) => {
+                console.error(`problem with request: ${e.message}`);
+            });
+            req.end();
+        })
+})
+
+//Handle all paths
+app.all('*', (req, res) => {
+    const echo = {
+        path: req.path,
+        method: req.method,
+        body: req.body,
+        cookies: req.cookies,
+        hostname: req.hostname,
+        ip: req.ip,
+        ips: req.ips,
+        protocol: req.protocol,
+        webserver: process.env.WEBSERVER,
+        query: req.query,
+        xhr: req.xhr,
+        os: {
+            hostname: os.hostname()
+        },
+        connection: {
+            servername: req.connection.servername
+        }
+    };
+
+    //If the Content-Type of the incoming body `is` JSON, it can be parsed and returned in the body
+    if (req.is('application/json')) {
+        echo.json = JSON.parse(req.body)
+    }
+
+    //If there's a JWT header, parse it and decode and put it in the response
+    let token = req.headers['Authorization'];
+    if (!token) {
+        echo.jwt = token;
+    } else {
+        token = token.split(" ").pop();
+        const decoded = jwt.decode(token, { complete: true });
+        echo.jwt = decoded;
+    }
+
+    if ('x-jwt-subject' in req.headers)
+        echo.jwt_subject = 'Call made from user identity ' + req.headers['x-jwt-subject']
+    else
+        echo.jwt_subject = '** No user identity present **'
+
+    // strip out any unnecessary headers
+    let newheaders = Object.keys(req.headers)
+    .filter(key => key.startsWith("x-amz-"));
+        newheaders.forEach(e => delete req.headers[e]);
+    echo.headers = req.headers;
+
+    res.json(echo);
+
+    //Certain paths can be ignored in the container logs, useful to reduce noise from healthchecks
+    if (process.env.LOG_IGNORE_PATH != req.path) {
+
+        let spacer = 4;
+        if (process.env.LOG_WITHOUT_NEWLINE) {
+            spacer = null;
+        }
+
+        console.log(JSON.stringify(echo, null, spacer));
+    }
+});
+
+
+var httpServer = http.createServer(app).listen(process.env.HTTP_PORT || 8080);
+console.log(`Listening on ports ${process.env.HTTP_PORT || 8080} for http`);
+
+let calledClose = false;
+
+process.on('exit', function () {
+    if (calledClose) return;
+    console.log('Got exit event. Trying to stop Express server.');
+    server.close(function () {
+        console.log("Express server closed");
+    });
+});
+
+process.on('SIGINT', shutDown);
+process.on('SIGTERM', shutDown);
+
+function shutDown() {
+    console.log('Got a kill signal. Trying to exit gracefully.');
+    calledClose = true;
+    httpServer.close(function () {
+        console.log("HTTP servers closed. Asking process to exit.");
+        process.exit()
+    });
+}%

@@ -1,0 +1,27 @@
+# https://taskfile.dev
+
+version: "3"
+
+#dotenv: [".env", "{{.ENV}}/.env.", "{{.HOME}}/.env"]
+
+env:
+  REPO: public.ecr.aws/seb-demo
+  NAME: http-server
+  VERSION: v1.10
+
+tasks:
+  build:
+    desc: build docker image
+    cmds:
+     - docker build -t ${REPO}/${NAME}:${VERSION} .
+
+  ecr-auth:
+    desc: Authenticate on public EcrRegistry
+    cmds:
+    - aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
+
+  push:
+    desc: push docker image to public ecr
+    deps: [ecr-auth, build]
+    cmds:
+     - docker push $REPO/${NAME}:$VERSION

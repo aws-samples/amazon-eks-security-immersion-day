@@ -66,7 +66,7 @@ httproute.gateway.networking.k8s.io/app1 created
 ```
 ::::
 
-This step may take 2-3 minutes, run the following command to wait for it to completed.
+Check the created `HttpRoute`:
 
 ```bash
 kubectl --context $EKS_CLUSTER1_CONTEXT  wait --for=jsonpath='{.status.parents[-1:].conditions[-1:].reason}'=ResolvedRefs httproute/$APPNAME -n $APPNAME
@@ -153,7 +153,7 @@ httproute.gateway.networking.k8s.io/app2 created
 ```
 ::::
 
-This step may take 2-3 minutes, run the following command to wait for it to completed.
+Check the created `HttpRoute`:
 
 ```bash
 kubectl --context $EKS_CLUSTER1_CONTEXT  wait --for=jsonpath='{.status.parents[-1:].conditions[-1:].reason}'=ResolvedRefs httproute/$APPNAME -n $APPNAME
@@ -164,8 +164,6 @@ kubectl --context $EKS_CLUSTER1_CONTEXT  wait --for=jsonpath='{.status.parents[-
 httproute.gateway.networking.k8s.io/app2 condition met
 ```
 ::::
-
-::alert[If the above command returns `error: timed out waiting for the condition on httproutes/app2`, run the command once again]{header="Note"}
 
 View the VPC Lattice Service `app2-app2` in the [Amazon VPC Console](https://us-west-2.console.aws.amazon.com/vpc/home?region=us-west-2#Services:)
 
@@ -212,7 +210,7 @@ kubectl --context $EKS_CLUSTER1_CONTEXT get httproute app1 -n app1 -o yaml
 ```
 
 ::::expand{header="Check Output"}
-```yaml
+:::code{language=yml showCopyAction=false showLineNumbers=false highlightLines='4'}
 kind: HTTPRoute
 metadata:
   annotations:
@@ -267,7 +265,7 @@ status:
       name: app-services-gw
       namespace: app-services-gw
       sectionName: http-listener
-```
+:::
 ::::
 
 The `status` field in the above output contains the DNS Name of the Service `message: DNS Name: app1-app1-0df47cf7f9031f04e.7d67968.vpc-lattice-svcs.us-west-2.on.aws`
@@ -305,7 +303,7 @@ kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -c app1-v1 -n ap
 ```
 
 ::::expand{header="Check Output"}
-```
+:::code{language=json showCopyAction=false showLineNumbers=false highlightLines='2'}
 Server:         172.20.0.10
 Address:        172.20.0.10#53
 
@@ -336,3 +334,4 @@ Requsting to Pod(app1-v1-7ccbcc48b6-jv499): Hello from app1-v1
 ::::
 
 
+::alert[We successfully connect from app1 to app2 and from app2 to app1 going through VPC lattice. As this simple use case does not brings lot of value, let's see how we can improve our usage of VPC lattice in next modules]{header="Congratulations."} 

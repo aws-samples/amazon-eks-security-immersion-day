@@ -6,34 +6,19 @@ weight : 10
 
 ## Deploy AWS Gateway API Controller in Second EKS Cluster `eksworkshop-eksctl-2`
 
-Follow these instructions deploy the AWS Gateway API Controller.
+Follow these instructions deploy the AWS Gateway API Controller in the second cluster.
 
-<!--
-### 1. Create an IAM OIDC provider: 
-
-See [Creating an IAM OIDC provider](https://docs.aws.amazon.com/eks/latest/userguide/enable-iam-roles-for-service-accounts.html) for your cluster for details. 
-
-```bash
-eksctl utils associate-iam-oidc-provider --cluster $EKS_CLUSTER2_NAME --approve --region $AWS_REGION
-```
-
-::::expand{header="Check Output"}
-```
-2023-10-27 01:41:42 [ℹ]  will create IAM Open ID Connect provider for cluster "eksworkshop-eksctl-2" in "us-west-2"
-2023-10-27 01:41:42 [✔]  created IAM Open ID Connect provider for cluster "eksworkshop-eksctl-2" in "us-west-2"
-```
-::::
--->
+![](/static/images/6-network-security/2-vpc-lattice-service-access/lattice-usecase6-gateway.png)
 
 ### 1. Deploy the VPC Lattice Api Gateway Controller
 
 ```bash
 eksdemo install vpc-lattice-controller -c $EKS_CLUSTER2_NAME \
-  --set log.level=debug \
+  --set log.level=debug \ 
   --set "defaultServiceNetwork=$GATEWAY_NAME"
 ```
 
-> because we are speifying the default service network associated with our gateway name `app-service-gw`, then the controller will register our EKS VPC with lattice
+> Because we are specifying the default service network associated with our gateway name `app-service-gw`, then the controller will register our EKS VPC with lattice
 
 You can see the logs of the controller. Open an new terminal and execute the following command:
 
@@ -95,14 +80,11 @@ replicaset.apps/gateway-api-controller-965646b47   1         1         1       3
 
 1. Create the Kubernetes `Gateway` object **app-services-gw**
 
-Note that we already generated the `Gateway` configuration earlier in the file `manifests/app-services-gw.yaml`. For now, we will change the annotation from `application-networking.k8s.aws/lattice-vpc-association: "true"` to `application-networking.k8s.aws/lattice-vpc-association: "false"` and apply the configuration. We will associate the second EKS Cluster VPC to the Service network later during the workshop.
-
-
 ```bash
 kubectl  --context $EKS_CLUSTER2_CONTEXT apply -f manifests/$GATEWAY_NAME.yaml
 ```
 
-::alert[The above configuration creates Kubernetes `Gateway` object `app-services-gw` in the second EKS Cluster but **will not** create the **Service Network** again in Amazon VPC Lattice since it was already created earlier. ]{header="Note"}
+::alert[The above configuration creates Kubernetes `Gateway` object `app-services-gw` in namespace `app-services-gw` in the second EKS Cluster]{header="Note"}
 
 
 ::::expand{header="Check Output"}
@@ -112,7 +94,7 @@ gateway.gateway.networking.k8s.io/app-services-gw created
 ```
 ::::
 
-2. Verify that `app-services-gw` Gateway is created (this could take about five minutes): 
+2. Verify that `app-services-gw` Gateway is created: 
 
 ```bash
 kubectl  --context $EKS_CLUSTER2_CONTEXT get gateway -n $GATEWAY_NAMESPACE
@@ -133,7 +115,7 @@ kubectl  --context $EKS_CLUSTER2_CONTEXT get gateway $GATEWAY_NAME -n $GATEWAY_N
 ```
 
 ::::expand{header="Check Output"}
-```yaml
+:::code{language=yaml showCopyAction=false showLineNumbers=true highlightLines='68'}
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: Gateway
 metadata:
@@ -247,16 +229,13 @@ status:
       kind: GRPCRoute
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
-```
+:::
 ::::
 
 
 The `status` conditions contains the ARN of the Amazon VPC Lattice Service Network.
 
-`message: 'aws-gateway-arn: arn:aws:vpc-lattice:us-west-2:ACCOUNT_ID:servicenetwork/sn-0cc73287505ac121a'`
-
-
-Note that the Gateway ARN in the above message field is same as the one stored earlier in the environment variable.
+Note that the Gateway ARN in your output status in message field is same as the one stored earlier in the environment variable.
 
 ```bash
 echo "gatewayARN=$gatewayARN"
