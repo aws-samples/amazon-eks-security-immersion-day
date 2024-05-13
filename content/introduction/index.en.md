@@ -39,7 +39,8 @@ As part of this workshop we will cover the following modules:
 | **Detective Controls** | [Amazon GuardDuty Protection for EKS - Audit Log Monitoring](/5-detective-controls/1-guardDuty-protection-for-eks/eks-audit-logs) | 45 mins | N/A |
 | | [Amazon GuardDuty Protection for EKS - Runtime Monitoring](/5-detective-controls/1-guardDuty-protection-for-eks/eks-runtime) | 45 mins | N/A |
 | | [Analyze Amazon EKS Control Plane logs and Audit CloudTrail logs](/5-detective-controls/2-analyze-controlplane-cloudtrail-logs) | 60 mins | N/A |
-| **Regulatory Compliance**| [Validating Amazon EKS optimized Bottlerocket AMI against the CIS Benchmark](/10-regulatory-compliance/cis-bottlerocket-eks/) | 60 mins | N/A |
+| **Regulatory Compliance**| [Building Amazon Linux 2 CIS Benchmark AMIs for Amazon EKS](/10-regulatory-compliance/cis-al2-eks/) | 60 mins | N/A |
+|| [Validating Amazon EKS optimized Bottlerocket AMI against the CIS Benchmark](/10-regulatory-compliance/cis-bottlerocket-eks/) | 60 mins | N/A |
 |  | [CIS EKS Benchmark Assessment Using Kube-bench](/10-regulatory-compliance/kube-bench/) | 45 mins | N/A |
 | **Image Security** | [Amazon ECR Security Controls](/12-image-security/1-amazon-ecr-security-controls/) | 60 mins | N/A |
 | | [Container Image CVE Management with Amazon Inspector](/12-image-security/2-manage-image-cve-with-inspector/) | 30 mins | N/A |
