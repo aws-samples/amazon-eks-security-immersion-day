@@ -5,49 +5,42 @@ weight : 15
 
 Once you have completed this chapter, you can cleanup the files and resources you created by issuing the following commands:
 
+## Clean second cluster
+
 ```bash
-cd ~/environment
-# Delete the Second EKS Cluster
-eksctl delete cluster -f manifests/eksworkshop.yaml
+kubectl --context $EKS_CLUSTER2_CONTEXT delete ns app5
+kubectl --context $EKS_CLUSTER2_CONTEXT delete ns app4
 
-# Delete the Objects from First EKS Cluster
+kubectl --context $EKS_CLUSTER2_CONTEXT delete ns app-services-gw
+```
 
-export APPNAME=app6
-export VERSION=v1
-kubectl --context $EKS_CLUSTER1_CONTEXT delete -f manifests/$APPNAME-http-custom-domain-service-import.yaml
-kubectl --context $EKS_CLUSTER1_CONTEXT delete -f manifests/$APPNAME-http-custom-domain-service-import.yaml
+## Delete second cluster
 
-
-export APPNAME=app4
-export VERSION=v1
-kubectl --context $EKS_CLUSTER1_CONTEXT delete -f manifests/$APPNAME-https-custom-domain.yaml
-kubectl  --context $EKS_CLUSTER1_CONTEXT delete -f manifests/$APPNAME-$VERSION-deploy.yaml
+```bash
+eksdemo delete cluster $EKS_CLUSTER2_NAME
+```
 
 
-export APPNAME=app3
-export VERSION=v1
-kubectl --context $EKS_CLUSTER1_CONTEXT delete -f manifests/$APPNAME-https-default-domain.yaml
-kubectl  --context $EKS_CLUSTER1_CONTEXT delete -f manifests/$APPNAME-$VERSION-deploy.yaml
+## Delete the Objects from First EKS Cluster
 
+```bash
+kubectl --context $EKS_CLUSTER1_CONTEXT delete ns app4
+kubectl --context $EKS_CLUSTER1_CONTEXT delete ns app3
+kubectl --context $EKS_CLUSTER1_CONTEXT delete ns app2
+kubectl --context $EKS_CLUSTER1_CONTEXT delete ns app1
 
+kubectl --context $EKS_CLUSTER1_CONTEXT delete ns app-services-gw
+```
 
-export APPNAME=app2
-export VERSION=v1
-kubectl --context $EKS_CLUSTER1_CONTEXT delete -f manifests/$APPNAME-http-default-domain.yaml
-kubectl  --context $EKS_CLUSTER1_CONTEXT delete -f manifests/$APPNAME-$VERSION-deploy.yaml
+## Clean first EKS cluster add-ons
 
+If you don't need anymore thoses addons, you can remove them
+```bash
+eksdemo uninstall vpc-lattice-controller -c $EKS_CLUSTER1_NAME -D
 
-export APPNAME=app1
-export VERSION=v1
-kubectl --context $EKS_CLUSTER1_CONTEXT delete -f manifests/$APPNAME-http-default-domain.yaml
-kubectl  --context $EKS_CLUSTER1_CONTEXT delete -f manifests/$APPNAME-$VERSION-deploy.yaml
+eksdemo uninstall policy kyverno -c $EKS_CLUSTER1_NAME
+kubectl --context $EKS_CLUSTER1_CONTEXT delete ns kyverno
 
-export GATEWAY_NAME=app-services-gw
-export GATEWAY_NAMESPACE=app-services-gw
-kubectl  --context $EKS_CLUSTER1_CONTEXT delete -f manifests/$GATEWAY_NAME.yaml
-kubectl  --context $EKS_CLUSTER1_CONTEXT delete -f manifests/gatewayclass.yaml
-
-cd ~/environment/aws-application-networking-k8s
-kubectl  --context $EKS_CLUSTER1_CONTEXT delete -f manifests/gatewayclass.yaml
-kubectl --context $EKS_CLUSTER1_CONTEXT delete -f examples/deploy-namesystem.yaml
+eksdemo uninstall external-dns -c $EKS_CLUSTER1_NAME -D
+kubectl --context $EKS_CLUSTER1_CONTEXT delete ns external-dns
 ```

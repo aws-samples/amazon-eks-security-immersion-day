@@ -7,6 +7,8 @@ In this section, we will create multiple template files, which we will be using 
 
 ## Create template for Gateway 
 
+This will create a template file to later create `Namespace` and `Gateway` Kubernetes objects. The Gateway  will have HTTP and HTTPS listeners, and HTTPS listenet with custom domain that will terminate TLS using associated ACM certificate.
+
 ```bash
 cat > templates/gateway-template.yaml <<EOF
 apiVersion: v1
@@ -29,8 +31,6 @@ spec:
       kinds:
       - kind: HTTPRoute
       namespaces:
-        #from: Same
-        #from: All
         from: Selector
         selector:
           matchLabels:
@@ -42,8 +42,6 @@ spec:
       kinds:
       - kind: HTTPRoute
       namespaces:
-        #from: Same
-        #from: All
         from: Selector
         selector:
           matchLabels:
@@ -55,8 +53,6 @@ spec:
       kinds:
       - kind: HTTPRoute
       namespaces:
-        #from: Same
-        #from: All
         from: Selector
         selector:
           matchLabels:
@@ -69,6 +65,13 @@ EOF
 ```
 
 ## Create template for K8s Application Deployment & Service.  
+
+This template will be used to create our applications:
+- Namespace
+- Deployment
+- Service
+
+There are commended sections that will be enabled on generated applications manifests when required.
 
 ```bash
 cat > templates/app-template.yaml <<EOF
@@ -98,10 +101,15 @@ spec:
     spec:
       containers:
       - name: \$APPNAME-\$VERSION
-        image: public.ecr.aws/seb-demo/http-server:latest
+        image: public.ecr.aws/seb-demo/http-server:v1.10
         env:
         - name: PodName
           value: "Hello from \$APPNAME-\$VERSION"
+#addcacert        - name: CA_ARN
+#addcacert          value: "\$CA_ARN"
+        securityContext:
+          runAsUser: 0
+          runAsGroup: 1000          
 #addprestop        lifecycle:
 #addprestop          preStop:
 #addprestop            exec:
@@ -131,7 +139,11 @@ spec:
 EOF
 ```
 
-## Create Template for HTTPRoute with Default Domain and HTTP Listener
+## Create Template for HTTPRoute
+
+Then we create different `HTTPRoute` templates that we will use to demonstrate VPC lattice use cases, with some `IAMAuthPolicy` in some case that will configure the Authentication policy we want to be applied on VPC Lattice services.
+
+### Create Template for HTTPRoute with Default Domain and HTTP Listener
 
 ```bash
 cat > templates/route-template-http-default-domain.yaml <<EOF
@@ -158,7 +170,7 @@ spec:
 EOF
 ```
 
-## Create Template for HTTPRoute with Default Domain and HTTPS Listener
+### Create Template for HTTPRoute with Default Domain and HTTPS Listener
 
 ```bash
 cat > templates/route-template-https-default-domain.yaml  <<EOF
@@ -189,7 +201,7 @@ spec:
 EOF
 ```
 
-## Create Template for HTTPRoute with Custom Domain and HTTPS Listener and Create IAMAuthPolicy
+### Create Template for HTTPRoute with Custom Domain and HTTPS Only Listener and Create IAMAuthPolicy
 
 ```bash
 cat > templates/route-template-https-custom-domain.yaml  <<EOF
@@ -202,10 +214,6 @@ spec:
   hostnames:
   - \$APPNAME.\$CUSTOM_DOMAIN_NAME
   parentRefs:
-  - kind: Gateway
-    name: \$GATEWAY_NAME
-    namespace: \$GATEWAY_NAMESPACE  
-    sectionName: http-listener
   - kind: Gateway
     name: \$GATEWAY_NAME
     namespace: \$GATEWAY_NAMESPACE  
@@ -247,7 +255,9 @@ spec:
                             "vpc-lattice-svcs:SourceVpc": [
                                 "\$EKS_CLUSTER1_VPC_ID",
                                 "\$EKS_CLUSTER2_VPC_ID"
-                            ]
+                            ],
+                            "aws:PrincipalTag/eks-cluster-name": "\$SOURCE_CLUSTER",
+                            "aws:PrincipalTag/kubernetes-namespace": "\$SOURCE_NAMESPACE"                             
                         }
                     }                    
                 }
@@ -257,7 +267,7 @@ EOF
 ```
 
 
-## Create Template for HTTPRoute with Custom Domain and HTTPS Listener and Weighted Routing, and ServiceImport
+### Create Template for HTTPRoute with Custom Domain and HTTPS Listener and Weighted Routing, and ServiceImport
 
 ```bash
 cat > templates/route-template-http-custom-domain-weighted.yaml  <<EOF
@@ -316,7 +326,9 @@ spec:
                             "vpc-lattice-svcs:SourceVpc": [
                                 "\$EKS_CLUSTER1_VPC_ID",
                                 "\$EKS_CLUSTER2_VPC_ID"
-                            ]
+                            ],
+                            "aws:PrincipalTag/eks-cluster-name": "\$SOURCE_CLUSTER",
+                            "aws:PrincipalTag/kubernetes-namespace": "\$SOURCE_NAMESPACE"
                         }
                     }                    
                 }

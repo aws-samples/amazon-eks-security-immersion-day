@@ -7,12 +7,13 @@ weight : 11
 In this section, we will test service connectivity from `app5` in second EKS Cluster to `app1` in the first EKS Cluster.
 
 ![](/static/images/6-network-security/2-vpc-lattice-service-access/lattice-usecase6.png)
-- We redeploy app1 with Authentication and custom domain name
+- We redeploy app1 with Authentication and custom domain name on HTTPS
 - Gateway api controller will create a `DNSEndpoint` object based on the wanted domain name
 - We add External-DNS to create DNS records from the HTTPRoute object
 - VPC Lattice will deal with TLS termination of our custom domain name, thanks to the Certificat we attached to the `app-service-gw`Gateway.
 - We configure app5 with PodIdentity so it has appropriate IAM role to sign request using sigv4
 - We also need to associate our Route53 private domain name with VPC of cluster2 so that it can resolve names from it
+- We create a kyverno clusterpolicy so that app5 will have the envoy proxy for sigv4 signing.
 
 ## Test Service Connectivity from `app5` to `app1` with HTTPS and custom Lattice Domain, and IAM Auth policy enabled
 
@@ -21,6 +22,8 @@ In this section, we will test service connectivity from `app5` in second EKS Clu
 ```bash
 export APPNAME=app1
 export VERSION=v1
+export SOURCE_CLUSTER=$EKS_CLUSTER2_NAME
+export SOURCE_NAMESPACE=app5
 #First we delete the route, to recreate it with custom domain
 kubectl --context $EKS_CLUSTER1_CONTEXT delete -f manifests/$APPNAME-http-default-domain.yaml
 #Then we recreate it
@@ -30,7 +33,7 @@ kubectl --context $EKS_CLUSTER1_CONTEXT apply -f manifests/$APPNAME-https-custom
 kubectl --context $EKS_CLUSTER1_CONTEXT  wait --for=jsonpath='{.status.parents[-1:].conditions[-1:].reason}'=ResolvedRefs httproute/$APPNAME -n $APPNAME
 ```
 
-> Check app1 has been upgraded, with a custom domain name defined, associated CNAME record created in our private Route 53 Hosted zone, and that IAM Auth Policy has been configured to only include flows from VPC1 and VPC2.
+> Check app1 has been upgraded, with a custom domain name defined, associated CNAME record created in our private Route 53 Hosted zone, and that IAM Auth Policy has been configured to only include flows from VPC1 and VPC2, and to allow flows from EKS cluster 2 from app5 namespace.
 
 ### 2. Configure app5 with a Pod Identity so that it can sign requests for VPC Lattice
 
@@ -132,6 +135,10 @@ Address: fd00:ec2:80::a9fe:ab41
 ```
 ::::
 
+::alert[It can take few minutes for DNS to propagate]{header="Note"}
+
+
+
 ### 8. Exec into an `app5-v1` pod to check connectivity to `app1` service using custom domain on `HTTPS` listener.
 
 You can check you have proper Identity in the app5
@@ -144,8 +151,8 @@ kubectl --context $EKS_CLUSTER2_CONTEXT exec -it deploy/app5-v1 -n app5 -c app5-
 ```
 {
     "UserId": "AROAVR5MHJVYTH5XQCUZ7:eks-eksworksho-app5-v1-5d-b1844cc2-f35b-45a7-a0a4-c6245b9bceb4",
-    "Account": "382076407153",
-    "Arn": "arn:aws:sts::382076407153:assumed-role/aws-sigv4-client/eks-eksworksho-app5-v1-5d-b1844cc2-f35b-45a7-a0a4-c6245b9bceb4"
+    "Account": "012345678910",
+    "Arn": "arn:aws:sts::012345678910:assumed-role/aws-sigv4-client/eks-eksworksho-app5-v1-5d-b1844cc2-f35b-45a7-a0a4-c6245b9bceb4"
 }
 ```
 
@@ -156,18 +163,16 @@ kubectl --context $EKS_CLUSTER2_CONTEXT exec -it deploy/app5-v1 -n app5 -c app5-
 You can also watch the logs of the pod identity controller:
 
 ```bash
-kubectl stern -n kube-system eks-pod-identity-agent
+kubectl stern --context $EKS_CLUSTER2_CONTEXT -n kube-system eks-pod-identity-agent
 ```
 
-Finally Call App1
-
-kubectl --context $EKS_CLUSTER_CONTEXT create configmap -n app5 app-root-cert --from-file=/home/ec2-user/environment/manifests/root_cert.pem
+Finally Call App1:
 
 ```bash
 kubectl --context $EKS_CLUSTER2_CONTEXT exec -it deploy/app5-v1 -n app5 -c app5-v1 -- /bin/bash -c '\
 TOKEN=$(cat $AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE) && \
 STS=$(curl -s 169.254.170.23/v1/credentials -H "Authorization: $TOKEN") && \
-curl -s --cacert /cert/root_cert.pem --aws-sigv4 "aws:amz:${AWS_REGION}:vpc-lattice-svcs" --user $(echo $STS | jq ".AccessKeyId" -r):$(echo $STS | jq ".SecretAccessKey" -r) -H "x-amz-content-sha256: UNSIGNED-PAYLOAD" -H "x-amz-security-token: $(echo $STS | jq ".Token" -r)" \
+curl -s -k --aws-sigv4 "aws:amz:${AWS_REGION}:vpc-lattice-svcs" --user $(echo $STS | jq ".AccessKeyId" -r):$(echo $STS | jq ".SecretAccessKey" -r) -H "x-amz-content-sha256: UNSIGNED-PAYLOAD" -H "x-amz-security-token: $(echo $STS | jq ".Token" -r)" \
 'https://app1.vpc-lattice-custom-domain.io
 ```
 
@@ -178,31 +183,6 @@ Requsting to Pod(app1-v1-c86d54576-qzjqn): Hello from app1-v1
 ```
 ::::
 
-Did you notice that the curl command failed with timed out error?
-
-::alert[You were able to connect to cluster 1 from cluster 2 in TLS and using IAM policies.]{header="Note"}
-
-
-
-## Test Service Connectivity from `app5` to `app4` with HTTPS and Custom Domain 
-
-
-Following the same, features, we can also connect to app4
-
-
-7. Exec into an `app5-v1` pod to check connectivity again to `app4` service using custom domain at `HTTPS` listener, along with Root CA certificate.
-
-
-```bash
-kubectl --context $EKS_CLUSTER2_CONTEXT exec -it deploy/app5-v1 -n app5 -c app5-v1 -- /bin/bash -c 'TOKEN=$(cat $AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE) && STS=$(curl 169.254.170.23/v1/credentials -H "Authorization: $TOKEN") && curl --cacert /cert/root_cert.pem --aws-sigv4 "aws:amz:${AWS_REGION}:vpc-lattice-svcs" --user $(echo $STS | jq ".AccessKeyId" -r):$(echo $STS | jq ".SecretAccessKey" -r) -H "x-amz-content-sha256: UNSIGNED-PAYLOAD" -H "x-amz-security-token: $(echo $STS | jq ".Token" -r)" 'https://app4.vpc-lattice-custom-domain.io
-```
-
-We should now see the proper response from the `app4`.
-
-::::expand{header="Check Output"}
-```
-Requsting to Pod(app4-v1-77dcb6444c-mfjv2): Hello from app4-v1
-::::
 
 :::::alert{type="info" header="Congratulation!!"}
 You have managed to have TLS connection in both way with IAM signature verification

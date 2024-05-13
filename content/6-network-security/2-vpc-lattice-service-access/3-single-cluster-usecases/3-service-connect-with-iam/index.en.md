@@ -16,7 +16,7 @@ To configure Service access controls, you can use access policies. An access pol
 
 We need to first configure the Auth type for Service network `app-services-gw` to `AWS_IAM` and then configure Auth Access policy.
 
-We are going to associate an IAM Auth Policy with our VPC lattice service network. The rule we are going to put is to not accept unauthenticated traffic. To know more about configurations options, you can look at the [documentation](https://docs.aws.amazon.com/vpc-lattice/latest/ug/auth-policies.html).
+We are going to associate an IAM Auth Policy with our VPC lattice service network. The rule we are going to put is to not accept unauthenticated traffic, and to only accept requests from the 2 VPCs we created. To know more about configurations options, you can look at the [documentation](https://docs.aws.amazon.com/vpc-lattice/latest/ug/auth-policies.html).
 
 :::::tabs{variant="container"}
 
@@ -44,6 +44,12 @@ spec:
                 "Principal": "*",
                 "Resource": "*",
                 "Condition": {
+                    "StringEquals": {
+                        "vpc-lattice-svcs:SourceVpc": [
+                            "\$EKS_CLUSTER1_VPC_ID",
+                            "\$EKS_CLUSTER2_VPC_ID"
+                        ]
+                    },                 
                     "StringNotEqualsIgnoreCase": {
                         "aws:PrincipalType": "anonymous"
                     }
@@ -90,6 +96,12 @@ cat > manifests/service-network-policy.json <<EOF
         "Principal": "*",
         "Resource": "*",
         "Condition": {
+            "StringEquals": {
+                "vpc-lattice-svcs:SourceVpc": [
+                    "$EKS_CLUSTER1_VPC_ID",
+                    "$EKS_CLUSTER2_VPC_ID"
+                ]
+            },                 
             "StringNotEqualsIgnoreCase": {
                 "aws:PrincipalType": "anonymous"
             }
@@ -107,7 +119,7 @@ aws vpc-lattice put-auth-policy \
 ::::expand{header="Check Output"}
 ```json
 {
-    "policy": "{\"Version\":\"2008-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":\"*\",\"Action\":\"vpc-lattice-svcs:Invoke\",\"Resource\":\"*\",\"Condition\":{\"StringNotEqualsIgnoreCase\":{\"aws:PrincipalType\":\"anonymous\"}}}]}",
+    "policy": "{\"Version\":\"2008-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":\"*\",\"Action\":\"vpc-lattice-svcs:Invoke\",\"Resource\":\"*\",\"Condition\":{\"StringEquals\":{\"vpc-lattice-svcs:SourceVpc\":[\"vpc-0bf4d6ef77964c6dd\",\"vpc-0f843979491022d91\"]},\"StringNotEqualsIgnoreCase\":{\"aws:PrincipalType\":\"anonymous\"}}}]}",
     "state": "Active"
 }
 ```
@@ -115,12 +127,12 @@ aws vpc-lattice put-auth-policy \
 
 ::::tab{id="console" label="Using AWS Console"}
 
-1. Go to VPC Lattice Service network `app-services-gw` under **Access** tab in the [Amazon VPC Console](https://us-west-2.console.aws.amazon.com/vpc/home?region=us-west-2#ServiceNetworks:), Under  **Access** tab, and then on **Edit access settings**, select **AWS IAM**, then select **Apply policy template** > **Allow only authenticated access**, Then Click on **Save Changes**.
+1. Go to VPC Lattice Service network `app-services-gw` under **Access** tab in the [Amazon VPC Console](https://console.aws.amazon.com/vpc/home#ServiceNetworks), Under **Access** tab, and then on **Edit access settings**, select **AWS IAM**, then select **Apply policy template** > **Allow only authenticated access**, Then Click on **Save Changes**.
 
 
 ![gw-access-auth.png](/static/images/6-network-security/2-vpc-lattice-service-access/gw-access-auth.png)
 
-2. Go to VPC Lattice Service `app-services-gw` under **Access** tab in the [Amazon VPC Console](https://us-west-2.console.aws.amazon.com/vpc/home?region=us-west-2#ServiceNetworks:), Under  **Access** tab, and then on **Edit access settings**, select **AWS IAM**, then select **Apply policy template** > **Allow only authenticated access**, Then Click on **Save Changes**.
+2. Go to VPC Lattice Service `app-services-gw` under **Access** tab in the [Amazon VPC Console](https://console.aws.amazon.com/vpc/home#ServiceNetworks), Under **Access** tab, and then on **Edit access settings**, select **AWS IAM**, then select **Apply policy template** > **Allow only authenticated access**, Then Click on **Save Changes**.
 
 
 ![service-network-auth-policy.png](/static/images/6-network-security/2-vpc-lattice-service-access/service-network-auth-policy.png)
@@ -137,15 +149,15 @@ echo gatewayID=$gatewayID && echo "ServicenetworkAccessPolicy=$ServicenetworkAcc
 ```
 
 ::::expand{header="Check Output" defaultExpanded=true}
-```json
-gatewayID=sn-0c8e9eeb6d6b0dc9c
+:::code{language=json showCopyAction=false showLineNumbers=false highlightLines='5'}
+gatewayID=sn-04465559b0fb4a4b7
 ServicenetworkAccessPolicy={
-    "createdAt": "2024-02-07T18:05:18.518000+00:00",
-    "lastUpdatedAt": "2024-02-07T18:05:18.670000+00:00",
-    "policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":\"*\",\"Action\":\"vpc-lattice-svcs:Invoke\",\"Resource\":\"*\",\"Condition\":{\"StringNotEqualsIgnoreCase\":{\"aws:PrincipalType\":\"anonymous\"}}}]}",
+    "createdAt": "2024-04-15T14:41:39.084000+00:00",
+    "lastUpdatedAt": "2024-04-15T14:45:21.321000+00:00",
+    "policy": "{\"Version\":\"2008-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":\"*\",\"Action\":\"vpc-lattice-svcs:Invoke\",\"Resource\":\"*\",\"Condition\":{\"StringEquals\":{\"vpc-lattice-svcs:SourceVpc\":[\"vpc-0bf4d6ef77964c6dd\",\"vpc-0f843979491022d91\"]},\"StringNotEqualsIgnoreCase\":{\"aws:PrincipalType\":\"anonymous\"}}}]}",
     "state": "Active"
 }
-```
+:::
 ::::
 
 Now, with that policy on the gateway, VPC lattice will enforce all flow to be signed using [Sigv4](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_aws-signing.html), the same feature uses to reach AWS services.
@@ -165,7 +177,7 @@ AccessDeniedException: User: anonymous is not authorized to perform: vpc-lattice
 
 ## Configure IAM Access Auth policy for Service `app2-app2`
 
-We can even have more granular control over the IAM auth policies associated with each VPC lattice services. Let's add a policy to restrict traffic only from our 2 VPC of our 2 EKS clusters.
+We can even have more granular control over the IAM auth policies associated with each VPC lattice services. Let's add a policy to restrict traffic **only from our VPC and from our app1 namespace in cluster 1**.
 
 :::::tabs{variant="container"}
 
@@ -176,7 +188,8 @@ Create a new IAM Auth Policy for the service app2:
 ```bash
 export APPNAME=app2
 export VERSION=v1
-export SOURCENAMESPACE=app1
+export SOURCE_CLUSTER=$EKS_CLUSTER1_NAME
+export SOURCE_NAMESPACE=app1
 cat << EOF > ~/environment/templates/app-iam-auth-policy.yaml
 apiVersion: application-networking.k8s.aws/v1alpha1
 kind: IAMAuthPolicy
@@ -207,7 +220,9 @@ spec:
                             "vpc-lattice-svcs:SourceVpc": [
                                 "\$EKS_CLUSTER1_VPC_ID",
                                 "\$EKS_CLUSTER2_VPC_ID"
-                            ]                      
+                            ],
+                            "aws:PrincipalTag/eks-cluster-name": "\$SOURCE_CLUSTER",
+                            "aws:PrincipalTag/kubernetes-namespace": "\$SOURCE_NAMESPACE"                                              
                         }                    
                     }
                 }
@@ -219,16 +234,6 @@ c9  ~/environment/manifests/${APPNAME}-iam-auth-policy.yaml
 kubectl --context $EKS_CLUSTER1_CONTEXT apply -f ~/environment/manifests/${APPNAME}-iam-auth-policy.yaml
 ```
 
-<!--  Trying to make use of PodIdentity Session tags                          
-                            "aws:PrincipalTag/AllowTag": "true",
-                            "aws:ResourceTag/eks-cluster-name": "\$EKS_CLUSTER1_NAME",
-                            "aws:ResourceTag/k8s-namespace": "\$SOURCENAMESPACE"
-                        },
-                        "StringNotEqualsIgnoreCase": {
-                            "aws:PrincipalType": "anonymous"
-                        }
--->  
-
 ::::
 
 ::::tab{id="cli" label="Using AWS CLI"}
@@ -236,6 +241,15 @@ kubectl --context $EKS_CLUSTER1_CONTEXT apply -f ~/environment/manifests/${APPNA
 Run below commands to configure the Access Auth policy for Service `app2-app2`
 
 ```bash
+services=$(aws vpc-lattice list-services)
+service=$(echo $services | jq '.items[] | select(.name == "app2-app2")') 
+export APP2_SERVICE_ID=$(echo $service | jq -r '.id')
+echo APP2_SERVICE_ID=$APP2_SERVICE_ID
+```
+
+```bash
+export SOURCE_CLUSTER=$EKS_CLUSTER1_NAME
+export SOURCE_NAMESPACE=app1
 cat > manifests/service-policy.json <<EOF
 {
     "Version": "2008-10-17",
@@ -250,7 +264,9 @@ cat > manifests/service-policy.json <<EOF
                     "vpc-lattice-svcs:SourceVpc": [
                         "$EKS_CLUSTER1_VPC_ID",
                         "$EKS_CLUSTER2_VPC_ID"
-                    ]
+                    ],
+                    "aws:PrincipalTag/eks-cluster-name": "$SOURCE_CLUSTER",
+                    "aws:PrincipalTag/kubernetes-namespace": "$SOURCE_NAMESPACE"                    
                 }
             }
         }
@@ -263,12 +279,11 @@ aws vpc-lattice put-auth-policy \
 ```
 
 ::::expand{header="Check Output"}
-```json
+:::code{language=json showCopyAction=false showLineNumbers=false highlightLines='2'}
 {
-    "policy": "{\"Version\":\"2008-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":\"*\",\"Action\":\"vpc-lattice-svcs:Invoke\",\"Resource\":\"*\",\"Condition\":{\"StringEquals\":{\"vpc-lattice-svcs:SourceVpc\":[\"vpc-0bacccb5d3d4d9cb5\",\"vpc-0eb911dff9689afb6\"]}}}]}",
+    "policy": "{\"Version\":\"2008-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":\"*\",\"Action\":\"vpc-lattice-svcs:Invoke\",\"Resource\":\"*\",\"Condition\":{\"StringEquals\":{\"vpc-lattice-svcs:SourceVpc\":[\"vpc-0bf4d6ef77964c6dd\",\"vpc-0f843979491022d91\"],\"aws:PrincipalTag/AllowTag\":\"true\",\"aws:PrincipalTag/eks-cluster-name\":\"$SOURCE_CLUSTER\",\"aws:PrincipalTag/k8s-namespace\":\"$SOURCE_NAMESPACE\"}}}]}",
     "state": "Active"
 }
-```
 ::::
 
 ::::tab{id="console" label="Using AWS Console"}
@@ -279,7 +294,29 @@ Go to VPC Lattice Service `app2-app2` under **Access** tab in the [Amazon VPC Co
 
 ![app2-enable-iam](/static/images/6-network-security/2-vpc-lattice-service-access/app2-enable-iam.png)
 
-Go to VPC Lattice Service `app2-app2` under **Access** tab in the [Amazon VPC Console](https://us-west-2.console.aws.amazon.com/vpc/home?region=us-west-2#Services:), Under  **Access** tab, and then on **Edit access settings**, select **AWS IAM**, then select **Apply policy template** > **Allow only authenticated access**, Then Click on **Save Changes**.
+Go to VPC Lattice Service `app2-app2` under **Access** tab in the [Amazon VPC Console](https://us-west-2.console.aws.amazon.com/vpc/home?region=us-west-2#Services:), Under  **Access** tab, and then on **Edit access settings**, select **AWS IAM**, then select **Apply policy template** > **Paste the following policy**, Then Click on **Save Changes**.
+
+Use this Policy:
+
+```bash
+{
+    "Version": "2008-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": "vpc-lattice-svcs:Invoke",
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "aws:PrincipalTag/eks-cluster-name": "eksworkshop-eksctl",
+                    "aws:PrincipalTag/kubernetes-namespace": "app1"                    
+                }
+            }
+        }
+    ]
+}
+```
 
 
 ![app2-auth-policy.png](/static/images/6-network-security/2-vpc-lattice-service-access/app2-auth-policy.png)
@@ -301,3 +338,5 @@ The output indicates the Access denied as expected.
 ```bash
 AccessDeniedException: User: anonymous is not authorized to perform: vpc-lattice-svcs:Invoke on resource: arn:aws:vpc-lattice:us-west-2:ACCOUNT_ID:service/svc-0e5f3d2b3db4c7962/ because no network-based policy allows the vpc-lattice-svcs:Invoke action
 ```
+
+
