@@ -95,12 +95,104 @@ pod/scp-test-pod created
 ```
 ::::
 
+Confirm the profile was applied correctly to the pod by running the following command:
 
+```bash
+kubectl get pod scp-test-pod --output=jsonpath='{.spec.securityContext}' | jq .
+```
 
+::::expand{header="Check Output"}
+```bash
+{
+  "seccompProfile": {
+    "localhostProfile": "operator/scp-ns/profile1.json",
+    "type": "Localhost"
+  }
+}
+```
+::::
 
+### Binding workloads to profiles with ProfileBindings
 
+You can use the `ProfileBinding` resource to bind a security profile to the `SecurityContext` of a container.
 
+To bind a pod that uses a `public.ecr.aws/nginx/nginx-unprivileged:stable-bullseye-perl` image to the example `SeccompProfile` profile, create a `ProfileBinding` object in the same namespace with the pod and the `SecurityProfile` objects:
 
+```bash
+cat > ~/environment/profile-binding-template.yaml <<EOF
+apiVersion: security-profiles-operator.x-k8s.io/v1alpha1
+kind: ProfileBinding
+metadata:
+  namespace: \$SCP_NS
+  name: nginx-binding
+spec:
+  profileRef:
+    kind: SeccompProfile 
+    name: \$SP_NAME
+  image: public.ecr.aws/nginx/nginx-unprivileged:stable-bullseye-perl
+EOF
+```
+
+```bash
+envsubst < ~/environment/profile-binding-template.yaml > ~/environment/scp-profile-binding.yaml
+kubectl apply -f ~/environment/scp-profile-binding.yaml
+```
+
+::::expand{header="Check Output"}
+```bash
+profilebinding.security-profiles-operator.x-k8s.io/nginx-binding created
+```
+::::
+
+Label the namespace with `enable-binding=true` by running the following command:
+
+```bash
+kubectl label ns $SCP_NS spo.x-k8s.io/enable-binding=true
+```
+
+::::expand{header="Check Output"}
+```bash
+namespace/scp-ns labeled
+```
+::::
+
+Define a pod named `test-scp-binding-pod.yaml`
+
+```bash
+cat > ~/environment/test-scp-binding-pod.yaml <<EOF
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-scp-binding-pod
+  namespace: scp-ns
+spec:
+  containers:
+    - name: test-container
+      image: public.ecr.aws/nginx/nginx-unprivileged:stable-bullseye-perl
+EOF
+```
+
+Create the pod:
+
+```bash
+kubectl create -f ~/environment/test-scp-binding-pod.yaml 
+```
+
+`Note: If the pod already exists, you must re-create the pod for the binding to work properly.`
+
+Confirm the pod inherits the `ProfileBinding` by running the following command:
+
+```bash
+kubectl get pods test-scp-binding-pod -n $SCP_NS -o jsonpath='{.spec.containers[*].securityContext.seccompProfile}' | jq .
+```
+
+::::expand{header="Check Output"}
+```bash
+{
+  "localhostProfile": "operator/scp-ns/profile1.json",
+  "type": "Localhost"
+}
+```
+::::
 
 This completes the SPO setup on Amazon EKS cluster.
-
