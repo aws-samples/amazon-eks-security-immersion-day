@@ -195,4 +195,42 @@ kubectl get pods test-scp-binding-pod -n $SCP_NS -o jsonpath='{.spec.containers[
 ```
 ::::
 
-This completes the SPO setup on Amazon EKS cluster.
+### Recording profiles from workloads
+
+The Security Profiles Operator can record system calls with `ProfileRecoding` objects, making it easier to create baseline profiles for applications. 
+
+When using the log enricher for recording seccomp profiles, verify that log enricher feature is enabled. 
+
+## Using the log enricher
+
+The operator ships with a log enrichment feature, which is disabled by default. The reason for that is the log enricher container runs in previleged mode to be able to read the audit logs from the cluster nodes. One of the following requirements to the Kubernetes nodes is to have [auditd](https://man7.org/linux/man-pages/man8/auditd.8.html) installed and run.
+
+## Install `auditd` on Kubernetes nodes
+
+
+Run below command to install `auditd` onto the Kubernetes worker nodes:
+
+```bash
+# Get the list of node names
+nodes=$(kubectl get nodes -o custom-columns=NAME:.metadata.name | tail -n +2)
+
+# Loop through each node to find its EC2 instance ID
+instance_ids=()
+for node in $nodes; do
+  # Get the instance ID from the node's label
+  instance_id=$(kubectl get node $node -o jsonpath='{.spec.providerID}' | cut -d'/' -f5)
+  instance_ids+=($instance_id)
+done
+
+# Convert the instance_ids array to a space-separated string
+instance_ids_str=$(IFS=' ' ; echo "${instance_ids[*]}")
+
+# Send a command to uninstall chronicled and install auditd on all instances
+aws ssm send-command \
+  --instance-ids $instance_ids_str \
+  --document-name "AWS-RunShellScript" \
+  --comment "Uninstalling chronicled and installing auditd" \
+  --parameters commands="sudo yum remove -y chronicled; sudo yum install -y audit; sudo systemctl start auditd" \
+  --timeout-seconds 600 \
+  --region us-west-2
+```
