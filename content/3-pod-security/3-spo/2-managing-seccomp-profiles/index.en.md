@@ -203,7 +203,9 @@ When using the log enricher for recording seccomp profiles, verify that log enri
 
 ## Using the log enricher
 
-The operator ships with a log enrichment feature, which is disabled by default. The reason for that is the log enricher container runs in previleged mode to be able to read the audit logs from the cluster nodes. One of the following requirements to the Kubernetes nodes is to have [auditd](https://man7.org/linux/man-pages/man8/auditd.8.html) installed and run.
+The operator ships with a log enrichment feature, which is disabled by default. The reason for that is the log enricher container runs in previleged mode to be able to read the audit logs from the cluster nodes. 
+
+In order for log enricher to work properly, we need to have [auditd](https://man7.org/linux/man-pages/man8/auditd.8.html) installed and run on all worker nodes.
 
 ## Install `auditd` on Kubernetes nodes
 
@@ -233,4 +235,63 @@ aws ssm send-command \
   --parameters commands="sudo yum remove -y chronicled; sudo yum install -y audit; sudo systemctl start auditd" \
   --timeout-seconds 600 \
   --region us-west-2
+```
+
+::::expand{header="Check Output"}
+```bash
+{
+    "Command": {
+        "CommandId": "c76bf068-feca-48ad-a225-fd62697f3109",
+        "DocumentName": "AWS-RunShellScript",
+        "DocumentVersion": "$DEFAULT",
+        "Comment": "Uninstalling chronicled and installing auditd",
+        "ExpiresAfter": "2024-05-21T23:15:18.791000+00:00",
+        "Parameters": {
+            "commands": [
+                "sudo yum remove -y chronicled; sudo yum install -y audit; sudo systemctl start auditd"
+            ]
+        },
+        "InstanceIds": [],
+        "Targets": [],
+        "RequestedDateTime": "2024-05-21T22:05:18.791000+00:00",
+        "Status": "Pending",
+        "StatusDetails": "Pending",
+        "OutputS3Region": "us-west-2",
+        "OutputS3BucketName": "",
+        "OutputS3KeyPrefix": "",
+        "MaxConcurrency": "50",
+        "MaxErrors": "0",
+        "TargetCount": 0,
+        "CompletedCount": 0,
+        "ErrorCount": 0,
+        "DeliveryTimedOutCount": 0,
+        "ServiceRole": "",
+        "NotificationConfig": {
+            "NotificationArn": "",
+            "NotificationEvents": [],
+            "NotificationType": ""
+        },
+        "CloudWatchOutputConfig": {
+            "CloudWatchLogGroupName": "",
+            "CloudWatchOutputEnabled": false
+        },
+        "TimeoutSeconds": 600,
+        "AlarmConfiguration": {
+            "IgnorePollAlarmFailure": false,
+            "Alarms": []
+        },
+        "TriggeredAlarms": []
+    }
+}
+```
+
+## Enable log enricher feature:
+
+```
+kubectl -n security-profiles-operator patch spod spod --type=merge -p '{"spec":{"enableLogEnricher":true}}'
+```
+
+::::expand{header="Check Output"}
+```bash
+securityprofilesoperatordaemon.security-profiles-operator.x-k8s.io/spod patched
 ```
