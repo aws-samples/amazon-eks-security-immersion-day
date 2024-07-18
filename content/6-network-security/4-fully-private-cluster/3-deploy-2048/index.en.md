@@ -50,7 +50,7 @@ public.ecr.aws/l6m2t8p7/docker-2048                            latest    eb0a3a8
 Tag the image that you pulled with your registry, repository, and tag. Use the eb0a3a80a5dd image id from the previous command
 
 ```bash
-docker tag eb0a3a80a5dd 728428212153.dkr.ecr.ap-south-1.amazonaws.com/docker-2048
+docker tag eb0a3a80a5dd $ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/docker-2048
 ```
 
 
@@ -72,12 +72,12 @@ docker push $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/docker-2048
 
 - Edit the file and find the line that says alb.ingress.kubernetes.io/scheme: internet-facing.
 - Change internet-facing to internal and save the file.
-- Also change the public image repository url "image: public.ecr.aws/l6m2t8p7/docker-2048:latest" to "image:728428212153.dkr.ecr.ap-south-1.amazonaws.com/docker-2048:latest"
+- Also change the public image repository url "image: public.ecr.aws/l6m2t8p7/docker-2048:latest" to "image:$ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/docker-2048:latest"
 - Apply the manifest to your cluster.
 
 ```bash
 sed -i 's/internet-facing/internal' 2048_full.yaml
-sed -i 's/public.ecr.aws\/l6m2t8p7/728428212153.dkr.ecr.ap-south-1.amazonaws.com' 2048_full.yaml
+sed -i 's/public.ecr.aws\/l6m2t8p7/$ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com' 2048_full.yaml
 ```
 
 

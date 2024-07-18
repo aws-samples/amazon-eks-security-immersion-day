@@ -66,11 +66,11 @@ aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values
 We would use Private Subnets on AZ "a","b" and "c" for creating the EKS Cluster worker nodes and another Subnet in AZ "c" for Private Cloud9 instance. We would set the following environment vairables from the values in the above output table.
 
 ```bash
-export AZ1_SUBNET=subnet-051cc8911bb59cd8d
-export AZ2_SUBNET=subnet-0904b546818687aef
-export AZ3_SUBNET=subnet-0f0dbfbe773d48d6b
-export CLOUD9_SUBNET=subnet-0f0dbfbe773d48d6b
-export CLUSTER_VPC=vpc-02cc579cdd679aa3c
+export AZ1_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=ap-south-1a --query "Subnets[*].[SubnetId]" --output text)
+export AZ2_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=ap-south-1b --query "Subnets[*].[SubnetId]" --output text)
+export AZ3_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=ap-south-1c --query "Subnets[*].[SubnetId]" --output text)
+export CLOUD9_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=ap-south-1c --query "Subnets[*].[SubnetId]" --output text)
+export CLUSTER_VPC=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=ap-south-1c --query "Subnets[*].[VpcId]" --output text)
 ```
 
 
@@ -192,11 +192,11 @@ Run below commands to set few environment variables. Please fetch the subnet and
 export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
 export AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
 export AZS=($(aws ec2 describe-availability-zones --query 'AvailabilityZones[].ZoneName' --output text --region $AWS_REGION))
-export AZ1_SUBNET=subnet-051cc8911bb59cd8d
-export AZ2_SUBNET=subnet-0904b546818687aef
-export AZ3_SUBNET=subnet-0f0dbfbe773d48d6b
-export CLOUD9_SUBNET=subnet-0f0dbfbe773d48d6b
-export CLUSTER_VPC=vpc-02cc579cdd679aa3c
+export AZ1_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=ap-south-1a --query "Subnets[*].[SubnetId]" --output text)
+export AZ2_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=ap-south-1b --query "Subnets[*].[SubnetId]" --output text)
+export AZ3_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=ap-south-1c --query "Subnets[*].[SubnetId]" --output text)
+export CLOUD9_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=ap-south-1c --query "Subnets[*].[SubnetId]" --output text)
+export CLUSTER_VPC=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=ap-south-1c --query "Subnets[*].[VpcId]" --output text)
 ```
 
 Check if AWS_REGION is set to desired region
@@ -322,7 +322,7 @@ aws ec2 describe-vpc-endpoints --filter "Name=vpc-id,Values=$CLUSTER_VPC" --quer
 +------------------------+-------------------------------------------------+
 ```
 
-This Wokshop would additionally require these VPC endpoints default. We would be created the same below.
+This Workshop would additionally require these VPC endpoints additionally. We would be creating the same below.
 * elasticloadbalancing - For ALB Controller addon to create ELBs
 * eks - For Cloud9 to privately query EKS Service APIs
 * ssm - EKS Worker nodes to be accessed through SSM without opening SSH ports
@@ -335,7 +335,7 @@ Get the Security group used by the existing VPC Endpoints.
 
 
 ```bash
-export VPCE_SG=(aws ec2 describe-vpc-endpoints --filter Name=vpc-id,Values=$CLUSTER_VPC Name=service-name,Values=*ec2 --query VpcEndpoints[].Groups[].GroupId --output text)
+export VPCE_SG=$(aws ec2 describe-vpc-endpoints --filter Name=vpc-id,Values=$CLUSTER_VPC Name=service-name,Values=*ec2 --query VpcEndpoints[].Groups[].GroupId --output text)
 ```
 
 

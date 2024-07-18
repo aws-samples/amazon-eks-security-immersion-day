@@ -17,7 +17,7 @@ This module would deploy an Amazon EKS cluster that is deployed on the AWS Cloud
 In this module, we would create a fully private EKS cluster and explore its private behaviour. The steps would be as follows.
 
 1. Create the Private EKS cluster
-2. Install the ALB Controller
+2. Install the AWS Load Balancer Controller
 3. Deploy 2048 Sample application in the cluster
 
 # Accessing a private only API Server
