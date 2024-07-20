@@ -9,6 +9,12 @@ Once you have completed this chapter, you can cleanup the files and resources yo
 kubectl delete -f deployment_spec.yaml
 ```
 
+Delete the device plugin, use the following command:
+
+```bash
+kubectl delete -f https://raw.githubusercontent.com/aws/aws-nitro-enclaves-k8s-device-plugin/main/aws-nitro-enclaves-k8s-ds.yaml
+```
+
 Delete the enclave node group
 
 ```bash

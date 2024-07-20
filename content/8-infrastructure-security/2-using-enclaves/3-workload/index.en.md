@@ -5,7 +5,8 @@ weight : 24
 
 ## Package your enclave application
 
-Nitro Enclaves uses Docker images as a convenient file format for packaging your applications. You must build the Docker image that includes your enclave application and any other commands that are needed to run the application. This Docker image will be deployed to the worker node in the following step.
+Nitro Enclaves uses Docker images as a convenient file format for packaging your applications. You must build the Docker image that includes your enclave application and any other commands that are needed to run the application. This Docker [image](https://github.com/aws/aws-nitro-enclaves-cli/tree/main/examples/x86_64/hello) will be deployed to the worker node in the following step.
+
 AWS provides a command line tool, **enclavectl** that automates the steps that are needed to build an enclave image file and to package your enclave image file into a Docker image. Additionally, the tool includes features that automate Amazon EKS cluster and node group creation, and application deployment. For an end-to-end tutorial on how to use the **enclavectl** tool to automate cluster creation, application packaging, and application deployment, see the [aws-nitro-enclaves-with-k8s readme file](https://github.com/aws/aws-nitro-enclaves-with-k8s/blob/main/README.md).
 
 ### Build the image
