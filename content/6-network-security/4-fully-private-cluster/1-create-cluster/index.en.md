@@ -293,6 +293,12 @@ eksctl supports creation of fully-private clusters that have no outbound interne
 
 The only required field to create a fully-private cluster is privateCluster.enabled. Only private nodegroups (both managed and self-managed) are supported in a fully-private cluster because the cluster's VPC is created without any public subnets. The privateNetworking field must be explicitly set. It is an error to leave privateNetworking unset in a fully-private cluster.
 
+
+
+If Karpenter is used for Auto scaling of worker nodes the following considerations are required. 
+https://aws.github.io/aws-eks-best-practices/karpenter/#amazon-eks-private-cluster-without-outbound-internet-access
+
+
 :::code{showCopyAction=true showLineNumbers=false language=yaml}
 privateCluster:
   enabled: true

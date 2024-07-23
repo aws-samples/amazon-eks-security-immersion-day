@@ -29,7 +29,11 @@ aws ec2 describe-vpc-endpoints --filter "Name=vpc-id,Values=$CLUSTER_VPC" --quer
 Note the VPC Endpoints IDs from the table for elasticloadbalancing,ssm,ssmmessages, ec2messages and eks
 
 ```bash
-aws ec2 delete-vpc-endpoints --vpc-endpoint-ids vpce-094bc15d9e29372c0
+aws ec2 delete-vpc-endpoints --vpc-endpoint-ids $(aws ec2 describe-vpc-endpoints --filter "Name=vpc-id,Values=$CLUSTER_VPC" "Name=service-name,Values=com.amazonaws.$AWS_REGION.elasticloadbalancing" --query VpcEndpoints[].[VpcEndpointId] --output text)
+aws ec2 delete-vpc-endpoints --vpc-endpoint-ids $(aws ec2 describe-vpc-endpoints --filter "Name=vpc-id,Values=$CLUSTER_VPC" "Name=service-name,Values=com.amazonaws.$AWS_REGION.eks" --query VpcEndpoints[].[VpcEndpointId] --output text)
+aws ec2 delete-vpc-endpoints --vpc-endpoint-ids $(aws ec2 describe-vpc-endpoints --filter "Name=vpc-id,Values=$CLUSTER_VPC" "Name=service-name,Values=com.amazonaws.$AWS_REGION.ssm" --query VpcEndpoints[].[VpcEndpointId] --output text)
+aws ec2 delete-vpc-endpoints --vpc-endpoint-ids $(aws ec2 describe-vpc-endpoints --filter "Name=vpc-id,Values=$CLUSTER_VPC" "Name=service-name,Values=com.amazonaws.$AWS_REGION.ssmmessages" --query VpcEndpoints[].[VpcEndpointId] --output text)
+aws ec2 delete-vpc-endpoints --vpc-endpoint-ids $(aws ec2 describe-vpc-endpoints --filter "Name=vpc-id,Values=$CLUSTER_VPC" "Name=service-name,Values=com.amazonaws.$AWS_REGION.ec2messages" --query VpcEndpoints[].[VpcEndpointId] --output text)
 ```
 
 ```

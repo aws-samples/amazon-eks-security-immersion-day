@@ -37,20 +37,20 @@ Get the image id for the pulled image
 
 
 ```bash
-docker image ls | grep 2048
+IMAGE_ID=$(docker image public.ecr.aws/l6m2t8p7/docker-2048:latest -q)
 ```
 
 
 ::::expand{header="Check Output"}
 ```
-public.ecr.aws/l6m2t8p7/docker-2048                            latest    eb0a3a80a5dd   2 years ago    9.78MB
+eb0a3a80a5dd
 ```
 ::::
 
-Tag the image that you pulled with your registry, repository, and tag. Use the eb0a3a80a5dd image id from the previous command
+Tag the image that you pulled with your registry, repository, and tag. Use the IMAGE_ID variable as image id from the previous command
 
 ```bash
-docker tag eb0a3a80a5dd $ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/docker-2048
+docker tag $IMAGE_ID $ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/docker-2048
 ```
 
 
