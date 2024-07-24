@@ -4,16 +4,19 @@ version: "3"
 
 #dotenv: [".env", "{{.ENV}}/.env.", "{{.HOME}}/.env"]
 
+#Pre-requisite 
+#code
+
 env:
   REPO: public.ecr.aws/seb-demo
-  NAME: http-server
-  VERSION: v1.10
+  NAME: iptables
+  VERSION: v1
 
 tasks:
   build:
     desc: build docker image
     cmds:
-     - docker build -t ${REPO}/${NAME}:${VERSION} .     
+     - docker build -t ${REPO}/${NAME}:${VERSION} .
 
   ecr-auth:
     desc: Authenticate on public EcrRegistry

@@ -104,7 +104,7 @@ spec:
                 (vpc-lattices-svcs.amazonaws.com/agent-inject): "true"
             spec:
               initContainers: # IPTables rules are updated in init container
-              - image: public.ecr.aws/d2c6w7a3/iptables
+              - image: public.ecr.aws/seb-demo/iptables
                 name: iptables-init
                 securityContext:
                   capabilities:
