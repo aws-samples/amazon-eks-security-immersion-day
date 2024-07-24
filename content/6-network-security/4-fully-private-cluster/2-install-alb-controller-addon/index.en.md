@@ -30,7 +30,7 @@ Download an IAM policy for the AWS Load Balancer Controller that allows it to ma
 
 
 ```bash
-curl -O https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.5.4/docs/install/iam_policy.json
+curl -O https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.6.2/docs/install/iam_policy.json
 ```
 
 
@@ -111,20 +111,20 @@ Get the image id for the pulled image
 
 
 ```bash
-docker image ls | grep alb
+LBC_IMAGE_ID=$(docker image public.ecr.aws/eks/aws-load-balancer-controller:v2.6.2 -q)
 ```
 
 
 ::::expand{header="Check Output"}
 ```
-728428212153.dkr.ecr.ap-south-1.amazonaws.com/alb-controller   v2.6.2    355e20eeb0df   4 weeks ago    73.6MB
+355e20eeb0df
 ```
 ::::
 
 Tag the image that you pulled with your registry, repository, and tag. Use the 355e20eeb0df image id from the previous command
 
 ```bash
-docker tag 355e20eeb0df 728428212153.dkr.ecr.ap-south-1.amazonaws.com/aws-load-balancer-controller:v2.6.2
+docker tag $LBC_IMAGE_ID $ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/aws-load-balancer-controller:v2.6.2
 ```
 
 
@@ -174,14 +174,3 @@ An example output is as follows.
 NAME                           READY   UP-TO-DATE   AVAILABLE   AGE
 aws-load-balancer-controller   2/2     2            2           84s
 :::
-
-
-
-
-
-
-
-
-
-
-

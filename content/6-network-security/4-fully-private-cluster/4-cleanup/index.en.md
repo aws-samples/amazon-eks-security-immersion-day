@@ -61,7 +61,7 @@ eksctl delete cluster --name eksworkshop-eksctl-private
 Delete the Private Cloud9 environment. The below command required the Cloud9 environment id. If you didn't save the ID when you created the environment, the ID can be found by using the AWS Cloud9 console. Select the name of the environment in the console, then find the last part of the Environment ARN.
 
 ```bash
-aws cloud9 delete-environment --region MY-REGION --environment-id <<environment_id>>
+aws cloud9 delete-environment --region $AWS_REGION --environment-id <<environment_id>>
 ```
 
 Delete the CloudFormation stack eks-private-vpc that create the VPC, Private Subnets, NAT Gateway and Internet Gateway

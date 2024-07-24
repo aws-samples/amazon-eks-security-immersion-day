@@ -70,9 +70,8 @@ docker push $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/docker-2048
 ```
 
 
-- Edit the file and find the line that says alb.ingress.kubernetes.io/scheme: internet-facing.
-- Change internet-facing to internal and save the file.
-- Also change the public image repository url "image: public.ecr.aws/l6m2t8p7/docker-2048:latest" to "image:$ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/docker-2048:latest"
+- The following commands would edit the file and find/replace the line that says alb.ingress.kubernetes.io/scheme: internet-facing.
+- It would also change the public image repository url to the private image repository url
 - Apply the manifest to your cluster.
 
 ```bash

@@ -5,30 +5,7 @@ weight : 151
 
 Once you have logged into the AWS Management Console from your Workshop Studio, you will already have an AWS Cloud9 environment. Your AWS Cloud9 workspace will also have all the required tools installed in it.
 
-- Navigate to [AWS Cloud9](https://console.aws.amazon.com/cloud9) in AWS Console.
-- Select **All account environments** from the drop-down menu.
-- Click on **Open IDE** to open your AWS Cloud9 workspace.
 
-![sign-in](/static/images/create-workspace/cloud9-IDE1.png)
-
-- Closing the **Welcome tab**
-  ![c9before](/static/images/create-workspace/cloud9-1.png)
-
-- Opening a new **terminal** tab in the main work area
-  ![c9newtab](/static/images/create-workspace/cloud9-2.png)
-
-- Closing the lower work area
-  ![c9newtab](/static/images/create-workspace/cloud9-3.png)
-
-- Your workspace should now look like this
-  ![c9after](/static/images/create-workspace/cloud9-4.png)
-
-
-Set below environment variables
-
-```bash
-export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
-export AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
 ```
 
 #### Create a VPC with Private Subnets with Internet Egress
@@ -304,7 +281,7 @@ privateCluster:
   enabled: true
 :::
 
-After the EKS cluster was created and since it is a Private Cluster, there would ne VPC endpoints created in the Cluster VPC to create PrivateLink with various AWS servcies. The following VPC endpoints are created behind the scene.
+After the EKS cluster was created and since it is a Private Cluster, there would be VPC endpoints created in the Cluster VPC to create PrivateLink with various AWS services. The following VPC endpoints are created behind the scene.
 
 #### List the VPC endpoints created with the EKS clusters for Private access to AWS Servcies
 
