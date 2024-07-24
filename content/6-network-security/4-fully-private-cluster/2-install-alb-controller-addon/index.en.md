@@ -112,6 +112,7 @@ Get the image id for the pulled image
 
 ```bash
 LBC_IMAGE_ID=$(docker image public.ecr.aws/eks/aws-load-balancer-controller:v2.6.2 -q)
+echo $LBC_IMAGE_ID
 ```
 
 

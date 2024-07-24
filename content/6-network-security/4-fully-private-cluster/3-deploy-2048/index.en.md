@@ -38,6 +38,7 @@ Get the image id for the pulled image
 
 ```bash
 IMAGE_ID=$(docker image public.ecr.aws/l6m2t8p7/docker-2048:latest -q)
+echo $IMAGE_ID
 ```
 
 
