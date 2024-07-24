@@ -6,12 +6,10 @@ weight : 151
 Once you have logged into the AWS Management Console from your Workshop Studio, you will already have an AWS Cloud9 environment. Your AWS Cloud9 workspace will also have all the required tools installed in it.
 
 
-```
-
 #### Create a VPC with Private Subnets with Internet Egress
 
 ```bash
-wget https://ws-assets-prod-iad-r-iad-ed304a55c2ca1aee.s3.us-east-1.amazonaws.com/165b0729-2791-4452-8920-53b734419050/eks-private-vpc.yaml
+curl ':assetUrl{path="/eks-private-vpc.yaml"}' --output eks-private-vpc.yaml
 ```
 
 ```bash

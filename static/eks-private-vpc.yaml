@@ -1,0 +1,208 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: "10.50.0.0/16"
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: EKSSecurityImmersionDayPrivate
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: EKSSecurityImmersionDay
+  
+  
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+
+  NatGatewayEIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: EKSSecurityImmersionDay-NATGW
+
+  # Public subnets
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: EKSSecurityImmersionDayPublic
+
+
+  PublicDefaultRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      GatewayId: !Ref InternetGateway
+      DestinationCidrBlock: "0.0.0.0/0"
+      RouteTableId: !Ref PublicRouteTable
+
+  PublicSubnetC:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Sub "${AWS::Region}c"
+      CidrBlock: "10.50.256.0/24"
+      Tags:
+        - Key: Name
+          Value: EKSSecurityImmersionDayPublicA
+  PublicSubnetCRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnetC
+
+   NATGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGatewayEIP.AllocationId
+      SubnetId: !Ref PublicSubnetC
+  
+  
+  # Private subnets
+  PrivateRouteTableA:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: EKSSecurityImmersionDayPrivate
+  PrivateRouteTableB:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: EKSSecurityImmersionDayPrivate
+  PrivateRouteTableC:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: EKSSecurityImmersionDayPrivate
+  PrivateRouteTableD:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: EKSSecurityImmersionDayPrivate
+  PrivateRouteForD:
+    Type: AWS::EC2::Route
+    Properties:
+      NatGatewayId: !Ref NATGateway
+      DestinationCidrBlock: "0.0.0.0/0"
+      RouteTableId: !Ref PrivateRouteTableD
+
+  PrivateSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Sub "${AWS::Region}a"
+      CidrBlock: "10.50.128.0/19"
+      Tags:
+        - Key: Name
+          Value: EKSSecurityImmersionDayPrivateA
+        - Key: kubernetes.io/role/internal-elb
+          Value: 1
+  PrivateSubnetARouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableA
+      SubnetId: !Ref PrivateSubnetA
+  PrivateSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Sub "${AWS::Region}b"
+      CidrBlock: "10.50.160.0/19"
+      Tags:
+        - Key: Name
+          Value: EKSSecurityImmersionDayPrivateB
+        - Key: kubernetes.io/role/internal-elb
+          Value: 1
+  PrivateSubnetBRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableB
+      SubnetId: !Ref PrivateSubnetB
+  PrivateSubnetC:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Sub "${AWS::Region}c"
+      CidrBlock: "10.50.192.0/19"
+      Tags:
+        - Key: Name
+          Value: EKSSecurityImmersionDayPrivateC
+        - Key: kubernetes.io/role/internal-elb
+          Value: 1
+  PrivateSubnetCRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableC
+      SubnetId: !Ref PrivateSubnetC
+  PrivateSubnetD:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Sub "${AWS::Region}c"
+      CidrBlock: "10.50.224.0/19"
+      Tags:
+        - Key: Name
+          Value: EKSSecurityImmersionDayPrivateD
+        - Key: kubernetes.io/role/internal-elb
+          Value: 1
+  PrivateSubnetCRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableD
+      SubnetId: !Ref PrivateSubnetD
+
+Outputs:
+
+  VPC:
+    Description: 'VPC'
+    Value: !Ref VPC
+    Export:
+      Name: vpcId
+
+
+  SubnetAPrivate:
+    Description: 'Subnet A private'
+    Value: !Ref PrivateSubnetA
+    Export:
+      Name: SubnetAPrivate
+
+  SubnetBPrivate:
+    Description: 'Subnet B private'
+    Value: !Ref PrivateSubnetB
+    Export:
+      Name: SubnetBPrivate
+
+  SubnetCPrivate:
+    Description: 'Subnet C private'
+    Value: !Ref PrivateSubnetC
+    Export:
+      Name: SubnetCPrivate
+
+  SubnetDPrivate:
+    Description: 'Subnet D private'
+    Value: !Ref PrivateSubnetD
+    Export:
+      Name: SubnetDPrivate
+
