@@ -3,7 +3,7 @@ title: "Fully Private EKS Cluster"
 weight: 150
 ---
 
-# INTRODUCTION
+# Introduction
 
 This module would deploy an Amazon EKS cluster that is deployed on the AWS Cloud, but doesn't have outbound internet access. To understand the details on Amazon EKS networking, see De-mystifying cluster networking for Amazon EKS worker nodes in the following blog: http://aws.amazon.com/blogs/containers/de-mystifying-cluster-networking-for-amazon-eks-worker-nodes/. If your cluster doesn't have outbound internet access, then it must meet the following requirements:
 
