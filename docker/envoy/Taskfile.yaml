@@ -28,3 +28,10 @@ tasks:
     deps: [ecr-auth, build]
     cmds:
      - docker push $REPO/${NAME}:$VERSION
+
+  push-latest:
+    desc: push docker image to public ecr
+    deps: [push]
+    cmds:
+     - docker tag $REPO/${NAME}:$VERSION $REPO/${NAME}:latest
+     - docker push $REPO/${NAME}:latest

@@ -36,7 +36,7 @@ We uses an ini container to setup the appropriate iptables routing rules:
 
 ```yaml
       initContainers: # IPTables rules are updated in init container
-      - image: public.ecr.aws/d2c6w7a3/iptables
+      - image: public.ecr.aws/seb-demo/iptables
         name: iptables-init
         securityContext:
           capabilities:
@@ -87,7 +87,7 @@ spec:
     spec:
       serviceAccountName: default
       initContainers: # IPTables rules are updated in init container
-      - image: public.ecr.aws/d2c6w7a3/iptables
+      - image: public.ecr.aws/seb-demo/iptables
         name: iptables-init
         securityContext:
           capabilities:
