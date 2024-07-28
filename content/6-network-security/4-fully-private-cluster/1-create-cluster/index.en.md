@@ -35,17 +35,18 @@ aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values
 |  subnet-0f0dbfbe773d48d6b |  vpc-02cc579cdd679aa3c  |  ap-south-1c |
 |  subnet-051cc8911bb59cd8d |  vpc-02cc579cdd679aa3c  |  ap-south-1a |
 |  subnet-0904b546818687aef |  vpc-02cc579cdd679aa3c  |  ap-south-1b |
+|  subnet-0c1f95d3789157c84 |  vpc-02cc579cdd679aa3c  |  ap-south-1c |
 +---------------------------+-------------------------+--------------+
 ```
 
 We would use Private Subnets on AZ "a","b" and "c" for creating the EKS Cluster worker nodes and another Subnet in AZ "c" for Private Cloud9 instance. We would set the following environment vairables from the values in the above output table.
 
 ```bash
-export AZ1_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=ap-south-1a --query "Subnets[*].[SubnetId]" --output text)
-export AZ2_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=ap-south-1b --query "Subnets[*].[SubnetId]" --output text)
-export AZ3_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=ap-south-1c --query "Subnets[*].[SubnetId]" --output text)
-export CLOUD9_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=ap-south-1c --query "Subnets[*].[SubnetId]" --output text)
-export CLUSTER_VPC=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=ap-south-1c --query "Subnets[*].[VpcId]" --output text)
+export AZ1_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=${AWS_REGION}a --query "Subnets[*].[SubnetId]" --output text)
+export AZ2_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=${AWS_REGION}b --query "Subnets[*].[SubnetId]" --output text)
+export AZ3_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=${AWS_REGION}c --query "Subnets[*].[SubnetId]" --output text)
+export CLOUD9_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnetD Name=availability-zone,Values=${AWS_REGION}c --query "Subnets[*].[SubnetId]" --output text)
+export CLUSTER_VPC=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=${AWS_REGION}c --query "Subnets[*].[VpcId]" --output text)
 ```
 
 
@@ -166,12 +167,12 @@ Run below commands to set few environment variables. Please fetch the subnet and
 ```bash
 export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
 export AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
-export AZS=($(aws ec2 describe-availability-zones --query 'AvailabilityZones[].ZoneName' --output text --region $AWS_REGION))
-export AZ1_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=ap-south-1a --query "Subnets[*].[SubnetId]" --output text)
-export AZ2_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=ap-south-1b --query "Subnets[*].[SubnetId]" --output text)
-export AZ3_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=ap-south-1c --query "Subnets[*].[SubnetId]" --output text)
-export CLOUD9_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=ap-south-1c --query "Subnets[*].[SubnetId]" --output text)
-export CLUSTER_VPC=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=ap-south-1c --query "Subnets[*].[VpcId]" --output text)
+export AZS="$(aws ec2 describe-availability-zones --query 'AvailabilityZones[].ZoneName' --output text --region $AWS_REGION)"
+export AZ1_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=${AWS_REGION}a --query "Subnets[*].[SubnetId]" --output text)
+export AZ2_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=${AWS_REGION}b --query "Subnets[*].[SubnetId]" --output text)
+export AZ3_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=${AWS_REGION}c --query "Subnets[*].[SubnetId]" --output text)
+export CLOUD9_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnetD Name=availability-zone,Values=${AWS_REGION}c --query "Subnets[*].[SubnetId]" --output text)
+export CLUSTER_VPC=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=${AWS_REGION}c --query "Subnets[*].[VpcId]" --output text)
 ```
 
 Check if AWS_REGION is set to desired region
