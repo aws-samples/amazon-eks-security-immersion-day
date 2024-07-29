@@ -23,6 +23,7 @@ weight : 200
 * Josh Hart
 * Preetam Rebello
 * Olawale Olaleye
+* Rajat Chatterjee
 
 
 If anyone (Only AWS Employees) is interested to contribute, please contact us at [amazon-eks-security-immersion-day@amazon.com](mailto:amazon-eks-security-immersion-day@amazon.com)
