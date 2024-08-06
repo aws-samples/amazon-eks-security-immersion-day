@@ -1,11 +1,94 @@
 ---
-title : "Managing Seccomp Profiles"
+title : "Managing SELinux Profiles"
 weight : 22
 ---
 
-In this section, we will use the Security Profiles Operator to create and manage seccomp profiles and bind them to workloads.
+In this section, we will use the Security Profiles Operator to create and manage SELinux profiles and bind them to workloads.
 
-## Creating a seccomp profile ##
+## Creating SELinux profiles ##
+
+We can use `SelinuxProfile` object to create profles.
+
+The `SelinuxProfile` object has several features that allow for better security hardening and readability:
+*  restricts the profiles to inherit from to the current namespace or a system-wide profile. Because there are typically many profiles installed on the system, but only a subset should be used by cluster workloads, the inheritable system profiles are listed in the spod instance in `spec.selinuxOptions.allowedSystemProfiles`. Depending on what distribution your nodes run, the base profile might vary, on RHEL-based systems, you might want to look at what profiles are shipped in the `container-selinux` RPM package.
+* Performs basic validation of the permissions, classes and labels
+* Adds a new keyword `@self` that describes the process using the policy. This allows to reuse a policy between workloads and namespaces easily, as the "usage" of the policy (see below) is based on the name and namespace.
+* Adds features for better security hardening and readability compared to writing a profile directly in the SELinux CIL language.
+
+1. Create a policy that can be used with a non-privileged workload by creating the following `SelinuxProfile` object:
+
+```bash
+cat > ~/environment/selinuxprofile.yaml <<EOF
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: \$SCP_SE_NS
+---
+apiVersion: security-profiles-operator.x-k8s.io/v1alpha2
+kind: SelinuxProfile
+metadata:
+  name: nginx-secure
+  namespace: \$SCP_NS
+spec:
+  allow:
+    "@self":
+      tcp_socket:
+        - listen
+    http_cache_port_t:
+      tcp_socket:
+        - name_bind
+    node_t:
+      tcp_socket:
+        - node_bind
+  inherit:
+    - kind: System
+      name: container
+EOF
+```
+
+```bash
+export SCP_SE_NS=scp-selinux
+envsubst < ~/environment/selinuxprofile.yaml > ~/environment/selinux-profile1.yaml
+kubectl apply -f ~/environment/selinux-profile1.yaml
+```
+
+::::expand{header="Check Output"}
+```bash
+namespace/scp-selinux created
+selinuxprofile.security-profiles-operator.x-k8s.io/nginx-secure created
+```
+::::
+
+After the policy is created, we can run this command to make sure it's installed:
+
+```bash
+kubectl get selinuxprofile -n $SCP_SE_NS
+```
+::::expand{header="Check Output"}
+```bash
+NAME           USAGE   STATE
+nginx-secure 
+```
+::::
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 We will use `SeccompProfile` object to create profiles. `SeccompProfile` objects can restrict syscalls within a container, limiting the access of your application.
 
