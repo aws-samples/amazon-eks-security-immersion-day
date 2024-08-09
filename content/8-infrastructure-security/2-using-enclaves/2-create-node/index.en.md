@@ -14,11 +14,35 @@ kubectl get nodes -L eks.amazonaws.com/nodegroup
 Create user-data
 
 Specify the following user data, which automates the AWS Nitro Enclaves CLI installation, and preallocates the memory and the vCPUs for enclaves on the instance.
-The `CPU_COUNT` and `MEMORY_MIB` variables in the user data specify the number of vCPUs and amount of memory (in MiB) respectively. For the purpose of this module, the user data below specifies `4` vCPUs and `768` MiB of memory.
 
 Save the following content into file called `eks-enclave-user-data.txt`
 
 ```bash
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="==MYBOUNDARY=="
+--==MYBOUNDARY==
+Content-Type: text/x-shellscript; charset="us-ascii"
+#!/bin/bash -e
+readonly NE_ALLOCATOR_SPEC_PATH="/etc/nitro_enclaves/allocator.yaml"
+# Node resources that will be allocated for Nitro Enclaves
+readonly CPU_COUNT=<CPU_COUNT>
+readonly MEMORY_MIB=<MEMORY_MIB>
+# This step below is needed to install nitro-enclaves-allocator service.
+amazon-linux-extras install aws-nitro-enclaves-cli -y
+# Update enclave's allocator specification: allocator.yaml
+sed -i "s/cpu_count:.*/cpu_count: $CPU_COUNT/g" $NE_ALLOCATOR_SPEC_PATH
+sed -i "s/memory_mib:.*/memory_mib: $MEMORY_MIB/g" $NE_ALLOCATOR_SPEC_PATH
+# Restart the nitro-enclaves-allocator service to take changes effect.
+systemctl restart nitro-enclaves-allocator.service
+echo "NE user data script has finished successfully."
+--==MYBOUNDARY==
+```
+
+Edit the file `eks-enclave-user-data.txt`. For the `CPU_COUNT` and `MEMORY_MIB` variables in the user data, specify the number of vCPUs and amount of memory (in MiB) respectively. For the purpose of this module, set the `<CPU_COUNT>` to `4` vCPUs and the `<MEMORY_MIB>` to `768` MiB of memory.
+
+::::expand{header="Expected file output"}
+```bash
+...
 MIME-Version: 1.0
 Content-Type: multipart/mixed; boundary="==MYBOUNDARY=="
 --==MYBOUNDARY==
@@ -38,8 +62,9 @@ systemctl restart nitro-enclaves-allocator.service
 echo "NE user data script has finished successfully."
 --==MYBOUNDARY==
 ```
+::::
 
-Convert the user data to base64
+Convert the user data to base64.
 
 ```bash
 base64 -w 0 eks-enclave-user-data.txt && echo
@@ -58,14 +83,15 @@ y1lbmNsYXZlcy1hbGxvY2F0b3Iuc2VydmljZQplY2hvICJORSB1c2VyIGRhdGEgc2NyaXB0IGhhcyBma
 ```
 ::::
 
-Note the output generated, you'll need it in the following step.
-Create the launch template. Replace the value of the **UserData** in the `--launch-template-data field` of the command below:
+Note the `BASE64_RANDOM_OUTPUT` generated, you'll need it in the following step.
+
+Create the launch template. In the command below, replace the variable `BASE64_RANDOM_OUTPUT` in the **UserData** values with value from the preceding step:
 
 ```bash
 aws ec2 create-launch-template \
     --launch-template-name eksenclaves \
     --version-description 'Using Enclaves with Amazon EKS' \
-    --launch-template-data '{"UserData":"TUlNRS1WZXJzaW9uOiAxL3cgaXMgbmVlZGVkIHRvIGluc3RhbGwgbml0cm8tZW5jbGF2ZXMtYWxsb2NhdG9yIHNlcnZpY2UuCmFtYXpvbi1saW51eC1leHRyYXMgaW5zdGFsbCBhd3Mtbml0cm8tZW5jbGF2ZXMtY2xpIC15CgojIFy9tZW1vcn==","EnclaveOptions":{"Enabled":true},"InstanceType": "m5.2xlarge","TagSpecifications":[{"ResourceType":"instance","Tags":[{"Key":"purpose","Value":"enclave"}]}]}'
+    --launch-template-data '{"UserData":"BASE64_RANDOM_OUTPUT","EnclaveOptions":{"Enabled":true},"InstanceType": "m5.2xlarge","TagSpecifications":[{"ResourceType":"instance","Tags":[{"Key":"purpose","Value":"enclave"}]}]}'
 ```
 
 ::::expand{header="Check Output"}
