@@ -51,7 +51,7 @@ tasks:
   #     - .venv/bin/activate
 
   preview:
-    desc: dpreview local webwite
+    desc: preview local website
     cmds:
       - preview_build
 

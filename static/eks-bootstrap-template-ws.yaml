@@ -948,6 +948,7 @@ Resources:
                 curl -sSL -o /tmp/kubectl https://s3.us-west-2.amazonaws.com/amazon-eks/1.28.2/2023-10-12/bin/linux/amd64/kubectl
                 chmod +x /tmp/kubectl
                 mv /tmp/kubectl /usr/local/bin/kubectl
+
                 su -l -c 'aws eks update-kubeconfig --name ${EKSCluster} --region ${AWS::Region} --role-arn ${Cloud9InstanceRole.Arn}' ec2-user
                 su -l -c 'echo "export AWS_ACCOUNT_ID=${AWS::AccountId}" >> ~/.bash_profile' ec2-user
                 su -l -c 'echo "export ACCOUNT_ID=${AWS::AccountId}" >> ~/.bash_profile' ec2-user
@@ -958,12 +959,14 @@ Resources:
                 su -l -c 'echo "Found the Cloud9ID envs ${Cloud9Environment}"' ec2-user
                 su -l -c 'echo "aws cloud9 update-environment  --environment-id ${Cloud9Environment} --managed-credentials-action DISABLE > /dev/null 2>&1" |  tee -a ~/.bash_profile' ec2-user                
                 su -l -c 'export AZS=($(aws ec2 describe-availability-zones --query 'AvailabilityZones[].ZoneName' --output text --region ${AWS::Region})) && echo "export AZS=(${!AZS[@]})" | tee -a ~/.bash_profile' ec2-user
+
                 curl -sSL "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
                 chmod +x /tmp/eksctl
                 mv /tmp/eksctl /usr/local/bin
                 curl -sSL "https://github.com/awslabs/eksdemo/releases/download/v0.12.0/eksdemo_Linux_x86_64.tar.gz" | tar xz -C /tmp
                 chmod +x /tmp/eksdemo
-                mv /tmp/eksdemo /usr/local/bin                
+                mv /tmp/eksdemo /usr/local/bin
+
                 yum -y install jq gettext bash-completion moreutils
                 echo '' | tee -a /home/ec2-user/bashrc
                 /usr/local/bin/kubectl completion bash > /etc/bash_completion.d/kubectl
@@ -972,10 +975,12 @@ Resources:
                 su -l -c 'echo "alias k=kubectl" >> ~/.bash_profile' ec2-user
                 su -l -c 'echo "alias ll=\"ls -la\"" >> ~/.bash_profile' ec2-user
                 su -l -c 'echo "complete -F __start_kubectl k" >> ~/.bash_profile' ec2-user
+
                 curl -fsSL -o /tmp/helm.tgz https://get.helm.sh/helm-v3.7.1-linux-amd64.tar.gz
                 tar -C /tmp -xzf /tmp/helm.tgz
                 mv /tmp/linux-amd64/helm /usr/local/bin/helm
                 rm -rf /tmp/helm.tgz /tmp/linux-amd64
+                
                 su -l -c 'helm repo add eks https://aws.github.io/eks-charts' ec2-user
                 su -l -c 'helm repo update' ec2-user
                 #Install Krew and stern
