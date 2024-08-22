@@ -174,7 +174,7 @@ kubectl get pods --selector app=hello --watch -o wide
 
 ```bash
 NAME                     READY   STATUS    RESTARTS   AGE   IP               NODE                                         NOMINATED NODE   READINESS GATES
-hello-675b5df4f6-w2qk8   1/1     Running   0          5s    10.254.191.250   ip-10-254-177-4.us-west-2.compute.internal   <none>           <none>
+hello-675b5df4f6-w2qk8   1/1     Running   0          5s    10.254.191.250   ip-10-254-133-18.us-west-2.compute.internal   <none>           <none>
 ```
 
 ::::
