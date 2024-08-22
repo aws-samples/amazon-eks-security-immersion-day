@@ -11,63 +11,79 @@ kubectl get nodes -L eks.amazonaws.com/nodegroup
 
 ## Create a launch template to launch the enclave-enabled worker nodes
 
-Create user-data
+Create user-data file called `eks-enclave-user-data.txt`
 
-Specify the following user data, which automates the AWS Nitro Enclaves CLI installation, and preallocates the memory and the vCPUs for enclaves on the instance.
+```bash
+touch eks-enclave-user-data.txt
+```
 
-Save the following content into file called `eks-enclave-user-data.txt`
+Copy and paste the following content in the user data file `eks-enclave-user-data.txt`, which automates the AWS Nitro Enclaves CLI installation, and preallocates the memory and the vCPUs for enclaves on the instance.
 
 ```bash
 MIME-Version: 1.0
 Content-Type: multipart/mixed; boundary="==MYBOUNDARY=="
+
 --==MYBOUNDARY==
 Content-Type: text/x-shellscript; charset="us-ascii"
-#!/bin/bash -e
+
+#!/bin/bash
+echo "Running custom user data script"
+
 readonly NE_ALLOCATOR_SPEC_PATH="/etc/nitro_enclaves/allocator.yaml"
 # Node resources that will be allocated for Nitro Enclaves
 readonly CPU_COUNT=<CPU_COUNT>
 readonly MEMORY_MIB=<MEMORY_MIB>
+
 # This step below is needed to install nitro-enclaves-allocator service.
 amazon-linux-extras install aws-nitro-enclaves-cli -y
+
 # Update enclave's allocator specification: allocator.yaml
 sed -i "s/cpu_count:.*/cpu_count: $CPU_COUNT/g" $NE_ALLOCATOR_SPEC_PATH
 sed -i "s/memory_mib:.*/memory_mib: $MEMORY_MIB/g" $NE_ALLOCATOR_SPEC_PATH
 # Restart the nitro-enclaves-allocator service to take changes effect.
 systemctl restart nitro-enclaves-allocator.service
 echo "NE user data script has finished successfully."
---==MYBOUNDARY==
+
+--==MYBOUNDARY==--
 ```
 
-Edit the file `eks-enclave-user-data.txt`. For the `CPU_COUNT` and `MEMORY_MIB` variables in the user data, specify the number of vCPUs and amount of memory (in MiB) respectively. For the purpose of this module, set the `<CPU_COUNT>` to `4` vCPUs and the `<MEMORY_MIB>` to `768` MiB of memory.
+Edit the file `eks-enclave-user-data.txt` content. For the `CPU_COUNT` and `MEMORY_MIB` variables in the user data, specify the number of vCPUs and amount of memory (in MiB) respectively. For the purpose of this module, set the `<CPU_COUNT>` to `4` vCPUs and the `<MEMORY_MIB>` to `768` MiB of memory.
 
 ::::expand{header="Expected file output"}
 ```bash
-...
 MIME-Version: 1.0
 Content-Type: multipart/mixed; boundary="==MYBOUNDARY=="
+
 --==MYBOUNDARY==
 Content-Type: text/x-shellscript; charset="us-ascii"
-#!/bin/bash -e
+
+#!/bin/bash
+echo "Running custom user data script"
+
 readonly NE_ALLOCATOR_SPEC_PATH="/etc/nitro_enclaves/allocator.yaml"
 # Node resources that will be allocated for Nitro Enclaves
 readonly CPU_COUNT=4
 readonly MEMORY_MIB=768
+
 # This step below is needed to install nitro-enclaves-allocator service.
 amazon-linux-extras install aws-nitro-enclaves-cli -y
+
 # Update enclave's allocator specification: allocator.yaml
 sed -i "s/cpu_count:.*/cpu_count: $CPU_COUNT/g" $NE_ALLOCATOR_SPEC_PATH
 sed -i "s/memory_mib:.*/memory_mib: $MEMORY_MIB/g" $NE_ALLOCATOR_SPEC_PATH
 # Restart the nitro-enclaves-allocator service to take changes effect.
 systemctl restart nitro-enclaves-allocator.service
 echo "NE user data script has finished successfully."
---==MYBOUNDARY==
+
+--==MYBOUNDARY==--
 ```
 ::::
 
 Convert the user data to base64.
 
 ```bash
-base64 -w 0 eks-enclave-user-data.txt && echo
+export BASE64_RANDOM_OUTPUT=$(base64 -w 0 eks-enclave-user-data.txt && echo)
+echo $BASE64_RANDOM_OUTPUT
 ```
 
 ::::expand{header="Check Output"}
@@ -83,35 +99,24 @@ y1lbmNsYXZlcy1hbGxvY2F0b3Iuc2VydmljZQplY2hvICJORSB1c2VyIGRhdGEgc2NyaXB0IGhhcyBma
 ```
 ::::
 
-Note the `BASE64_RANDOM_OUTPUT` generated, you'll need it in the following step.
-
-Create the launch template. In the command below, replace the variable `BASE64_RANDOM_OUTPUT` in the **UserData** values with value from the preceding step:
+Create the launch template
 
 ```bash
-aws ec2 create-launch-template \
+LAUNCH_TEMPLATE=$(aws ec2 create-launch-template \
     --launch-template-name eksenclaves \
     --version-description 'Using Enclaves with Amazon EKS' \
-    --launch-template-data '{"UserData":"BASE64_RANDOM_OUTPUT","EnclaveOptions":{"Enabled":true},"InstanceType": "m5.2xlarge","TagSpecifications":[{"ResourceType":"instance","Tags":[{"Key":"purpose","Value":"enclave"}]}]}'
+    --launch-template-data "{\"UserData\":\"$BASE64_RANDOM_OUTPUT\",\"EnclaveOptions\":{\"Enabled\":true},\"InstanceType\": \"m5.2xlarge\",\"TagSpecifications\":[{\"ResourceType\":\"instance\",\"Tags\":[{\"Key\":\"purpose\",\"Value\":\"enclave\"}]}]}" --query 'LaunchTemplate.LaunchTemplateId' --output text)
+
+echo $LAUNCH_TEMPLATE
 ```
 
 ::::expand{header="Check Output"}
 
 ```bash
-{
-    "LaunchTemplate": {
-        "LaunchTemplateId": "lt-01234567890abcdef",
-        "LaunchTemplateName": "eksenclaves",
-        "CreateTime": "2024-07-18T07:37:04+00:00",
-        "CreatedBy": "arn:aws:sts::11111111111:assumed-role/eks-security-workshop/i-123456abcdefg",
-        "DefaultVersionNumber": 1,
-        "LatestVersionNumber": 1
-    }
-}
+lt-01234567890abcdef
 ```
 
 ::::
-
-Note the launch template ID (for example, `lt-01234567890abcdef`), you'll need it in the following step.
 
 ## Create a node group in the existing Amazon EKS cluster
 
@@ -134,12 +139,61 @@ aws eks create-nodegroup  \
     --node-role ${NODE_ROLE} \
     --subnets "${SUBNET1}" "${SUBNET2}" "${SUBNET3}" \
     --scaling-config minSize=1,maxSize=2,desiredSize=1 \
-    --launch-template id="lt-01234567890abcdef" \
+    --launch-template id="${LAUNCH_TEMPLATE}" \
     --labels '{"aws-nitro-enclaves-k8s-dp": "enabled"}' \
-    --tags '{"workshop-module": "enclaves"}' 
+    --tags '{"workshop-module": "enclaves"}'
 ```
 
-Note: replace the launch template ID with the value you recorded in the previous step. After about 3 minutes, verify the new node group named enclaves with an EC2 instance has been created
+::::expand{header="Check Output"}
+
+```bash
+{
+    "nodegroup": {
+        "nodegroupName": "enclaves",
+        "nodegroupArn": "arn:aws:eks:us-west-2:11111111111:nodegroup/eksworkshop-eksctl/enclaves/94c8bd94-a09c-1231-c14b-df2aacb83d9e",
+        "clusterName": "eksworkshop-eksctl",
+        "version": "1.28",
+        "releaseVersion": "1.28.11-20240817",
+        "createdAt": "2024-08-22T17:36:28.985000+00:00",
+        "modifiedAt": "2024-08-22T17:36:28.985000+00:00",
+        "status": "CREATING",
+        "capacityType": "ON_DEMAND",
+        "scalingConfig": {
+            "minSize": 1,
+            "maxSize": 2,
+            "desiredSize": 1
+        },
+        "subnets": [
+            "subnet-01234567890abcdef",
+            "subnet-02234567890abcdef",
+            "subnet-03234567890abcdef"
+        ],
+        "amiType": "AL2_x86_64",
+        "nodeRole": "arn:aws:iam::11111111111:role/eks-bootstrap-template-ws-EKSNodegroupRole-HzYVceH6dJgT",
+        "labels": {
+            "aws-nitro-enclaves-k8s-dp": "enabled"
+        },
+        "health": {
+            "issues": []
+        },
+        "updateConfig": {
+            "maxUnavailable": 1
+        },
+        "launchTemplate": {
+            "name": "eksenclaves",
+            "version": "1",
+            "id": "lt-01234567890abcdef"
+        },
+        "tags": {
+            "workshop-module": "enclaves"
+        }
+    }
+}
+```
+
+::::
+
+After about 3 minutes, verify the new node group named enclaves with an EC2 instance has been created
 
 ```bash
 kubectl get nodes -o custom-columns=Name:.metadata.name,Nodegroup:.metadata.labels."eks\.amazonaws\.com/nodegroup" 
@@ -149,10 +203,10 @@ kubectl get nodes -o custom-columns=Name:.metadata.name,Nodegroup:.metadata.labe
 
 ```bash
 Name                                           Nodegroup
-ip-10-254-128-223.us-west-2.compute.internal   mng-al2
-ip-10-254-172-174.us-west-2.compute.internal   mng-al2
-ip-10-254-177-4.us-west-2.compute.internal     enclaves
-ip-10-254-220-101.us-west-2.compute.internal   mng-al2
+ip-10-254-133-18.us-west-2.compute.internal    enclaves
+ip-10-254-138-215.us-west-2.compute.internal   mng-al2
+ip-10-254-168-158.us-west-2.compute.internal   mng-al2
+ip-10-254-215-53.us-west-2.compute.internal    mng-al2
 ```
 
 ::::
@@ -168,7 +222,7 @@ kubectl get nodes -L eks.amazonaws.com/nodegroup -l aws-nitro-enclaves-k8s-dp=en
 
 ```bash
 NAME                                           STATUS   ROLES    AGE   VERSION               NODEGROUP
-ip-10-254-177-4.us-west-2.compute.internal     Ready    <none>   27h   v1.28.8-eks-ae9a62a   enclaves
+ip-10-254-133-18.us-west-2.compute.internal     Ready    <none>   27h   v1.28.8-eks-ae9a62a   enclaves
 ```
 
 ::::
@@ -213,10 +267,10 @@ kubectl get node -L aws-nitro-enclaves-k8s-dp
 
 ```bash
 NAME                                           STATUS   ROLES    AGE   VERSION               AWS-NITRO-ENCLAVES-K8S-DP
-ip-10-254-128-223.us-west-2.compute.internal   Ready    <none>   29h   v1.28.8-eks-ae9a62a   
-ip-10-254-172-174.us-west-2.compute.internal   Ready    <none>   29h   v1.28.8-eks-ae9a62a   
-ip-10-254-177-4.us-west-2.compute.internal     Ready    <none>   27h   v1.28.8-eks-ae9a62a   enabled
-ip-10-254-220-101.us-west-2.compute.internal   Ready    <none>   29h   v1.28.8-eks-ae9a62a  
+ip-10-254-138-215.us-west-2.compute.internal   Ready    <none>   29h   v1.28.8-eks-ae9a62a   
+ip-10-254-168-158.us-west-2.compute.internal    Ready    <none>   29h   v1.28.8-eks-ae9a62a   
+ip-10-254-133-18.us-west-2.compute.internal     Ready    <none>   27h   v1.28.8-eks-ae9a62a   enabled
+ip-10-254-215-53.us-west-2.compute.internal    Ready    <none>   29h   v1.28.8-eks-ae9a62a  
 ```
 
 ::::
