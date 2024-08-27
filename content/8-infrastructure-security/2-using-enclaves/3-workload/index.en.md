@@ -32,7 +32,63 @@ Since we are using existing cluster, the parameters in the `settings.json` are n
 enclavectl configure --file settings.json
 ```
 
-Build the Hello Enclaves enclave image file and package it into a Docker image. The required files are located in the `/container/hello` directory. Use the `enclavectl build` command and specify the name of the directory.
+Build the Hello Enclaves enclave image file and package it into a Docker image. In this example, we will build an enclave hello application using Amazon Linux2 as a base docker image.
+The required files are located in the `/container/hello` directory. Open the Dockerfile in `/container/hello/Dockerfile`, replace the content of the file with the new content below:
+
+```bash
+# Copyright 2022 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+######## full image ########
+
+FROM amazonlinux:2 as full_image
+
+RUN amazon-linux-extras install aws-nitro-enclaves-cli && \
+    yum install aws-nitro-enclaves-cli-devel jq -y
+
+WORKDIR /ne-deps
+
+# Copy only the required binaries to /ne-deps folder.
+#
+RUN BINS="\
+    /usr/bin/nitro-cli \
+    /usr/bin/nitro-enclaves-allocator \
+    /usr/bin/jq \
+    " && \
+    for bin in $BINS; do \
+        { echo "$bin"; ldd "$bin" | grep -Eo "/.*lib.*/[^ ]+"; } | \
+            while read path; do \
+                mkdir -p ".$(dirname $path)"; \
+                cp -fL "$path" ".$path"; \
+            done \
+    done
+
+# Prepare other required files and folders for the final image.
+#
+RUN \
+    mkdir -p /ne-deps/etc/nitro_enclaves && \
+    mkdir -p /ne-deps/run/nitro_enclaves && \
+    mkdir -p /ne-deps/var/log/nitro_enclaves && \
+    cp -rf /usr/share/nitro_enclaves/ /ne-deps/usr/share/ && \
+    cp -f /etc/nitro_enclaves/allocator.yaml /ne-deps/etc/nitro_enclaves/allocator.yaml
+
+######## hello image ########
+
+FROM amazonlinux:2 as image
+
+# Copying dependencies of the enclave apps from the 'full_image'
+
+COPY --from=full_image / /
+
+COPY bin/hello.eif /home
+COPY hello/run.sh  /home
+
+CMD ["/home/run.sh"]
+```
+
+Note: 
+
+After saving the new Dockerfile, use the `enclavectl build` command and specify the name of the directory.
 
 ```bash
 enclavectl build --image hello
