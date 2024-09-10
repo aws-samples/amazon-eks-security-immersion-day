@@ -442,11 +442,6 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
         - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
-        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
-        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
-        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
       Policies:
         - PolicyDocument:
             Version: "2012-10-17"
@@ -996,7 +991,8 @@ Resources:
                 source /home/ec2-user/.bash_profile &&
                 kubectl krew install stern' ec2-user
                 su -l -c 'curl -sS https://webinstall.dev/k9s | bash' ec2-user
-                sudo /home/ec2-user/.nvm/versions/node/v18.17.1/bin/npm i -g c9
+                #sudo /home/ec2-user/.nvm/versions/node/v18.17.1/bin/npm i -g c9
+                su -l -c 'npm i -g c9' || true
                 su -l -c 'aws configure set default.region ${AWS::Region}' ec2-user
                 su -l -c 'aws configure set cli_pager ""' ec2-user
                 # This must be the last line - do not add any lines after this!
