@@ -58,7 +58,7 @@ export CLUSTER_VPC=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformat
 * Name it **eksworkshop-private**, click Next.
 * Choose **t3.small** for instance type 
 * Go to **Network Setting** and expand **VPC Setting**
-* Select the "EKSSecurityImmersionDayPrivate" as VPC and "EKSSecurityImmersionDayPrivateC" as the Subnet
+* Select the "EKSSecurityImmersionDayPrivate" as VPC and "EKSSecurityImmersionDayPrivateD" as the Subnet
 * Click **Create environment**
 
 When it comes up, customize the environment by:
