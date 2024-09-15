@@ -90,13 +90,12 @@ When it comes up, customize the environment by:
 
 #### Update IAM settings for your Workspace
 
-To ensure temporary credentials aren't already in place we will remove
-any existing credentials file as well as disabling **AWS managed temporary credentials**:
-
-```bash
-aws cloud9 update-environment  --environment-id $C9_PID --managed-credentials-action DISABLE
-rm -vf ${HOME}/.aws/credentials
-```
+Currently, if your environment’s EC2 instance is launched into a private subnet, you can't use AWS managed temporary credentials to allow the EC2 environment to access an AWS service on behalf of an AWS entity (for example, an IAM user).
+To ensure temporary credentials aren't already in place we will remove any existing credentials file as well as disabling **AWS managed temporary credentials**:
+The owner of an EC2 environment can turn on or off AWS managed temporary credentials for that environment at any time, as follows:
+* With the environment open, in the AWS Cloud9 IDE, on the menu bar choose AWS Cloud9, **Preferences**.
+* On the Preferences tab, in the navigation pane, choose **AWS Settings**, Credentials.
+* Use AWS managed temporary credentials to turn AWS managed temporary credentials on or off.
 
 #### Install latest awscli
 ```bash
