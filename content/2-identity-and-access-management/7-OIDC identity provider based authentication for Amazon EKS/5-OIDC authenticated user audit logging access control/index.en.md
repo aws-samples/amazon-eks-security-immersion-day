@@ -16,7 +16,9 @@ Click on the "Observability" tab for your cluster.
 Verify that the "Control plane logging" section has the "Audit" log type turned on.
 If the "Audit" log is not enabled, you'll need to update the logging configuration to start capturing those user activity records.
 
-Once the logging is set up correctly, you'll be able to review the audit logs to see details about which users are accessing the cluster, and what actions they're performing. This provides an important layer of visibility and security for your EKS environment![oidc_eks_observability](/static/images/iam/oidc-cognito/oidc-eks-observability-cloudwatch-audit.jpg)
+Once the logging is set up correctly, you'll be able to review the audit logs to see details about which users are accessing the cluster, and what actions they're performing. This provides an important layer of visibility and security for your EKS environment
+
+![oidc_eks_observability](/static/images/iam/oidc-cognito/oidc-eks-observability-cloudwatch-audit.jpg)
 
 Search for cloudwatch and click on cloudwatch
 ![oidc_eks_cloudwatch](/static/images/iam/oidc-cognito/oidc-eks-search-cloudwatch.jpg)

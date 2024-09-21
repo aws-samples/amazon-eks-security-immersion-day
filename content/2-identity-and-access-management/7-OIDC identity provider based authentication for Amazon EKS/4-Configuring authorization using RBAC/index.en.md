@@ -8,7 +8,6 @@ Excellent, we've now integrated our Cognito User Pool as the OIDC identity provi
 Before we test the authentication flow, we need to create a Kubernetes RBAC Cluster Role and ClusterRoleBinding. This will ensure that once users authenticate successfully, they'll have the appropriate permissions to interact with the resources they need.
 
 :::code{language=bash showLineNumbers=false showCopyAction=true}
-CLUSTER_NAME=aws eks list-clusters --name-contains "eksworkshop"
 aws eks update-kubeconfig --name $CLUSTER_NAME
 kubectl get svc
 ::::
@@ -26,16 +25,16 @@ Let's start by creating a Cluster Role that will allow read-only access to Secre
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-name: secret-readers
+  name: read-secrets
 rules:
 - apiGroups:
-    - ""
-      resources:
-    - secrets
-      verbs:
-    - 'get'
-    - 'watch'
-    - 'list'
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - 'get'
+  - 'watch'
+  - 'list'
 :::
 
 :::code{language=bash showLineNumbers=false showCopyAction=true}
@@ -49,13 +48,13 @@ Great, now we can bind this Cluster Role to a group called secret-readers in our
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-name: secret-readers-role-binding
-namespace: default
+  name: secret-readers-role-binding
+  namespace: default
 subjects:
 - kind: Group
   name: "gid:secret-reader"
   apiGroup: rbac.authorization.k8s.io
-  roleRef:
+roleRef:
   kind: ClusterRole
   name: secret-readers
   apiGroup: rbac.authorization.k8s.io
@@ -90,10 +89,12 @@ kubectl config set-credentials cognito-user \
 
 we've retrieved the necessary ID token and refresh token from Cognito, and updated the ~/.kube/config file with the OIDC authenticator settings.
 
-The next step is to add some context to your kubeconfig to relate this user to the specific EKS cluster we're working with. We'll create a new context called oidc-secret-reader that associates the "cognito-user" with the EKS cluste
+The next step is to add some context to your kubeconfig to relate this user to the specific EKS cluster we're working with. We'll create a new context called oidc-secret-reader that associates the "cognito-user" with the EKS cluster
 
 :::code{language=bash showLineNumbers=false showCopyAction=true}
-kubectl config set-context oidc-secret-reader --cluster arn:aws:eks:<region>:<account-number>:cluster/<ClusterName> --user cognito-user
+AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
+AWS_REGION=$(aws configure get region)
+kubectl config set-context oidc-secret-reader --cluster arn:aws:eks:$AWS_REGION:$AWS_ACCOUNT_ID:cluster/$CLUSTER_NAME --user cognito-user
 kubectl config use-context oidc-secret-reader
 :::
 

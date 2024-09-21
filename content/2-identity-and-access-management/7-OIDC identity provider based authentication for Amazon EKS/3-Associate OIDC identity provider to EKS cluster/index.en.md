@@ -18,8 +18,8 @@ Let's walk through the process of associating the identity provider for your Ama
 Run the following command to associate OIDCUserpool to EKS cluster
 
 :::code{language=bash showLineNumbers=false showCopyAction=true}
-
-output=$(aws eks associate-identity-provider-config --cluster-name EksClusterBlog --oidc 'identityProviderConfigName=CognitoID,issuerUrl='$ISSUER_URL',clientId='$CLIENT_ID',usernameClaim=email,groupsClaim=cognito:groups,groupsPrefix=gid:')
+CLUSTER_NAME=$(aws eks list-clusters | jq -r '.clusters[] | select(contains("eksworkshop"))')
+output=$(aws eks associate-identity-provider-config --cluster-name $CLUSTER_NAME --oidc 'identityProviderConfigName=CognitoID,issuerUrl='$ISSUER_URL',clientId='$CLIENT_ID',usernameClaim=email,groupsClaim=cognito:groups,groupsPrefix=gid:')
 echo $output
 :::
 
