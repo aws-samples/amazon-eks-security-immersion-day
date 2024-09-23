@@ -55,7 +55,7 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       AvailabilityZone: !Sub "${AWS::Region}c"
-      CidrBlock: "10.50.256.0/24"
+      CidrBlock: "10.50.96.0/19"
       Tags:
         - Key: Name
           Value: EKSSecurityImmersionDayPublicA
@@ -65,7 +65,7 @@ Resources:
       RouteTableId: !Ref PublicRouteTable
       SubnetId: !Ref PublicSubnetC
 
-   NATGateway:
+  NATGateway:
     Type: AWS::EC2::NatGateway
     Properties:
       AllocationId: !GetAtt NatGatewayEIP.AllocationId
@@ -167,11 +167,28 @@ Resources:
           Value: EKSSecurityImmersionDayPrivateD
         - Key: kubernetes.io/role/internal-elb
           Value: 1
-  PrivateSubnetCRouteTableAssociation:
+  PrivateSubnetDRouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       RouteTableId: !Ref PrivateRouteTableD
       SubnetId: !Ref PrivateSubnetD
+
+  # Cluster nodes Security group
+  ClusterSharedSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: ClusterSharedSecurityGroup
+      GroupDescription: Pre created SG for Cluster communication
+      VpcId: !Ref VPC
+
+  SelfIngressSecurityGroup:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref ClusterSharedSecurityGroup
+      IpProtocol: tcp
+      FromPort: 0
+      ToPort: 65535
+      SourceSecurityGroupId: !Ref ClusterSharedSecurityGroup
 
 Outputs:
 
@@ -179,30 +196,35 @@ Outputs:
     Description: 'VPC'
     Value: !Ref VPC
     Export:
-      Name: vpcId
+      Name: vpcIdOP
 
 
-  SubnetAPrivate:
+  SubnetAPrivateOP:
     Description: 'Subnet A private'
     Value: !Ref PrivateSubnetA
     Export:
-      Name: SubnetAPrivate
+      Name: SubnetAPrivateOP
 
-  SubnetBPrivate:
+  SubnetBPrivateOP:
     Description: 'Subnet B private'
     Value: !Ref PrivateSubnetB
     Export:
-      Name: SubnetBPrivate
+      Name: SubnetBPrivateOP
 
-  SubnetCPrivate:
+  SubnetCPrivateOP:
     Description: 'Subnet C private'
     Value: !Ref PrivateSubnetC
     Export:
-      Name: SubnetCPrivate
+      Name: SubnetCPrivateOP
 
-  SubnetDPrivate:
+  SubnetDPrivateOP:
     Description: 'Subnet D private'
     Value: !Ref PrivateSubnetD
     Export:
-      Name: SubnetDPrivate
+      Name: SubnetDPrivateOP
 
+  ClusterSharedSGOP:
+    Description: Pre created SG for Cluster communication
+    Value: !Ref ClusterSharedSecurityGroup
+    Export:
+      Name: ClusterSharedSGOP

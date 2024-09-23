@@ -14,6 +14,15 @@ curl -O https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-cont
 
 Since your nodes don't have access to the Amazon ECR Public image repository, then you need to pull the following container image and push it to a repository that your nodes have access to.
 
+```bash
+aws ecr create-repository --region $AWS_REGION --repository-name docker-2048
+```
+
+
+Please notice the "repositoryUri" from the output. It would look like the following
+
+<<ACCOUNT_ID>>.dkr.ecr.<<REGION_CODE>>.amazonaws.com/docker-2048
+
 Pull image from Public registry
 
 
@@ -37,7 +46,7 @@ Get the image id for the pulled image
 
 
 ```bash
-IMAGE_ID=$(docker image public.ecr.aws/l6m2t8p7/docker-2048:latest -q)
+IMAGE_ID=$(docker image ls public.ecr.aws/l6m2t8p7/docker-2048:latest -q)
 echo $IMAGE_ID
 ```
 
@@ -51,7 +60,7 @@ eb0a3a80a5dd
 Tag the image that you pulled with your registry, repository, and tag. Use the IMAGE_ID variable as image id from the previous command
 
 ```bash
-docker tag $IMAGE_ID $ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/docker-2048
+docker tag $IMAGE_ID $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/docker-2048
 ```
 
 
@@ -59,7 +68,7 @@ Authenticate to your Private ECR registry.
 
 
 ```bash
-aws ecr get-login-password —region $AWS_REGION | sudo docker login —username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com
+aws ecr get-login-password —-region $AWS_REGION | sudo docker login —-username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 ```
 
 
@@ -76,8 +85,8 @@ docker push $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/docker-2048
 - Apply the manifest to your cluster.
 
 ```bash
-sed -i 's/internet-facing/internal' 2048_full.yaml
-sed -i 's/public.ecr.aws\/l6m2t8p7/$ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com' 2048_full.yaml
+sed -i 's/internet-facing/internal/' 2048_full.yaml
+sed -i 's/public.ecr.aws\/l6m2t8p7/$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/' 2048_full.yaml
 ```
 
 

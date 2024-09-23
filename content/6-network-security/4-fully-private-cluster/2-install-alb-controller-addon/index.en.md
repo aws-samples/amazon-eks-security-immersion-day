@@ -56,6 +56,13 @@ eksctl create iamserviceaccount \
 --attach-policy-arn=arn:aws:iam::$ACCOUNT_ID:policy/AWSLoadBalancerControllerIAMPolicy \
 --approve
 ```
+# Install Helm
+
+```bash
+curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 > get_helm.sh
+chmod 700 get_helm.sh
+./get_helm.sh
+```
 
 
 # Install the AWS Load Balancer Controller using Helm V3 or later 
@@ -92,18 +99,18 @@ Pull image from Public registry
 
 
 ```bash
-docker pull public.ecr.aws/eks/aws-load-balancer-controller:v2.6.2
+docker pull public.ecr.aws/eks/aws-load-balancer-controller:v2.8.3
 ```
 
 
 ::::expand{header="Check Output"}
 ```
-v2.6.2: Pulling from eks/aws-load-balancer-controller
+v2.8.3: Pulling from eks/aws-load-balancer-controller
 23d07b917726: Pull complete 
 75b73619860e: Pull complete 
 Digest: sha256:afc96bdad819bfac184a6e9a90096b68583cf5977e66fa985143bde37e847a50
-Status: Downloaded newer image for public.ecr.aws/eks/aws-load-balancer-controller:v2.6.2
-public.ecr.aws/eks/aws-load-balancer-controller:v2.6.2
+Status: Downloaded newer image for public.ecr.aws/eks/aws-load-balancer-controller:v2.8.3
+public.ecr.aws/eks/aws-load-balancer-controller:v2.8.3
 ```
 ::::
 
@@ -111,7 +118,7 @@ Get the image id for the pulled image
 
 
 ```bash
-LBC_IMAGE_ID=$(docker image public.ecr.aws/eks/aws-load-balancer-controller:v2.6.2 -q)
+LBC_IMAGE_ID=$(docker image ls public.ecr.aws/eks/aws-load-balancer-controller:v2.8.3 -q)
 echo $LBC_IMAGE_ID
 ```
 
@@ -125,7 +132,7 @@ echo $LBC_IMAGE_ID
 Tag the image that you pulled with your registry, repository, and tag. Use the 355e20eeb0df image id from the previous command
 
 ```bash
-docker tag $LBC_IMAGE_ID $ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/aws-load-balancer-controller:v2.6.2
+docker tag $LBC_IMAGE_ID $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/aws-load-balancer-controller:v2.8.3
 ```
 
 
@@ -133,7 +140,7 @@ Authenticate to your Private ECR registry.
 
 
 ```bash
-aws ecr get-login-password —region $AWS_REGION | sudo docker login —username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com
+aws ecr get-login-password --region $AWS_REGION | sudo docker login —-username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 ```
 
 
@@ -141,7 +148,7 @@ Push the image to the Private ECR repository
 
 
 ```bash
-docker push $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/aws-load-balancer-controller:v2.6.2
+docker push $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/aws-load-balancer-controller:v2.8.3
 ```
 
 
@@ -149,17 +156,17 @@ Installed the ALB controller. When deploying it, we should use command line flag
 
 
 ```bash
-helm upgrade aws-load-balancer-controller eks/aws-load-balancer-controller \
+helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
 -n kube-system \
 --set clusterName=eksworkshop-eksctl-private \
 --set serviceAccount.create=false \
 --set serviceAccount.name=aws-load-balancer-controller \
---set image.repository=$ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/aws-load-balancer-controller \
+--set image.repository=$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/aws-load-balancer-controller \
+—-set image.tag=v2.8.3 \
 --set enableShield=false \
 --set enableWaf=false \
 --set enableWafv2=false
 ```
-
 
 Verify If the controller is installed
 

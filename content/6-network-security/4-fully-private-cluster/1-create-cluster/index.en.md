@@ -39,18 +39,6 @@ aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values
 +---------------------------+-------------------------+--------------+
 ```
 
-We would use Private Subnets on AZ "a","b" and "c" for creating the EKS Cluster worker nodes and another Subnet in AZ "c" for Private Cloud9 instance. We would set the following environment vairables from the values in the above output table.
-
-```bash
-export AZ1_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=${AWS_REGION}a --query "Subnets[*].[SubnetId]" --output text)
-export AZ2_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=${AWS_REGION}b --query "Subnets[*].[SubnetId]" --output text)
-export AZ3_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=${AWS_REGION}c --query "Subnets[*].[SubnetId]" --output text)
-export CLOUD9_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnetD Name=availability-zone,Values=${AWS_REGION}c --query "Subnets[*].[SubnetId]" --output text)
-export CLUSTER_VPC=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=${AWS_REGION}c --query "Subnets[*].[VpcId]" --output text)
-```
-
-
-
 #### Create and Setup Management Cloud9 instance in Private Subnet
 
 * Go to [AWS Cloud9 Console](https://us-west-2.console.aws.amazon.com/cloud9/home?region=us-west-2)
@@ -58,7 +46,7 @@ export CLUSTER_VPC=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformat
 * Name it **eksworkshop-private**, click Next.
 * Choose **t3.small** for instance type 
 * Go to **Network Setting** and expand **VPC Setting**
-* Select the "EKSSecurityImmersionDayPrivate" as VPC and "EKSSecurityImmersionDayPrivateC" as the Subnet
+* Select the "EKSSecurityImmersionDayPrivate" as VPC and "EKSSecurityImmersionDayPrivateD" as the Subnet
 * Click **Create environment**
 
 When it comes up, customize the environment by:
@@ -84,28 +72,29 @@ When it comes up, customize the environment by:
 2. Select the instance, then choose **Actions / Security / Modify IAM Role**
 ![c9instancerole](/static/images/create-workspace/c9instancerole.png)
 
-3. Choose **eksworkshop-admin** from the **IAM Role** drop down, and select **Save**
+3. Choose **eks-security-workshop** from the **IAM Role** drop down, and select **Save**
 ![c9attachrole](/static/images/create-workspace/c9attachrole.png)
+
+#### Attach a Security group to the AWS Cloud9 workspace EC2 instance
+
+1. Click the grey circle button (in top right corner) and select **Manage EC2 Instance**.
+
+![cloud9Role](/static/images/create-workspace/cloud9-role.png)
+
+2. Select the instance, then choose **Actions / Security / Change security groups**
+
+3. Add **ClusterSharedSecurityGroup** security as an additional row and save.
 
 
 #### Update IAM settings for your Workspace
 
-To ensure temporary credentials aren't already in place we will remove
-any existing credentials file as well as disabling **AWS managed temporary credentials**:
+Currently, if your environment’s EC2 instance is launched into a private subnet, you can't use AWS managed temporary credentials to allow the EC2 environment to access an AWS service on behalf of an AWS entity (for example, an IAM user).
+To ensure temporary credentials aren't already in place we will remove any existing credentials file as well as disabling **AWS managed temporary credentials**:
+The owner of an EC2 environment can turn on or off AWS managed temporary credentials for that environment at any time, as follows:
+* With the environment open, in the AWS Cloud9 IDE, on the menu bar choose AWS Cloud9, **Preferences**.
+* On the Preferences tab, in the navigation pane, choose **AWS Settings**, Credentials.
+* Use AWS managed temporary credentials to turn AWS managed temporary credentials on or off.
 
-```bash
-aws cloud9 update-environment  --environment-id $C9_PID --managed-credentials-action DISABLE
-rm -vf ${HOME}/.aws/credentials
-```
-
-#### Install latest awscli
-```bash
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-unzip awscliv2.zip
-sudo ./aws/install
-```
-
-Run below commands to set few environment variables.
 
 ::alert[If you are [at an AWS event](/1-create-workspace-environment/awsevent), ask your instructor which **AWS region** to use.]{header="Note"}
 
@@ -166,13 +155,15 @@ Run below commands to set few environment variables. Please fetch the subnet and
 
 ```bash
 export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
-export AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
+export TOKEN=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"`
+export AWS_REGION=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document -H "X-aws-ec2-metadata-token: $TOKEN" | jq -r '.region')
 export AZS="$(aws ec2 describe-availability-zones --query 'AvailabilityZones[].ZoneName' --output text --region $AWS_REGION)"
-export AZ1_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=${AWS_REGION}a --query "Subnets[*].[SubnetId]" --output text)
-export AZ2_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=${AWS_REGION}b --query "Subnets[*].[SubnetId]" --output text)
-export AZ3_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=${AWS_REGION}c --query "Subnets[*].[SubnetId]" --output text)
+export AZ1_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnetA Name=availability-zone,Values=${AWS_REGION}a --query "Subnets[*].[SubnetId]" --output text)
+export AZ2_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnetB Name=availability-zone,Values=${AWS_REGION}b --query "Subnets[*].[SubnetId]" --output text)
+export AZ3_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnetC Name=availability-zone,Values=${AWS_REGION}c --query "Subnets[*].[SubnetId]" --output text)
 export CLOUD9_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnetD Name=availability-zone,Values=${AWS_REGION}c --query "Subnets[*].[SubnetId]" --output text)
 export CLUSTER_VPC=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=${AWS_REGION}c --query "Subnets[*].[VpcId]" --output text)
+export CLUSTER_SG=$(aws ec2 describe-security-groups --filters Name=group-name,Values=*ClusterSharedSecurityGroup* --query "SecurityGroups[*].[GroupId]" --output text)
 ```
 
 Check if AWS_REGION is set to desired region
@@ -196,7 +187,7 @@ aws configure get default.region
 Use the [GetCallerIdentity](https://docs.aws.amazon.com/cli/latest/reference/sts/get-caller-identity.html) CLI command to validate that the AWS Cloud9 IDE is using the correct IAM role.
 
 ```bash
-aws sts get-caller-identity --query Arn | grep eksworkshop-admin -q && echo "IAM role valid" || echo "IAM role NOT valid"
+aws sts get-caller-identity --query Arn | grep eks-security-workshop -q && echo "IAM role valid" || echo "IAM role NOT valid"
 ```
 
 If the IAM role is not valid, **DO NOT PROCEED**. Go back and confirm the steps on this page.
@@ -230,6 +221,7 @@ vpc:
         id: ${AZ2_SUBNET}
       ${AWS_REGION}c:
         id: ${AZ3_SUBNET}
+  sharedNodeSecurityGroup: ${CLUSTER_SG}
 
 managedNodeGroups:
 - name: m1
@@ -246,7 +238,7 @@ Next, use the file you created as the input for the eksctl cluster creation.
 eksctl create cluster -f eksworkshop-eksctl-private.yaml
 ```
 
-Launching Amazon EKS and all the dependencies will take approximately 15 minutes
+Launching Amazon EKS and all the dependencies will take approximately 15-20 minutes
 
 You can test access to your cluster by running the following command. The output will be a list of worker nodes
 
@@ -452,7 +444,7 @@ Name:   AFB4045AF25413FF766AD8CA1FF0CAEA.yl4.ap-south-1.eks.amazonaws.com
 Address: 10.50.176.167
 ````
 
-Now both the eksworkshop-private Cloud9 instance is ready for manage the fully private cluster.
+Now the eksworkshop-private Cloud9 instance is ready to manage the fully private cluster. The three worker nodes can be privately logged into through Session Manager.
 
 #### Test the Private connectivity of the EKS Worker Nodes
 
