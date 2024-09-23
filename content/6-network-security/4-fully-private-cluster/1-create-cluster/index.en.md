@@ -75,7 +75,7 @@ When it comes up, customize the environment by:
 3. Choose **eks-security-workshop** from the **IAM Role** drop down, and select **Save**
 ![c9attachrole](/static/images/create-workspace/c9attachrole.png)
 
-#### Attach a Secuirty group to the AWS Cloud9 workspace EC2 instance
+#### Attach a Security group to the AWS Cloud9 workspace EC2 instance
 
 1. Click the grey circle button (in top right corner) and select **Manage EC2 Instance**.
 
