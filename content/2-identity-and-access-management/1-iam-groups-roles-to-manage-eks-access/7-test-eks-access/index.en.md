@@ -3,7 +3,6 @@ title : "Test Amazon EKS access"
 weight : 27
 ---
 
-
 ## Automate assumerole with aws cli
 
 
@@ -15,7 +14,13 @@ It is possible to automate the retrieval of temporary credentials for the assume
 mkdir -p ~/.aws
 
 if ! test -f ~/.aws/config; then
+touch ~/.aws/config
+else
+  echo "AWS Config file ~/.aws/config already exists..."
+fi
+
 cat << EoF >> ~/.aws/config
+
 [profile admin]
 role_arn=arn:aws:iam::${ACCOUNT_ID}:role/k8sAdmin
 source_profile=eksAdmin
@@ -29,9 +34,6 @@ role_arn=arn:aws:iam::${ACCOUNT_ID}:role/k8sInteg
 source_profile=eksInteg
 
 EoF
-else
-  echo "AWS Config file ~/.aws/config already exists..."
-fi
 ```
 
 #### Add in `~/.aws/credentials`:
@@ -97,6 +99,13 @@ The output looks like below.
 > When specifying the **\--profile admin** parameter we automatically ask for temporary credentials for the role k8sAdmin
 
 ## Using AWS profiles with the Kubectl config file
+
+### Install yq for yaml processing
+```bash
+echo 'yq() {
+  docker run --rm -i -v "${PWD}":/workdir mikefarah/yq "$@"
+}' | tee -a ~/.bashrc && source ~/.bashrc
+```
 
 It is also possible to specify the AWS\_PROFILE to use with the aws-iam-authenticator in the `~/.kube/config` file, so that it will use the appropriate profile.
 

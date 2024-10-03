@@ -11,7 +11,7 @@ In this section, let's deep dive into EKS Pod Identity and understand what is ha
 
 In the previous section, we created an IAM Role `eks-pod-s3-read-access-role` and called an API `create-pod-identity-association` to create an association between the IAM role and kubernetes service account `sa1` in the Namespace `ns-a`.
 
-When Amazon EKS starts a new pod that uses a service account with an EKS Pod Identity association, the [EKS Pod Identity webhook](https://github.com/aws/amazon-eks-pod-identity-webhookhttps://github.com/aws/amazon-eks-pod-identity-webhook) mutates the pod spec by adding two environment variables `AWS_CONTAINER_CREDENTIALS_FULL_URI` and `AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE`.
+When Amazon EKS starts a new pod that uses a service account with an EKS Pod Identity association, the [EKS Pod Identity webhook](https://github.com/aws/amazon-eks-pod-identity-webhook) mutates the pod spec by adding two environment variables `AWS_CONTAINER_CREDENTIALS_FULL_URI` and `AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE`.
 
  This is because EKS Pod Identities have been added to the [`Container credential provider`](https://docs.aws.amazon.com/sdkref/latest/guide/feature-container-credentials.html) which is searched by AWS SDKs in a step in the default credential chain.
  
