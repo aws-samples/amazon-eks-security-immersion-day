@@ -210,6 +210,7 @@ Look at the trust policy.
 ### Step2: Add Amazon EKS Pod Identity Agent add-on
 
 ```bash
+export EKS_CLUSTER_NAME="eksworkshop-eksctl"
 export EKS_POD_IDENTITY_ADDON_NAME="eks-pod-identity-agent"
 aws eks create-addon --cluster-name $EKS_CLUSTER_NAME --addon-name $EKS_POD_IDENTITY_ADDON_NAME
 ```

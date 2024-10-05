@@ -37,7 +37,7 @@ eksworkshop-admin
 
 ::::expand{header="Check Output if you running at AWS Event"}
 ```bash
-eks-bootstrap-template-ws-Cloud9InstanceRole-V1RKIVUA1ZM0
+eks-security-workshop
 ```
 ::::
 

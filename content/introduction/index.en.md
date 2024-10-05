@@ -39,6 +39,12 @@ As part of this workshop we will cover the following modules:
 | **Detective Controls** | [Amazon GuardDuty Protection for EKS - Audit Log Monitoring](/5-detective-controls/1-guardDuty-protection-for-eks/eks-audit-logs) | 45 mins | N/A |
 | | [Amazon GuardDuty Protection for EKS - Runtime Monitoring](/5-detective-controls/1-guardDuty-protection-for-eks/eks-runtime) | 45 mins | N/A |
 | | [Analyze Amazon EKS Control Plane logs and Audit CloudTrail logs](/5-detective-controls/2-analyze-controlplane-cloudtrail-logs) | 60 mins | N/A |
+| **Network Security** | [Implementing Kubernetes Network Policies using Amazon VPC CNI](/6-network-security/1-network-policies) | 45 mins | N/A |
+| | [Implementing IAM Auth, TLS, Custom Domains and Multi Cluster Connectivity with Amazon VPC Lattice](/6-network-security/2-vpc-lattice-service-access) | 60 mins | N/A |
+| | [Enabling mTLS with ALB in Amazon EKS](/6-network-security/3-mtls-with-alb) | 45 mins | N/A |
+| | [Fully Private EKS Cluster](/6-network-security/4-fully-private-cluster) | 45 mins | N/A |
+| **Infrastructure Security** | [Bottlerocket Security Features on Amazon EKS](/8-infrastructure-security/1-bottlerocket-security-features-amazon-eks) | 45 mins | N/A |
+| | [Using Enclaves with Amazon EKS](/8-infrastructure-security/2-using-enclaves) | 30 mins | N/A |
 | **Regulatory Compliance**| [Building Amazon Linux 2 CIS Benchmark AMIs for Amazon EKS](/10-regulatory-compliance/cis-al2-eks/) | 60 mins | N/A |
 || [Validating Amazon EKS optimized Bottlerocket AMI against the CIS Benchmark](/10-regulatory-compliance/cis-bottlerocket-eks/) | 60 mins | N/A |
 |  | [CIS EKS Benchmark Assessment Using Kube-bench](/10-regulatory-compliance/kube-bench/) | 45 mins | N/A |
