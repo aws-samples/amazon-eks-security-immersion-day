@@ -10,6 +10,9 @@ infrastructure:
     - templateLocation: static/eks-bootstrap-template-ws.yaml
       #- templateLocation: static/eks-spot-workshop-quickstart-cnf.yaml
       label: Amazon EKS Security Immersion Day
+      participantVisibleStackOutputs:
+        - IdeUrl
+        - IdePassword      
       parameters:
         - templateParameter: EETeamRoleArn
           defaultValue: '{{.ParticipantRoleArn}}'
