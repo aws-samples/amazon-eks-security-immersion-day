@@ -13,10 +13,10 @@ infrastructure:
       parameters:
         - templateParameter: EETeamRoleArn
           defaultValue: '{{.ParticipantRoleArn}}'
-        - templateParameter: Cloud9EnvironmentName
-          defaultValue: "eks-security-workshop"         
-        - templateParameter: Cloud9EnvironmentName
-          defaultValue: "eks-security-workshop"            
+        # - templateParameter: Cloud9EnvironmentName
+        #   defaultValue: "eks-security-workshop"         
+        # - templateParameter: Cloud9EnvironmentName
+        #   defaultValue: "eks-security-workshop"            
 
 # END Infrastructure
 
