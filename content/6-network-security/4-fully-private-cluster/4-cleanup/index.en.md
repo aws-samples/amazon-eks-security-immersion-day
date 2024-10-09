@@ -9,21 +9,13 @@ If are running this workshop in your own account, you would need to follow the b
 
 1) Delete the VPC endpoints created in addition to once created as a part of EKS private cluster
 2) Delete the EKS cluster
-3) Delete the Private Cloud9 environment
+3) Delete the VPC peering
 4) Delete the VPC and subnets created as a part of CFT Stack eks-private-vpc
 
 List the VPC endpoints in created in the VPC
 
 ```bash
 aws ec2 describe-vpc-endpoints --filter "Name=vpc-id,Values=$CLUSTER_VPC" --query VpcEndpoints[].[VpcId,VpcEndpointId,ServiceName] --output table
-```
-
-```
-------------------------------------------------------------------------------------------------------
-|                                        DescribeVpcEndpoints                                        |
-+-----------------------+--------------------------+-------------------------------------------------+
-|  vpc-02cc579cdd679aa3c|  vpce-094bc15d9e29372c0  |  com.amazonaws.ap-south-1.elasticloadbalancing  |
-+-----------------------+--------------------------+-------------------------------------------------+
 ```
 
 Note the VPC Endpoints IDs from the table for elasticloadbalancing,ssm,ssmmessages, ec2messages and eks
@@ -36,7 +28,7 @@ aws ec2 delete-vpc-endpoints --vpc-endpoint-ids $(aws ec2 describe-vpc-endpoints
 aws ec2 delete-vpc-endpoints --vpc-endpoint-ids $(aws ec2 describe-vpc-endpoints --filter "Name=vpc-id,Values=$CLUSTER_VPC" "Name=service-name,Values=com.amazonaws.$AWS_REGION.ec2messages" --query VpcEndpoints[].[VpcEndpointId] --output text)
 ```
 
-```
+```bash
 {
     "Unsuccessful": []
 }
@@ -49,7 +41,7 @@ eksctl delete cluster --name eksworkshop-eksctl-private
 ```
 
 
-```
+```bash
 [ℹ]  using region "region-code"
 [ℹ]  deleting EKS cluster "eksworkshop-eksctl-private"
 [ℹ]  will delete stack "eksctl-eksworkshop-eksctl-private-nodegroup-m1"
@@ -58,15 +50,8 @@ eksctl delete cluster --name eksworkshop-eksctl-private
 [✔]  the following EKS cluster resource(s) for "eksworkshop-eksctl-private" will be deleted: cluster. If in doubt, check CloudFormation console
 ```
 
-Delete the Private Cloud9 environment. The below command required the Cloud9 environment name to be "eksworkshop-private" which was the name used during creation of the same. If you had given a different name please replace it accordingly.
-
-```bash
-aws cloud9 delete-environment --region $AWS_REGION --environment-id $(aws cloud9 describe-environments --environment-ids $(aws cloud9 list-environments --query 'environmentIds[]' --output text) --query 'environments[?name==`eksworkshop-private`].id' --output text)
-```
-
 Delete the CloudFormation stack eks-private-vpc that create the VPC, Private Subnets, NAT Gateway and Internet Gateway
 
 ```bash
 aws cloudformation delete-stack --stack-name eks-private-vpc
 ```
-

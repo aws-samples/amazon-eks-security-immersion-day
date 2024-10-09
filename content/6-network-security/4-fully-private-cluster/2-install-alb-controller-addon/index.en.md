@@ -26,7 +26,7 @@ eksctl utils associate-iam-oidc-provider --region=$AWS_REGION --cluster=eksworks
 ```
 
 
-Download an IAM policy for the AWS Load Balancer Controller that allows it to make calls to AWS APIs on your behalf from the Cloud9 instance.
+Download an IAM policy for the AWS Load Balancer Controller that allows it to make calls to AWS APIs on your behalf from the Cloud9/Workshop IDE instance.
 
 
 ```bash

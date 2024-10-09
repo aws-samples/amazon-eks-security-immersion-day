@@ -28,169 +28,179 @@ Successfully created/updated stack - eks-private-vpc
 aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* --query "Subnets[*].[SubnetId,VpcId,AvailabilityZone]" --output table
 ```
 
+::::expand{header="Check Output"}
 ```
 ----------------------------------------------------------------------
 |                           DescribeSubnets                          |
 +---------------------------+-------------------------+--------------+
-|  subnet-0f0dbfbe773d48d6b |  vpc-02cc579cdd679aa3c  |  ap-south-1c |
-|  subnet-051cc8911bb59cd8d |  vpc-02cc579cdd679aa3c  |  ap-south-1a |
-|  subnet-0904b546818687aef |  vpc-02cc579cdd679aa3c  |  ap-south-1b |
-|  subnet-0c1f95d3789157c84 |  vpc-02cc579cdd679aa3c  |  ap-south-1c |
+|  subnet-0f0dbfbe773d48d6b |  vpc-02cc579cdd679aa3c  |  us-west-2c |
+|  subnet-051cc8911bb59cd8d |  vpc-02cc579cdd679aa3c  |  us-west-2a |
+|  subnet-0904b546818687aef |  vpc-02cc579cdd679aa3c  |  us-west-2b |
+|  subnet-0c1f95d3789157c84 |  vpc-02cc579cdd679aa3c  |  us-west-2c |
 +---------------------------+-------------------------+--------------+
 ```
-
-#### Create and Setup Management Cloud9 instance in Private Subnet
-
-* Go to [AWS Cloud9 Console](https://us-west-2.console.aws.amazon.com/cloud9/home?region=us-west-2)
-* Select **Create environment**
-* Name it **eksworkshop-private**, click Next.
-* Choose **t3.small** for instance type 
-* Go to **Network Setting** and expand **VPC Setting**
-* Select the "EKSSecurityImmersionDayPrivate" as VPC and "EKSSecurityImmersionDayPrivateD" as the Subnet
-* Click **Create environment**
-
-When it comes up, customize the environment by:
-
-* Closing the **Welcome tab**
-![c9before](/static/images/create-workspace/cloud9-1.png)
-
-* Opening a new **terminal** tab in the main work area
-![c9newtab](/static/images/create-workspace/cloud9-2.png)
-
-* Closing the lower work area
-![c9newtab](/static/images/create-workspace/cloud9-3.png)
-
-* Your workspace should now look like this
-![c9after](/static/images/create-workspace/cloud9-4.png)
-
-#### Attach the IAM role to the AWS Cloud9 workspace
-
-1. Click the grey circle button (in top right corner) and select **Manage EC2 Instance**.
-
-![cloud9Role](/static/images/create-workspace/cloud9-role.png)
-
-2. Select the instance, then choose **Actions / Security / Modify IAM Role**
-![c9instancerole](/static/images/create-workspace/c9instancerole.png)
-
-3. Choose **eks-security-workshop** from the **IAM Role** drop down, and select **Save**
-![c9attachrole](/static/images/create-workspace/c9attachrole.png)
-
-#### Attach a Security group to the AWS Cloud9 workspace EC2 instance
-
-1. Click the grey circle button (in top right corner) and select **Manage EC2 Instance**.
-
-![cloud9Role](/static/images/create-workspace/cloud9-role.png)
-
-2. Select the instance, then choose **Actions / Security / Change security groups**
-
-3. Add **ClusterSharedSecurityGroup** security as an additional row and save.
-
-
-#### Update IAM settings for your Workspace
-
-Currently, if your environment’s EC2 instance is launched into a private subnet, you can't use AWS managed temporary credentials to allow the EC2 environment to access an AWS service on behalf of an AWS entity (for example, an IAM user).
-To ensure temporary credentials aren't already in place we will remove any existing credentials file as well as disabling **AWS managed temporary credentials**:
-The owner of an EC2 environment can turn on or off AWS managed temporary credentials for that environment at any time, as follows:
-* With the environment open, in the AWS Cloud9 IDE, on the menu bar choose AWS Cloud9, **Preferences**.
-* On the Preferences tab, in the navigation pane, choose **AWS Settings**, Credentials.
-* Use AWS managed temporary credentials to turn AWS managed temporary credentials on or off.
-
-
-::alert[If you are [at an AWS event](/1-create-workspace-environment/awsevent), ask your instructor which **AWS region** to use.]{header="Note"}
-
-#### Install eksctl
-```bash
-curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-
-sudo mv -v /tmp/eksctl /usr/local/bin
-```
-Confirm the eksctl command works:
-
-```bash
-eksctl version
-```
-Enable eksctl bash-completion
-
-```bash
-eksctl completion bash >> ~/.bash_completion
-. /etc/profile.d/bash_completion.sh
-. ~/.bash_completion
-```
-
-#### Install kubectl
-```bash
-sudo curl --silent --location -o /usr/local/bin/kubectl \
-   https://s3.us-west-2.amazonaws.com/amazon-eks/1.28.1/2023-09-14/bin/linux/amd64/kubectl
-
-sudo chmod +x /usr/local/bin/kubectl
-```
-
-#### Install jq, envsubst (from GNU gettext utilities) and bash-completion
-```bash
-sudo yum -y install jq gettext bash-completion moreutils
-```
-#### Install yq for yaml processing
-```bash
-echo 'yq() {
-  docker run --rm -i -v "${PWD}":/workdir mikefarah/yq "$@"
-}' | tee -a ~/.bashrc && source ~/.bashrc
-```
-
-#### Verify the binaries are in the path and executable
-```bash
-for command in kubectl jq envsubst aws
-  do
-    which $command &>/dev/null && echo "$command in path" || echo "$command NOT FOUND"
-  done
-```
-#### Enable kubectl bash_completion
-```bash
-kubectl completion bash >>  ~/.bash_completion
-. /etc/profile.d/bash_completion.sh
-. ~/.bash_completion
-```
-
+::::
 
 Run below commands to set few environment variables. Please fetch the subnet and VPC settings from the **Create VPC** section.
 
 ```bash
-export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
-export TOKEN=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"`
-export AWS_REGION=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document -H "X-aws-ec2-metadata-token: $TOKEN" | jq -r '.region')
-export AZS="$(aws ec2 describe-availability-zones --query 'AvailabilityZones[].ZoneName' --output text --region $AWS_REGION)"
-export AZ1_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnetA Name=availability-zone,Values=${AWS_REGION}a --query "Subnets[*].[SubnetId]" --output text)
-export AZ2_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnetB Name=availability-zone,Values=${AWS_REGION}b --query "Subnets[*].[SubnetId]" --output text)
-export AZ3_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnetC Name=availability-zone,Values=${AWS_REGION}c --query "Subnets[*].[SubnetId]" --output text)
-export CLOUD9_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnetD Name=availability-zone,Values=${AWS_REGION}c --query "Subnets[*].[SubnetId]" --output text)
-export CLUSTER_VPC=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=${AWS_REGION}c --query "Subnets[0].[VpcId]" --output text)
-export CLUSTER_SG=$(aws ec2 describe-security-groups --filters Name=group-name,Values=*ClusterSharedSecurityGroup* --query "SecurityGroups[*].[GroupId]" --output text)
-```
 
-Check if AWS_REGION is set to desired region
+export PRIVATE_AZS="$(aws ec2 describe-availability-zones --query 'AvailabilityZones[].ZoneName' --output text --region $AWS_REGION)"
+export PRIVATE_AZ1_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnetA Name=availability-zone,Values=${AWS_REGION}a --query "Subnets[*].[SubnetId]" --output text)
+export PRIVATE_AZ2_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnetB Name=availability-zone,Values=${AWS_REGION}b --query "Subnets[*].[SubnetId]" --output text)
+export PRIVATE_AZ3_SUBNET=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnetC Name=availability-zone,Values=${AWS_REGION}c --query "Subnets[*].[SubnetId]" --output text)
+export PRIVATE_CLUSTER_VPC=$(aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc Name=tag:aws:cloudformation:logical-id,Values=PrivateSubnet* Name=availability-zone,Values=${AWS_REGION}c --query "Subnets[0].[VpcId]" --output text)
+export PRIVATE_CLUSTER_SG=$(aws ec2 describe-security-groups --filters Name=group-name,Values=*ClusterSharedSecurityGroup* --query "SecurityGroups[*].[GroupId]" --output text)
 
-```bash
-test -n "$AWS_REGION" && echo AWS_REGION is "$AWS_REGION" || echo AWS_REGION is not set
+echo $PRIVATE_AZ1_SUBNET $PRIVATE_AZ2_SUBNET $PRIVATE_AZ3_SUBNET $PRIVATE_CLUSTER_VPC $PRIVATE_CLUSTER_SG
 ```
 
  Let's save these into bash_profile
 
 ```bash
-echo "export ACCOUNT_ID=${ACCOUNT_ID}" | tee -a ~/.bash_profile
-echo "export AWS_REGION=${AWS_REGION}" | tee -a ~/.bash_profile
-echo "export AZS=(${AZS[@]})" | tee -a ~/.bash_profile
-aws configure set default.region ${AWS_REGION}
-aws configure get default.region
+echo "export PRIVATE_AZS=(${PRIVATE_AZS[@]})" | tee -a ~/.bash_profile
 ```
 
-**Validate the IAM role**
+1. Create A VPC peering connection between the existing VPC and the new VPC.
 
-Use the [GetCallerIdentity](https://docs.aws.amazon.com/cli/latest/reference/sts/get-caller-identity.html) CLI command to validate that the AWS Cloud9 IDE is using the correct IAM role.
+* create and accept a VPC peering connection between your VPCs
 
 ```bash
-aws sts get-caller-identity --query Arn | grep eks-security-workshop -q && echo "IAM role valid" || echo "IAM role NOT valid"
+PRIVATE_VPC_ID=$(aws ec2 describe-vpcs --filters "Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc" --query 'Vpcs[0].VpcId' --output text)
+
+export EKS_CLUSTER1_VPC_ID=$(aws cloudformation describe-stacks --stack-name eks-bootstrap-template-ws \
+--region $AWS_REGION --output text \
+--query 'Stacks[0].Outputs[?OutputKey==`VPC`].OutputValue')
+
+VpcPeeringConnectionId=$(aws ec2 create-vpc-peering-connection --vpc-id $PRIVATE_VPC_ID --peer-vpc-id $EKS_CLUSTER1_VPC_ID --output text --query 'VpcPeeringConnection.VpcPeeringConnectionId')
+
+aws ec2 accept-vpc-peering-connection --vpc-peering-connection-id $VpcPeeringConnectionId
 ```
 
-If the IAM role is not valid, **DO NOT PROCEED**. Go back and confirm the steps on this page.
+::::expand{header="Check Output"}
+
+```bash
+{
+    "VpcPeeringConnection": {
+        "AccepterVpcInfo": {
+            "CidrBlock": "10.254.0.0/16",
+            "CidrBlockSet": [
+                {
+                    "CidrBlock": "10.254.0.0/16"
+                }
+            ],
+            "OwnerId": "XXXXXXXXXXXX",
+            "PeeringOptions": {
+                "AllowDnsResolutionFromRemoteVpc": false,
+                "AllowEgressFromLocalClassicLinkToRemoteVpc": false,
+                "AllowEgressFromLocalVpcToRemoteClassicLink": false
+            },
+            "VpcId": "vpc-existingekscluster1",
+            "Region": "us-west-2"
+        },
+        "RequesterVpcInfo": {
+            "CidrBlock": "10.50.0.0/16",
+            "CidrBlockSet": [
+                {
+                    "CidrBlock": "10.50.0.0/16"
+                }
+            ],
+            "OwnerId": "XXXXXXXXXXXX",
+            "PeeringOptions": {
+                "AllowDnsResolutionFromRemoteVpc": false,
+                "AllowEgressFromLocalClassicLinkToRemoteVpc": false,
+                "AllowEgressFromLocalVpcToRemoteClassicLink": false
+            },
+            "VpcId": "vpc-newprivateekscluster",
+            "Region": "us-west-2"
+        },
+        "Status": {
+            "Code": "provisioning",
+            "Message": "Provisioning"
+        },
+        "Tags": [],
+        "VpcPeeringConnectionId": "pcx-0dc858eeb95e4660e"
+    }
+}
+```
+
+::::
+
+* create a route to the Primary EKS cluster VPC in the new Private VPC
+
+```bash
+PRIVATE_VPC_RouteTableId=$(aws ec2 describe-route-tables --filter "Name=vpc-id, Values=$PRIVATE_VPC_ID" --query 'RouteTables[0].RouteTableId' --output text)
+
+aws ec2 create-route --route-table-id $PRIVATE_VPC_RouteTableId --destination-cidr-block 10.254.0.0/16 --vpc-peering-connection-id $VpcPeeringConnectionId
+
+aws ec2 describe-route-tables --filters "Name=association.subnet-id,Values=$HOST_SUBNET" --query "RouteTables[0].RouteTableId" --output text
+
+```
+
+::::expand{header="Check Output"}
+
+```bash
+{
+    "Return": true
+}
+```
+
+::::
+
+* Allow DNS resolution over the peered VPCs.
+  
+```bash
+aws ec2 modify-vpc-peering-connection-options --vpc-peering-connection-id "pcx-0dc858eeb95e4660e" --requester-peering-connection-options '{"AllowDnsResolutionFromRemoteVpc":true}' --accepter-peering-connection-options '{"AllowDnsResolutionFromRemoteVpc":true}' --region us-west-2
+```
+
+::::expand{header="Check Output"}
+
+```bash
+{
+    "AccepterPeeringConnectionOptions": {
+        "AllowDnsResolutionFromRemoteVpc": true
+    },
+    "RequesterPeeringConnectionOptions": {
+        "AllowDnsResolutionFromRemoteVpc": true
+    }
+}
+```
+
+::::
+
+
+* create a route for the Workshop IDE's Subnet to the new Private VPC.
+
+```bash
+
+MAC=$(TOKEN=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"` && \
+curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/network/interfaces/macs/) && \
+TOKEN=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"` && \
+HOST_SUBNET=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/network/interfaces/macs/${MAC}/subnet-id)
+
+
+EKS_CLUSTER1_VPC_PublicA_RouteTableId=$(aws ec2 describe-route-tables --filter "Name=vpc-id,Values=$EKS_CLUSTER1_VPC_ID" "Name=association.subnet-id,Values=$HOST_SUBNET" --query 'RouteTables[0].RouteTableId' --output text)
+
+aws ec2 create-route --route-table-id $EKS_CLUSTER1_VPC_PublicA_RouteTableId --destination-cidr-block 10.50.0.0/16 --vpc-peering-connection-id $VpcPeeringConnectionId
+```
+
+::::expand{header="Check Output"}
+
+```bash
+{
+    "Return": true
+}
+```
+
+::::
+
+* create Inbound rule for Kubernetes Control Plane Security Group to allow communication from the 2 VPCs
+
+```bash
+aws ec2 authorize-security-group-ingress \
+    --group-id ${PRIVATE_CLUSTER_SG} \
+    --ip-permissions IpProtocol=-1,FromPort=-1,ToPort=-1,IpRanges="[{CidrIp=10.50.0.0/16}]" IpProtocol=-1,FromPort=-1,ToPort=-1,IpRanges="[{CidrIp=10.254.0.0/16}]"
+```
 
 #### Create a Fully Private EKS Cluster in the VPC created earlier
 
@@ -205,6 +215,7 @@ kind: ClusterConfig
 metadata:
   name: eksworkshop-eksctl-private
   region: ${AWS_REGION}
+  version: '1.28'
 
 privateCluster:
   enabled: true
@@ -213,15 +224,16 @@ privateCluster:
   - "logs"
 
 vpc:
+  securityGroup: "${PRIVATE_CLUSTER_SG}" # this is the ControlPlaneSecurityGroup
   subnets:
     private:
       ${AWS_REGION}a:
-        id: ${AZ1_SUBNET}
+        id: ${PRIVATE_AZ1_SUBNET}
       ${AWS_REGION}b:
-        id: ${AZ2_SUBNET}
+        id: ${PRIVATE_AZ2_SUBNET}
       ${AWS_REGION}c:
-        id: ${AZ3_SUBNET}
-  sharedNodeSecurityGroup: ${CLUSTER_SG}
+        id: ${PRIVATE_AZ3_SUBNET}
+  sharedNodeSecurityGroup: ${PRIVATE_CLUSTER_SG}
 
 managedNodeGroups:
 - name: m1
@@ -233,12 +245,20 @@ EOF
 
 Next, use the file you created as the input for the eksctl cluster creation.
 
-
 ```bash
 eksctl create cluster -f eksworkshop-eksctl-private.yaml
 ```
 
 Launching Amazon EKS and all the dependencies will take approximately 15-20 minutes
+
+::::expand{header="Check Output"}
+
+```bash
+2024-10-09 15:15:01 [ℹ]  fully private cluster "eksworkshop-eksctl-private" has been created. For subsequent operations, eksctl must be run from within the cluster's VPC, a peered VPC or some other means like AWS Direct Connect
+2024-10-09 15:15:01 [✔]  EKS cluster "eksworkshop-eksctl-private" in "us-west-2" region is ready
+```
+
+::::
 
 You can test access to your cluster by running the following command. The output will be a list of worker nodes
 
@@ -249,23 +269,20 @@ kubectl get nodes
 You should see below output
 
 ```bash
-NAME                                           STATUS   ROLES    AGE   VERSION
-ip-10-***-***-***.ap-south-1.compute.internal   Ready   <none>   39h   v1.27.7-eks-e71965b
-ip-10-***-***-***.ap-south-1.compute.internal   Ready   <none>   39h   v1.27.7-eks-e71965b
-ip-10-***-***-***.ap-south-1.compute.internal   Ready   <none>   39h   v1.27.7-eks-e71965b
+NAME                                          STATUS   ROLES    AGE   VERSION
+ip-10-50-132-174.us-west-2.compute.internal   Ready    <none>   62m   v1.28.13-eks-a737599
+ip-10-50-164-204.us-west-2.compute.internal   Ready    <none>   63m   v1.28.13-eks-a737599
+ip-10-50-214-74.us-west-2.compute.internal    Ready    <none>   62m   v1.28.13-eks-a737599
 ```
 
-This should setup an EKS cluster with Private Endpoint for the Control Plane. The details of the newly created cluster can be fetched from the above command from kubectl commands. Notice in the output the cluster creation process first enables for the Private and Public endpoint for the API server to initial provisioning of the cluster. Later the public endpoint is delted as as a part of the eksctl command.
+This should setup an EKS cluster with Private Endpoint for the Control Plane. The details of the newly created cluster can be fetched from the above command from kubectl commands. Notice in the output the cluster creation process first enables for the Private and Public endpoint for the API server to initial provisioning of the cluster. Later the public endpoint is deleted as as a part of the eksctl command.
 
-eksctl supports creation of fully-private clusters that have no outbound internet access and have only private subnets. VPC endpoints are used to enable private access to AWS services.
+`eksctl` supports creation of fully-private clusters that have no outbound internet access and have only private subnets. VPC endpoints are used to enable private access to AWS services.
 
-The only required field to create a fully-private cluster is privateCluster.enabled. Only private nodegroups (both managed and self-managed) are supported in a fully-private cluster because the cluster's VPC is created without any public subnets. The privateNetworking field must be explicitly set. It is an error to leave privateNetworking unset in a fully-private cluster.
+The only required field to create a fully-private cluster is `privateCluster.enabled`. Only private node groups (both managed and self-managed) are supported in a fully-private cluster because the cluster's VPC is created without any public subnets. The `privateNetworking` field must be explicitly set. It is an error to leave `privateNetworking` unset in a fully-private cluster.
 
 
-
-If Karpenter is used for Auto scaling of worker nodes the following considerations are required. 
-https://aws.github.io/aws-eks-best-practices/karpenter/#amazon-eks-private-cluster-without-outbound-internet-access
-
+If Karpenter is used for Auto scaling of worker nodes the following considerations are required. https://aws.github.io/aws-eks-best-practices/karpenter/#amazon-eks-private-cluster-without-outbound-internet-access
 
 :::code{showCopyAction=true showLineNumbers=false language=yaml}
 privateCluster:
@@ -276,9 +293,8 @@ After the EKS cluster was created and since it is a Private Cluster, there would
 
 #### List the VPC endpoints created with the EKS clusters for Private access to AWS Servcies
 
-
 ```bash
-aws ec2 describe-vpc-endpoints --filter "Name=vpc-id,Values=$CLUSTER_VPC" --query VpcEndpoints[].[VpcId,VpcEndpointId,ServiceName] --output table
+aws ec2 describe-vpc-endpoints --filter "Name=vpc-id,Values=$PRIVATE_CLUSTER_VPC" --query VpcEndpoints[].[VpcId,VpcEndpointId,ServiceName] --output table
 ```
 
 
@@ -286,19 +302,20 @@ aws ec2 describe-vpc-endpoints --filter "Name=vpc-id,Values=$CLUSTER_VPC" --quer
 ----------------------------------------------------------------------------
 |                           DescribeVpcEndpoints                           |
 +------------------------+-------------------------------------------------+
-|  vpc-02cc579cdd679aa3c |  com.amazonaws.ap-south-1.s3                    |
-|  vpc-02cc579cdd679aa3c |  com.amazonaws.ap-south-1.ecr.dkr               |
-|  vpc-02cc579cdd679aa3c |  com.amazonaws.ap-south-1.ecr.api               |
-|  vpc-02cc579cdd679aa3c |  com.amazonaws.ap-south-1.logs                  |
-|  vpc-02cc579cdd679aa3c |  com.amazonaws.ap-south-1.ec2                   |
-|  vpc-02cc579cdd679aa3c |  com.amazonaws.ap-south-1.sts                   |
-|  vpc-02cc579cdd679aa3c |  com.amazonaws.ap-south-1.autoscaling           ||  
+|  vpc-02cc579cdd679aa3c |  com.amazonaws.us-west-2.s3                    |
+|  vpc-02cc579cdd679aa3c |  com.amazonaws.us-west-2.ecr.dkr               |
+|  vpc-02cc579cdd679aa3c |  com.amazonaws.us-west-2.ecr.api               |
+|  vpc-02cc579cdd679aa3c |  com.amazonaws.us-west-2.logs                  |
+|  vpc-02cc579cdd679aa3c |  com.amazonaws.us-west-2.ec2                   |
+|  vpc-02cc579cdd679aa3c |  com.amazonaws.us-west-2.sts                   |
+|  vpc-02cc579cdd679aa3c |  com.amazonaws.us-west-2.autoscaling           ||  
 +------------------------+-------------------------------------------------+
 ```
 
 This Workshop would additionally require these VPC endpoints additionally. We would be creating the same below.
+
 * elasticloadbalancing - For ALB Controller addon to create ELBs
-* eks - For Cloud9 to privately query EKS Service APIs
+* eks - For privately querying EKS Service APIs
 * ssm - EKS Worker nodes to be accessed through SSM without opening SSH ports
 * ssmmessages - EKS Worker nodes to be accessed through SSM without opening SSH ports
 * ec2messages - EKS Worker nodes to be accessed through SSM without opening SSH ports
@@ -307,35 +324,33 @@ This Workshop would additionally require these VPC endpoints additionally. We wo
 
 Get the Security group used by the existing VPC Endpoints.
 
-
 ```bash
-export VPCE_SG=$(aws ec2 describe-vpc-endpoints --filter Name=vpc-id,Values=$CLUSTER_VPC Name=service-name,Values=*ec2 --query VpcEndpoints[].Groups[].GroupId --output text)
+export VPCE_SG=$(aws ec2 describe-vpc-endpoints --filter Name=vpc-id,Values=$PRIVATE_CLUSTER_VPC Name=service-name,Values=*ec2 --query VpcEndpoints[].Groups[].GroupId --output text)
 ```
-
-
-Create The VPC endpoints.
 
 VPC endpoint for ELB
 
 ```bash
 aws ec2 create-vpc-endpoint \
-    --vpc-id $CLUSTER_VPC \
+    --vpc-id $PRIVATE_CLUSTER_VPC \
     --vpc-endpoint-type Interface \
     --service-name com.amazonaws.$AWS_REGION.elasticloadbalancing \
-    --subnet-ids $AZ1_SUBNET $AZ2_SUBNET \
+    --subnet-ids $PRIVATE_AZ1_SUBNET $PRIVATE_AZ2_SUBNET $PRIVATE_AZ3_SUBNET \
     --security-group-id $VPCE_SG \
     --tag-specifications 'ResourceType=vpc-endpoint,Tags=[{Key=service,Value=ELB}]'
 ```
 
 Check sample output. This will is the JSON representation of the resource created.
+
 ::::expand{header="Check Output"}
-```
+
+```bash
 {
     "VpcEndpoint": {
         "VpcEndpointId": "vpce-094bc15d9e29372c0",
         "VpcEndpointType": "Interface",
         "VpcId": "vpc-02cc579cdd679aa3c",
-        "ServiceName": "com.amazonaws.ap-south-1.elasticloadbalancing",
+        "ServiceName": "com.amazonaws.us-west-2.elasticloadbalancing",
         "State": "pending",
         "RouteTableIds": [],
         "SubnetIds": [],
@@ -364,16 +379,17 @@ Check sample output. This will is the JSON representation of the resource create
     }
 }
 ```
+
 ::::
 
 VPC endpoint for EKS
 
 ```bash
 aws ec2 create-vpc-endpoint \
-    --vpc-id $CLUSTER_VPC \
+    --vpc-id $PRIVATE_CLUSTER_VPC \
     --vpc-endpoint-type Interface \
     --service-name com.amazonaws.$AWS_REGION.eks \
-    --subnet-ids $AZ1_SUBNET $AZ2_SUBNET \
+    --subnet-ids $PRIVATE_AZ1_SUBNET $PRIVATE_AZ2_SUBNET $PRIVATE_AZ3_SUBNET \
     --security-group-id $VPCE_SG \
     --tag-specifications 'ResourceType=vpc-endpoint,Tags=[{Key=service,Value=EKS}]'
 ```
@@ -382,10 +398,10 @@ VPC endpoint for SSM
 
 ```bash
 aws ec2 create-vpc-endpoint \
-    --vpc-id $CLUSTER_VPC \
+    --vpc-id $PRIVATE_CLUSTER_VPC \
     --vpc-endpoint-type Interface \
     --service-name com.amazonaws.$AWS_REGION.ssm \
-    --subnet-ids $AZ1_SUBNET $AZ2_SUBNET \
+    --subnet-ids $PRIVATE_AZ1_SUBNET $PRIVATE_AZ2_SUBNET $PRIVATE_AZ3_SUBNET \
     --security-group-id $VPCE_SG \
     --tag-specifications 'ResourceType=vpc-endpoint,Tags=[{Key=service,Value=SSM}]'
 ```
@@ -394,10 +410,10 @@ VPC endpoint for SSM messages
 
 ```bash
 aws ec2 create-vpc-endpoint \
-    --vpc-id $CLUSTER_VPC \
+    --vpc-id $PRIVATE_CLUSTER_VPC \
     --vpc-endpoint-type Interface \
     --service-name com.amazonaws.$AWS_REGION.ssmmessages \
-    --subnet-ids $AZ1_SUBNET $AZ2_SUBNET \
+    --subnet-ids $PRIVATE_AZ1_SUBNET $PRIVATE_AZ2_SUBNET $PRIVATE_AZ3_SUBNET \
     --security-group-id $VPCE_SG \
     --tag-specifications 'ResourceType=vpc-endpoint,Tags=[{Key=service,Value=ssmmessages}]'
 ```
@@ -406,43 +422,42 @@ VPC endpoint for EC2 messages
 
 ```bash
 aws ec2 create-vpc-endpoint \
-    --vpc-id $CLUSTER_VPC \
+    --vpc-id $PRIVATE_CLUSTER_VPC \
     --vpc-endpoint-type Interface \
     --service-name com.amazonaws.$AWS_REGION.ec2messages \
-    --subnet-ids $AZ1_SUBNET $AZ2_SUBNET \
+    --subnet-ids $PRIVATE_AZ1_SUBNET $PRIVATE_AZ2_SUBNET $PRIVATE_AZ3_SUBNET \
     --security-group-id $VPCE_SG \
     --tag-specifications 'ResourceType=vpc-endpoint,Tags=[{Key=service,Value=ec2messages}]'
 ```
-
-
 
 ```bash
 aws eks describe-cluster --name eksworkshop-eksctl-private --query cluster.endpoint
 ```
 
-
 This will display the API endpoint of the cluster.
 
-```
-"https://AFB4045AF25413FF766AD8CA1FF0CAEA.yl4.ap-south-1.eks.amazonaws.com"
-```
+::::expand{header="Check Output"}
 
-Confirm that the API endpoint is private by using the nslookup command. You can see the private IP addressed assigned from the VPC CIDR range.
+"https://AFB4045AF25413FF766AD8CA1FF0CAEA.yl4.us-west-2.eks.amazonaws.com"
 
-```bash
-nslookup AFB4045AF25413FF766AD8CA1FF0CAEA.yl4.ap-south-1.eks.amazonaws.com
-```
+::::
 
-````
-Server:         172.31.0.2
-Address:        172.31.0.2#53
+Confirm that the API endpoint is private using the nslookup command. You can see the private IP addresses returned for the control plane endpoint is assigned from the New Private EKS cluster VPC CIDR range after we've created the EKS VPC endpoint.
+
+::::expand{header="Check Output"}
+
+````bash
+Server:         10.254.0.2
+Address:        10.254.0.2#53
 
 Non-authoritative answer:
-Name:   AFB4045AF25413FF766AD8CA1FF0CAEA.yl4.ap-south-1.eks.amazonaws.com
+Name:   AFB4045AF25413FF766AD8CA1FF0CAEA.yl4.us-west-2.eks.amazonaws.com
 Address: 10.50.153.103
-Name:   AFB4045AF25413FF766AD8CA1FF0CAEA.yl4.ap-south-1.eks.amazonaws.com
+Name:   AFB4045AF25413FF766AD8CA1FF0CAEA.yl4.us-west-2.eks.amazonaws.com
 Address: 10.50.176.167
 ````
+
+::::
 
 Now the eksworkshop-private Cloud9 instance is ready to manage the fully private cluster. The three worker nodes can be privately logged into through Session Manager.
 
@@ -460,7 +475,4 @@ Now the eksworkshop-private Cloud9 instance is ready to manage the fully private
 * Try connecting to the API enpoint of the cluster using curl. You should receive a structured JSON response.
 ![workerNodeTest](/static/images/fully-private-cluster/workNodeTest.png)
 
-This proves that EKS cluster is fully private with connectivty to the private API endpoint.
-
-
-
+This proves that EKS cluster is fully private with connectivity to the private API endpoint.
