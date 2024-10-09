@@ -150,7 +150,7 @@ aws ec2 describe-route-tables --filters "Name=association.subnet-id,Values=$HOST
 * Allow DNS resolution over the peered VPCs.
   
 ```bash
-aws ec2 modify-vpc-peering-connection-options --vpc-peering-connection-id "pcx-0dc858eeb95e4660e" --requester-peering-connection-options '{"AllowDnsResolutionFromRemoteVpc":true}' --accepter-peering-connection-options '{"AllowDnsResolutionFromRemoteVpc":true}' --region us-west-2
+aws ec2 modify-vpc-peering-connection-options --vpc-peering-connection-id "$VpcPeeringConnectionId" --requester-peering-connection-options '{"AllowDnsResolutionFromRemoteVpc":true}' --accepter-peering-connection-options '{"AllowDnsResolutionFromRemoteVpc":true}'
 ```
 
 ::::expand{header="Check Output"}
