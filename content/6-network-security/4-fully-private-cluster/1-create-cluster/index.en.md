@@ -442,7 +442,7 @@ This will display the API endpoint of the cluster.
 
 ::::
 
-Confirm that the API endpoint is private using the nslookup command. You can see the private IP addresses returned for the control plane endpoint is assigned from the New Private EKS cluster VPC CIDR range after we've created the EKS VPC endpoint.
+Confirm that the API endpoint is private using the nslookup command. You can see the private IP addresses returned for the control plane endpoint is assigned from the New Private EKS cluster VPC CIDR range.
 
 ::::expand{header="Check Output"}
 
