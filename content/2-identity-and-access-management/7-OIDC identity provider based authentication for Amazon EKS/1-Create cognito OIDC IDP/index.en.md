@@ -266,7 +266,7 @@ aws cognito-idp create-user-pool --pool-name OIDCUserPool --username-attributes 
 "AllowAdminCreateUserOnly": false,
 "UnusedAccountValidityDays": 7
 },
-"Arn": "arn:aws:cognito-idp:eu-west-2:053778695015:userpool/eu-west-2_ilD61yy1L",
+"Arn": "arn:aws:cognito-idp:eu-west-2:<<ACCOUNT_ID>>:userpool/eu-west-2_ilD61yy1L",
 "AccountRecoverySetting": {
 "RecoveryMechanisms": [
 {

@@ -10,4 +10,7 @@ Using your existing OIDC IDP, such as Amazon Cognito, can offer some key advanta
 
 Additionally, OIDC integration often provides a more seamless authentication experience for your developers. They can sign in using their familiar corporate credentials, rather than having to switch between AWS IAM and your internal identity system.
 
-In this section, we'll walk through setting up Amazon Cognito as an OIDC-compatible IDP for your Amazon EKS cluster. You'll learn how to extract the necessary user information from the Cognito ID token, associate the IDP with your cluster, and configure Kubernetes RBAC to authorize access based on your existing user groups.
+In this section, we'll walk through setting up Amazon Cognito as an OIDC-compatible IDP for your Amazon EKS cluster. You'll learn how to extract the necessary user information from the Cognito ID token, associate the IDP with your cluster, and configure Kubernetes RBAC to authorize access based on your existing user groups. Architecture diagram for this sections is as below
+
+![oidc_cognito_architecture](/static/images/iam/oidc-cognito/OIDC-authentication-architecture.png)
+

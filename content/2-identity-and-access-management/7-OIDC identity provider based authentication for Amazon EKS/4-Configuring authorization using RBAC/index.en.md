@@ -25,7 +25,7 @@ Let's start by creating a Cluster Role that will allow read-only access to Secre
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: read-secrets
+  name: secret-readers
 rules:
 - apiGroups:
   - ""
@@ -35,6 +35,7 @@ rules:
   - 'get'
   - 'watch'
   - 'list'
+EOF
 :::
 
 :::code{language=bash showLineNumbers=false showCopyAction=true}
@@ -58,6 +59,7 @@ roleRef:
   kind: ClusterRole
   name: secret-readers
   apiGroup: rbac.authorization.k8s.io
+EOF
 :::
 
 Create a file `clusterrolebinding-read-secrets.yaml` with the above text and save it in a local directory. Add the ClusterRoleBinding to the cluster using the command below.
