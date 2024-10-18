@@ -4,35 +4,42 @@ defaultLocaleCode: en-US
 localeCodes:
   - en-US
 
-# START Infrastructure
+# START Infrastructure       
 infrastructure:
   cloudformationTemplates:
-    - templateLocation: static/eks-bootstrap-template-ws.yaml
-      #- templateLocation: static/eks-spot-workshop-quickstart-cnf.yaml
+    - templateLocation: static/eks-security-workshop-team-stack.json
       label: Amazon EKS Security Immersion Day
       parameters:
-        - templateParameter: EETeamRoleArn
-          defaultValue: '{{.ParticipantRoleArn}}'
-        - templateParameter: Cloud9EnvironmentName
-          defaultValue: "eks-security-workshop"         
-        - templateParameter: Cloud9EnvironmentName
-          defaultValue: "eks-security-workshop"            
+        - templateParameter: AssetsBucketName
+          defaultValue: "{{.AssetsBucketName}}"
+        - templateParameter: AssetsBucketPrefix
+          defaultValue: "{{.AssetsBucketPrefix}}"
 
+      participantVisibleStackOutputs:
+        - IdeUrl
+        - IdePassword
 # END Infrastructure
 
 # START Accounts
 awsAccountConfig:
   accountSources:
     - WorkshopStudio
-  #serviceLinkedRoles:
-  #- appsync.amazonaws.com
+  serviceLinkedRoles:
+    - spot.amazonaws.com
+    - spotfleet.amazonaws.com
   participantRole:
-    #iamPolicies:
-    #  - static/iam-policy-0.json
-    #  - static/ws-default-policy.json
-    #  - static/AllowTeamRoleAccessToCloud9.json
     managedPolicies:
+    #TODO: remove Administrator access to proper policies needed in the workshop
       - 'arn:aws:iam::aws:policy/AdministratorAccess'
+      - 'arn:aws:iam::aws:policy/AmazonEC2FullAccess'
+      - 'arn:aws:iam::aws:policy/IAMReadOnlyAccess'
+      - 'arn:aws:iam::aws:policy/AmazonPrometheusFullAccess'
+      - 'arn:aws:iam::aws:policy/AWSGrafanaAccountAdministrator'
+      - "arn:aws:iam::aws:policy/AWSCloudFormationReadOnlyAccess"
+      - "arn:aws:iam::aws:policy/AWSCloud9Administrator"
+      - "arn:aws:iam::aws:policy/AWSSecurityHubFullAccess"      
+    iamPolicies:
+      - static/iam_policy.json      
     trustedPrincipals:
       service:
         - ec2.amazonaws.com
@@ -40,12 +47,6 @@ awsAccountConfig:
   regionConfiguration:
     minAccessibleRegions: 1
     maxAccessibleRegions: 3
-    #accessibleRegions:
-      # required:
-      #   - us-west-2
-      # optional:
-      #   - us-west-2
-
     deployableRegions:
       recommended:
         - us-west-2
