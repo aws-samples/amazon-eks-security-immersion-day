@@ -50,6 +50,12 @@ eksctl delete cluster --name eksworkshop-eksctl-private
 [✔]  the following EKS cluster resource(s) for "eksworkshop-eksctl-private" will be deleted: cluster. If in doubt, check CloudFormation console
 ```
 
+Delete the VPC peering connection
+
+```bash
+aws ec2 delete-vpc-peering-connection --vpc-peering-connection-id $VpcPeeringConnectionId
+```
+
 Delete the CloudFormation stack eks-private-vpc that create the VPC, Private Subnets, NAT Gateway and Internet Gateway
 
 ```bash

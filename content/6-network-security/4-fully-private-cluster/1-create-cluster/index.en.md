@@ -133,8 +133,6 @@ PRIVATE_VPC_RouteTableId=$(aws ec2 describe-route-tables --filter "Name=vpc-id, 
 
 aws ec2 create-route --route-table-id $PRIVATE_VPC_RouteTableId --destination-cidr-block 10.254.0.0/16 --vpc-peering-connection-id $VpcPeeringConnectionId
 
-aws ec2 describe-route-tables --filters "Name=association.subnet-id,Values=$HOST_SUBNET" --query "RouteTables[0].RouteTableId" --output text
-
 ```
 
 ::::expand{header="Check Output"}
@@ -193,6 +191,13 @@ aws ec2 create-route --route-table-id $EKS_CLUSTER1_VPC_PublicA_RouteTableId --d
 ```
 
 ::::
+
+Get the route table ID that the instance will use to communicate with the private VPC
+
+```bash
+aws ec2 describe-route-tables --filters "Name=association.subnet-id,Values=$HOST_SUBNET" --query "RouteTables[0].RouteTableId" --output text
+
+```
 
 * create Inbound rule for Kubernetes Control Plane Security Group to allow communication from the 2 VPCs
 
