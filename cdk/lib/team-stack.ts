@@ -1,5 +1,6 @@
 import * as cdk from "aws-cdk-lib";
 import * as iam from "aws-cdk-lib/aws-iam";
+import * as ec2 from "aws-cdk-lib/aws-ec2";
 import { aws_s3 as s3 } from "aws-cdk-lib";
 import * as eks from "aws-cdk-lib/aws-eks";
 import * as ssm from "aws-cdk-lib/aws-ssm";
@@ -15,6 +16,7 @@ import * as codebuild from "aws-cdk-lib/aws-codebuild";
 import * as fs from "fs";
 import * as path from "path";
 import { EksCall } from "aws-cdk-lib/aws-stepfunctions-tasks";
+import { Ec2Action } from "aws-cdk-lib/aws-cloudwatch-actions";
 
 let bootstrap = fs.readFileSync(
   path.join(__dirname, "../resources/bootstrap.sh"),
@@ -67,6 +69,7 @@ export class TeamStack extends WorkshopStudioTeamStack {
     const ide = new VSCodeIde(this, "IDE-SECU", {
       bootstrapScript: bootstrapScript,
       role: sharedRole,
+      instanceType: ec2.InstanceType.of(ec2.InstanceClass.C5, ec2.InstanceSize.LARGE),
       terminalOnStartup: false,
       bootstrapTimeoutMinutes: 30,
       enableGitea: true,
@@ -97,6 +100,7 @@ export class TeamStack extends WorkshopStudioTeamStack {
         },
         FORCE_DELETE_VPC: { value: process.env.FORCE_DELETE_VPC || "false" },
         GITEA_PASSWORD: { value: ide.getIdePassword() },
+        PARTICIPANT_ROLE_ARN: { value: ParticipantAssumedRoleArn },
         IS_WS: {
           value:
             this.getCdkSynthMode() == CdkSynthMode.SynthWorkshopStudio

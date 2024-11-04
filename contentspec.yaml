@@ -30,7 +30,7 @@ awsAccountConfig:
   participantRole:
     managedPolicies:
     #TODO: remove Administrator access to proper policies needed in the workshop
-      - 'arn:aws:iam::aws:policy/AdministratorAccess'
+      #- 'arn:aws:iam::aws:policy/AdministratorAccess'
       - 'arn:aws:iam::aws:policy/AmazonEC2FullAccess'
       - 'arn:aws:iam::aws:policy/IAMReadOnlyAccess'
       - 'arn:aws:iam::aws:policy/AmazonPrometheusFullAccess'

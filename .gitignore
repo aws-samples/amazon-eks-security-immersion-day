@@ -4,3 +4,4 @@ work
 .DS_Store
 node_modules
 .envrc
+_tmp-build

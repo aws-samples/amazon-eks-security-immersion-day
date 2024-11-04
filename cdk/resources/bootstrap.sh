@@ -116,7 +116,7 @@ sudo curl --silent --location "https://go.dev/dl/go1.23.1.linux-amd64.tar.gz" | 
 curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
 chmod +x /tmp/eksctl
 sudo mv /tmp/eksctl /usr/local/bin
-curl -sSL "https://github.com/awslabs/eksdemo/releases/download/v0.12.0/eksdemo_Linux_x86_64.tar.gz" | tar xz -C /tmp
+curl -sSL "https://github.com/awslabs/eksdemo/releases/download/v0.16.0/eksdemo_Linux_x86_64.tar.gz" | tar xz -C /tmp
 chmod +x /tmp/eksdemo
 mv /tmp/eksdemo /usr/local/bin  
 
@@ -267,7 +267,6 @@ if [[ ! -d "/home/ec2-user/.bashrc.d" ]]; then
     sudo -H -u ec2-user bash -c "mkdir -p ~/.bashrc.d"
 fi
 
-export AZS=($(aws ec2 describe-availability-zones --query 'AvailabilityZones[].ZoneName' --output text --region $AWS_REGION))
 export MASTER_ARN=$(aws kms describe-key --key-id alias/eksworkshop --query KeyMetadata.Arn --output text)
 
 cat << EOT > /home/ec2-user/.bashrc.d/env.bash
@@ -283,7 +282,6 @@ export WORKSHOP_GIT_URL=$WORKSHOP_GIT_URL
 export WORKSHOP_GIT_BRANCH=$WORKSHOP_GIT_BRANCH
 export BASE_DIR=$BASE_DIR
 export GITOPS_DIR=$GITOPS_DIR
-export AZS=(${AZS[@]})
 export MASTER_ARN=$MASTER_ARN
 export EKS_CLUSTER=eksworkshop-eksctl
 export EKS_CLUSTER1_NAME=eksworkshop-eksctl

@@ -1,6 +1,6 @@
 ---
 title : "Connecting to the AWS Workshop Studio"
-weight : 22
+weight : 10
 ---
 
 To help you get hands-on as quickly as possible, the Amazon EKS Security Immersion Workshop team has pre-created your AWS environment. You will need the participant hash, which should have been provided upon entry, and your email address to track your unique session.
