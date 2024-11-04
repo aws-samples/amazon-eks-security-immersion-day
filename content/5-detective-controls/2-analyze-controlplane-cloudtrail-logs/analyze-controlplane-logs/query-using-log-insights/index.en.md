@@ -61,7 +61,7 @@ Select the "Log Group" **/aws/eks/eksworkshop-eksctl/cluster** and click **Run Q
 
 ![EKS Control Plane Logging View](/static/images/detective-controls/log-insights/log-insights-1.png)
 
-You should see some results, depending on how many logs you’ve generated. If you don’t see anything, try adjusting the timeframe, or wait a few minutes for the logs to ingest.
+You should see some results, depending on how many logs you’ve generated. If you don’t see anything, try adjusting the time frame, or wait a few minutes for the logs to ingest.
 
 ![EKS Control Plane Logging View](/static/images/detective-controls/log-insights/log-insights-2.png)
 
@@ -338,7 +338,7 @@ eksctl scale nodegroup --cluster=eksworkshop-eksctl --nodes=3 mng-al2
 kubectl get nodes --watch
 ```
 
-> Contrl+C to exit
+> Control+C to exit
 
 Once node creation is complete, in AWS Console, Replace query with the following and click "Run Query"
 

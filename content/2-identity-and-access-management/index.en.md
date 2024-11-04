@@ -21,8 +21,9 @@ The webhook authentication strategy calls a webhook that verifies bearer tokens.
 ```bash
 TOKEN_DATA=$(aws eks get-token --cluster-name eksworkshop-eksctl | jq -r '.status.token')
 echo $TOKEN_DATA
-IFS='.' read -r -a array <<< "$TOKEN_DATA"
-echo "${array[1]}"==== | fold -w 4 | sed '$ d' | tr -d '\n' | base64 --decode
+IFS='.' read header payload signature <<< "$TOKEN_DATA"
+echo "$payload" | fold -w 4 | sed '$ d' | tr -d '\n' | base64 --decode
+
 ```
 
 The output looks like something like this.

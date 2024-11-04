@@ -113,7 +113,7 @@ As expected, the `associatedAccessPolicies` is empty.
 
 ::alert[Notice that we only removed access policy from the IAM principal but the access entry still exists for this IAM principal.]{header="Note"}
 
-Let us list the access entries avalable for the cluster.
+Let us list the access entries available for the cluster.
 
 
 ```bash

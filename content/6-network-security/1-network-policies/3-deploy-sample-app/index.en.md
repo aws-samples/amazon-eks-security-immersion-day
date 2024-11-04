@@ -82,7 +82,7 @@ pod/another-client-two   1/1     Running   0               64m
 
 ### Verify connectivity between the pods in the same namespace
 
-By default pods can communicate other pods seamlessely in a k8s cluster. Lets test the connectivity to `demo-app` application from with in the namespace and across namespaces.
+By default pods can communicate other pods seamlessly in a k8s cluster. Lets test the connectivity to `demo-app` application from with in the namespace and across namespaces.
 
 Test the connectivity from **client pod** to **demo-app** pod with in same `default` namespace.
 

@@ -22,6 +22,7 @@ export BASE_DIR=/home/ec2-user/amazon-eks-security-immersion-day
 export GITOPS_DIR=/home/ec2-user/environment/gitops-repos
 export ENVIRONMENT_DIR=/home/ec2-user/environment
 export GOROOT=/usr/local/go
+export PARTICIPANT_ROLE_ARN=${PARTICIPANT_ROLE_ARN}
 
 # This is to go around problem with circular dependency
 aws ssm put-parameter --type String --name EksBlueprintGiteaExternalUrl --value $GITEA_EXTERNAL_URL --overwrite
@@ -120,6 +121,8 @@ curl -sSL "https://github.com/awslabs/eksdemo/releases/download/v0.16.0/eksdemo_
 chmod +x /tmp/eksdemo
 mv /tmp/eksdemo /usr/local/bin  
 
+sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq && \
+sudo chmod +x /usr/bin/yq
 
 
 sudo su - ec2-user <<EOF
@@ -286,6 +289,7 @@ export MASTER_ARN=$MASTER_ARN
 export EKS_CLUSTER=eksworkshop-eksctl
 export EKS_CLUSTER1_NAME=eksworkshop-eksctl
 export EKS_CLUSTER1_CONTEXT=eksworkshop-eksctl
+export PARTICIPANT_ROLE_ARN=$PARTICIPANT_ROLE_ARN
 EOT
 
 sudo -H -u ec2-user bash -c "cat <<'EOF' >> ~/.bashrc 

@@ -18,7 +18,7 @@ When Amazon EKS starts a new pod that uses a service account with an EKS Pod Ide
  Let us see the Pod spec and look for these variables.
 
  ```bash
- kubectl -n $NS get pod $APP -oyaml
+ kubectl -n $NS get pod $APP -o yaml
  ```
 
 ::::expand{header="Check Output"}
@@ -503,10 +503,18 @@ You can also lookup for the CloudTrail event for the call to AWS STS Service to 
 events=$(aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=sts.amazonaws.com --max-items 100) 
 
 echo $events | jq '.Events[] | (.CloudTrailEvent | fromjson | select(.requestParameters.tags[]?.key=="eks-cluster-arn"))'
+
+aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=sts.amazonaws.com --max-items 100 | \
+jq -r '.Events[].CloudTrailEvent | 
+  fromjson? | 
+  select(.requestParameters.tags != null) | 
+  select(.requestParameters.tags[] | .key == "eks-cluster-arn") | 
+  {eventName: .eventName, clusterArn: (.requestParameters.tags[] | select(.key == "eks-cluster-arn").value)}'
+
 ```
 
 > If there is no result, that means that the call was not in the last 100 events, you can ask the pod-identity daemonset to restart, so that it will make this call again
-> ```
+> ```bash
 > kubectl rollout restart daemonset eks-pod-identity-agent -n kube-system
 > ```
 
@@ -596,6 +604,6 @@ echo $events | jq '.Events[] | (.CloudTrailEvent | fromjson | select(.requestPar
 
 We can see from the output, the source of this call if from AWSService pods.eks.amazonaws.com. That means that EKS Pod Identity retrieve the temporary credentials (l53) for our IAM Role (l71) and that it has attached some Session Tags (l17)  that can be use to filter access to AWS resources.
 
-This means, we can further configure our S3 read access IAM Role for fine grained IAM permissions to restrict the access to this Role for any specifc EKS Cluster, Namespace, Service Account, Pod Name or Pod UID. We will explore on how this works in the next module.
+This means, we can further configure our S3 read access IAM Role for fine grained IAM permissions to restrict the access to this Role for any specific EKS Cluster, Namespace, Service Account, Pod Name or Pod UID. We will explore on how this works in the next module.
 
 

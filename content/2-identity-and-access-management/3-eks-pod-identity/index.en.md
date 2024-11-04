@@ -37,7 +37,7 @@ EKS Pod Identity offers cluster administrators a simplified workflow for authent
 
 EKS Pod Identity makes it easier to configure and automate granting AWS permissions to Kubernetes identities. As the cluster administrator, you no longer need to switch between Amazon EKS and IAM services to authenticate your applications to all AWS resources.  Instead of creating and distributing your AWS credentials to the containers or using the Amazon EC2 instance's role, you associate an IAM role with a Kubernetes service account and configure your Pods to use the service account.
 
-The overall workflow to use Amazon EKS Pod Identity consiste of below steps.
+The overall workflow to use Amazon EKS Pod Identity consist of below steps.
 
 1. Create IAM role with required permissions and specify `pods.eks.amazonaws.com` as the service principal in trust policy.
 2. Install Amazon EKS Pod Identity Agent add-on

@@ -11,9 +11,7 @@ The following hands-on lab is based on the Amazon EKS testing done with PSA and 
 
 Amazon EKS 1.23 (or later version) is provisioned and `kubectl` CLI is installed and connected to the cluster
 
-In this lab we are going to update many times files in the Cloud9 environment. As Auto-save is not enabled by default, we recommand you activate the option in Cloud9 **On focus Change**
-
-![activate autosave in cloud9](/static/images/pod-security/pss-psa/cloud9_autosave.png)
+In this lab we are going to update many times files in the code environment (IDE).
 
 #### Steps
 

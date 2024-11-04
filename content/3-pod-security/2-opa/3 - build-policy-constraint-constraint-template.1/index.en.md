@@ -67,7 +67,7 @@ constrainttemplate.templates.gatekeeper.sh/k8swhitelistedimages created
 ```
 ::::
 
-Ensure that the CRD for constrainttemplate is created.
+Ensure that the CRD for constraint template is created.
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
 kubectl get constrainttemplate

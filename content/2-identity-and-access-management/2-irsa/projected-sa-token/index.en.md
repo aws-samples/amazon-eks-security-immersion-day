@@ -28,12 +28,12 @@ kubectl get sa
 
 The output looks like below
 
-```bash
+```
 NAME      SECRETS   AGE
 default   0         3h9m
 ```
 
-As you see in the above output, there is no secret created for the sevice account.
+As you see in the above output, there is no secret created for the service account.
 
 ### Projected Service Account Token
 
@@ -69,7 +69,7 @@ kubectl apply -f eks-iam-test2.yaml
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 pod/eks-iam-test2 created
 ```
 ::::
@@ -82,7 +82,7 @@ kubectl get pod
 
 The output looks like below
 
-```bash
+```
 NAME            READY   STATUS    RESTARTS   AGE
 eks-iam-test1   0/1     Error     0          96m
 eks-iam-test2   1/1     Running   0          81s
@@ -144,7 +144,7 @@ kubectl exec -it eks-iam-test2 -- cat /var/run/secrets/kubernetes.io/serviceacco
 
 The Output looks like below.
 
-```bash
+```
 eyJhbGciOiJSUzI1NiIsImtpZCI6ImY2NDU3OGViMmFiMjRlOTIxNWM0NjA4Yjg1NTU5YmNiODgxOTQ1NDQifQ.eyJhdWQiOlsiaHR0cHM6Ly9rdWJlcm5ldGVzLmRlZmF1bHQuc3ZjIl0sImV4cCI6MTcwOTQ1ODA4MywiaWF0IjoxNjc3OTIyMDgzLCJpc3MiOiJodHRwczovL29pZGMuZWtzLnVzLWVhc3QtMS5hbWF6b25hd3MuY29tL2lkLzgwRDU2MkVEODAyNkU5MTI5NEQ1MkUwOUJFQTI2MUQ0Iiwia3ViZXJuZXRlcy5pbyI6eyJuYW1lc3BhY2UiOiJkZWZhdWx0IiwicG9kIjp7Im5hbWUiOiJla3MtaWFtLXRlc3QyIiwidWlkIjoiZTU5MTdhM2MtMTA4Yi00YzdiLWIwNDUtOTYwYjZhNTlmZWZiIn0sInNlcnZpY2VhY2NvdW50Ijp7Im5hbWUiOiJkZWZhdWx0IiwidWlkIjoiNzVmMTg5OWItOTE0Ni00ZDgxLTgzNWMtOTFjZTllOWY4OGE1In0sIndhcm5hZnRlciI6MTY3NzkyNTY5MH0sIm5iZiI6MTY3NzkyMjA4Mywic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50OmRlZmF1bHQ6ZGVmYXVsdCJ9.N-z0JJjHI8yZtDAyPTBfJRz-s7dzhdR1F5QpK5hnuMbeIsPxvuADppanqD82oO8SWy11Nw4WOO85s22ZpRjh3MlSKMuvEIAFkk69iyPooMUrRkqLu7blF3_EsbZKgACR1plUGEjG2Ge1mGGE5nvem63BKBUfhk7F0Eefg58ZaEvu7Zubk3IEChU6Q2FWmLVQGFJOAjZXreDN571DshOXp53y8ZlO0dbuk5WRXtUwY11DgP8cznGiz8bpoPxf20g-pGj4eGR3r0oFRm78rfa-uC6fI5ccOSzYYrBOMujonRS1vbVXLDF71KFbQkbQxUrnqLoYwmPP4pspt6t3OZsfmw
 ```
 

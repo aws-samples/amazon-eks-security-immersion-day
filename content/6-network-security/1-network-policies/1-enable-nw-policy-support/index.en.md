@@ -76,7 +76,7 @@ aws-node-s4pr4             1/1     Running   0          12h
 
 ::::tab{id="cli" label="Using AWS CLI"}
 
-Run below command to create Amazon EKS VPC CNI Managed add-on with additional configuratin to enable Network Policy Agent and also enable ClodWatch logs.
+Run below command to create Amazon EKS VPC CNI Managed add-on with additional configuration to enable Network Policy Agent and also enable ClodWatch logs.
 
 ```bash
 aws eks create-addon --cluster-name eksworkshop-eksctl --addon-name vpc-cni --addon-version v1.14.0-eksbuild.3 \
@@ -166,7 +166,7 @@ The output will look like below.
 aws-node aws-eks-nodeagent
 ```
 
-Let us see how the configuration for the Network Polocy Agent container inside the `aws-node` DaemonSet looks like. The output is truncated to highlight only relevant Info.
+Let us see how the configuration for the Network Policy Agent container inside the `aws-node` DaemonSet looks like. The output is truncated to highlight only relevant Info.
 
 ```bash
 kubectl get ds -n kube-system aws-node -oyaml

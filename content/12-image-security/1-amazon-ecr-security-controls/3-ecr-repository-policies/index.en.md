@@ -59,12 +59,12 @@ aws ecr set-repository-policy \
 
 Amazon ECR repository policy can be reviewed through [AWS Console](https://us-west-2.console.aws.amazon.com/ecr/repositories) as shown below:
 
-![ecrrepopolicy](/static/images/image-security/ecr-security-controls/ecr-repository-policy.png)
-![ecrrepopolicy2](/static/images/image-security/ecr-security-controls/ecr-repository-policy2.png)
+![ecr repo policy](/static/images/image-security/ecr-security-controls/ecr-repository-policy.png)
+![ecr repo policy2](/static/images/image-security/ecr-security-controls/ecr-repository-policy2.png)
 
 5. List images in the ECR repository `team-a/alpine` using **ecr_access_teama_role** role. The identity-based policy in IAM **allows** ListImages action on the repository, and the repository-based policy in ECR **denies** ListImages action on the repository. If there is an explicit _Deny_ in any of the applicable policies, the final decision is **Deny**
 
-![policyevaluationlogic](/static/images/image-security/ecr-security-controls/policy-evaluation-logic-short.png)
+![policy evaluation logic](/static/images/image-security/ecr-security-controls/policy-evaluation-logic-short.png)
 
 ```bash
 aws ecr list-images \

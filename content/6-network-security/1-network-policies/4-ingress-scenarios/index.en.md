@@ -5,7 +5,7 @@ weight : 23
 
 ## Scenario #1: Deny/Block all the ingress traffic to Demo app
 
-In this scenario, we will block the all the traffic from all clients to the **demo-app** in `default` namesapce.
+In this scenario, we will block the all the traffic from all clients to the **demo-app** in `default` namespace.
 
 ![sc2-deny-all](/static/images/6-network-security/1-network-policies/sc2-deny-all.png)
 
@@ -167,7 +167,7 @@ Test the connectivity from **another client pod** from `another-ns` namespace to
 kubectl exec -it another-client-one -n another-ns -- curl --max-time 3 demo-app.default
 kubectl exec -it another-client-two -n another-ns -- curl --max-time 3 demo-app.default
 ```
-You would see below response for each command, indicating timeout error. This is expecected since the ingress traffic to `demo-app` is allowed only from `default` namespace.
+You would see below response for each command, indicating timeout error. This is expected since the ingress traffic to `demo-app` is allowed only from `default` namespace.
 
 ::::expand{header="Check Output"}
 ```bash
@@ -378,17 +378,17 @@ You would see below response for above command, indicating successful API call.
 ```
 ::::
 
-**But wait, why is this successful even though we did not explicitly configure to allow ingress traffic from **client-one** appp in `default` namespace?**
+**But wait, why is this successful even though we did not explicitly configure to allow ingress traffic from **client-one** app in `default` namespace?**
 
-This is because the Network Policies are additive which means all the policies applied so far are considered for contollring traffic. The `demo-app-allow-samens-client-one` NetworkPolicy we applied in the previous Scenario still exists in the Cluster and allows to traffic from **client-one** pod.
+This is because the Network Policies are additive which means all the policies applied so far are considered for controlling traffic. The `demo-app-allow-samens-client-one` NetworkPolicy we applied in the previous Scenario still exists in the Cluster and allows to traffic from **client-one** pod.
 
-Run the below comman to how check how many NetworkPolicy objects are configured so far in the Cluster.
+Run the below command to how check how many NetworkPolicy objects are configured so far in the Cluster.
 
 ```bash
 kubectl get netpol -A
 ```
 
-The ouput will show as below.
+The output will show as below.
 
 ```bash
 NAMESPACE   NAME                               POD-SELECTOR   AGE
@@ -477,7 +477,7 @@ Let us now check how many Network Policies exists in the CLuster at this point.
 kubectl get netpol -A
 ```
 
-The ouput will show as below, which indicates there is only one **deny all** policy `demo-app-deny-all`.
+The output will show as below, which indicates there is only one **deny all** policy `demo-app-deny-all`.
 
 ```bash
 NAMESPACE   NAME                POD-SELECTOR   AGE
@@ -629,4 +629,4 @@ Let us now check how many Network Policies exists in the CLuster at this point.
 kubectl get netpol -A
 ```
 
-The ouput should show empty, which means there are no Network Policies in the Cluster.
+The output should show empty, which means there are no Network Policies in the Cluster.

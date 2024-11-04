@@ -10,7 +10,7 @@ In this section, we will define a new constraint template and constraint that wi
 
 `ConstraintTemplate` describes the Rego that enforces the constraint and the schema of the constraint. The schema constraint allows the author of the constraint (cluster admin) to define the constraint behavior.
 
-In this scenario, the cluster administrator will force the cluster to use unprivileged containers. The OPA Gatekeeper will look for the securitycontext field and determine whether 'privileged=true' is present. If this is the case, the request will fail.
+In this scenario, the cluster administrator will force the cluster to use unprivileged containers. The OPA Gatekeeper will look for the security context field and determine whether 'privileged=true' is present. If this is the case, the request will fail.
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
 cd ~/environment
@@ -58,7 +58,7 @@ constrainttemplate.templates.gatekeeper.sh/k8spspprivilegedcontainer created
 ```
 ::::
 
-Ensure that the CRD constrainttemplate is created.
+Ensure that the CRD constraint template is created.
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
 kubectl get constrainttemplate
@@ -123,8 +123,8 @@ In this section, we will test if the use of unprivileged containers is enforced 
 
 Let us deploy a privileged nginx pod:
 
+<!-- prettier-ignore-start -->
 :::code{showCopyAction=true showLineNumbers=false language=bash}
-
 cd ~/environment
 cat > example-1.yaml <<EOF
 apiVersion: v1
@@ -142,6 +142,7 @@ spec:
 EOF
 kubectl create -f example-1.yaml
 :::
+<!-- prettier-ignore-end -->
 
 You should now see an error message similar to below:
 

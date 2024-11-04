@@ -1,5 +1,5 @@
 ---
-title : "Use 
+title : "Use case 2: Service Connectivity with HTTP and IAM Auth Access Controls"
 weight : 14
 ---
 

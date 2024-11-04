@@ -11,13 +11,6 @@ We are going to create 3 roles:
 -   a **k8sDev** role which will give access to the **developers** namespace in our Amazon EKS cluster
 -   a **k8sInteg** role which will give access to the **integration** namespace in our Amazon EKS cluster
 
-Set below environment variables
-```bash
-export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
-export AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
-```
-
-
 Create the IAM Roles:
 
 ```bash
@@ -96,7 +89,7 @@ Because the above roles are only used to authenticate within our Amazon EKS clus
 
 Let's go to the AWS IAM Console and check one of the above IAM Role and see that there are no IAM permissions attached to the Role.
 
-![k8sAdmink8sAdmin-role](/static/images/iam/iam-role-rbac/k8sAdmin-role.png)
+![k8s Admin role](/static/images/iam/iam-role-rbac/k8sAdmin-role.png)
 
 
 And also let's see trust policy of the IAM Role that allows the root account to assume the role, which means 

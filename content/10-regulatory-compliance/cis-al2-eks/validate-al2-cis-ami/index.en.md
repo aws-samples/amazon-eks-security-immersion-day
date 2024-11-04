@@ -41,7 +41,7 @@ aws inspector2 enable --resource-types EC2
 ::::
 
 :::alert{header="Important" type="warning"}
-Amazon Inspector 2 activation may take some time. Make sure Amazon Instector status is Enabled before you proceed.
+Amazon Inspector 2 activation may take some time. Make sure Amazon Inspector status is Enabled before you proceed.
 :::
 
 Setup CIS scan configuration using either AWS CLI or AWS Console once Amazon Inspector status is **ENABLED**
@@ -86,7 +86,7 @@ aws inspector2 create-cis-scan-configuration --cli-input-json file://inspector-c
 
 1. Let's go to the [Amazon Inspector console](https://console.aws.amazon.com/inspector/v2/home)  and  select On-demand scans "CIS scans". Choose "Create new scan".
 
-![Amazon-Instector-1](/static/images/regulatory-compliance/cis-al2-eks/validatescan-1.png)
+![Amazon-Inspector-1](/static/images/regulatory-compliance/cis-al2-eks/validatescan-1.png)
 
 2. a. Enter a Scan configuration name.
    ```bash
@@ -116,9 +116,9 @@ aws inspector2 create-cis-scan-configuration --cli-input-json file://inspector-c
 
 
    f. Choose **Create** to finish creating the scan configuration.
-   It will take approtimately 10 minutes to complete scan of two instances
+   It will take approximately 10 minutes to complete scan of two instances
 
-   ![Amazon-Instector-1](/static/images/regulatory-compliance/cis-al2-eks/validatescan-2.png)
+   ![Amazon-Inspector-1](/static/images/regulatory-compliance/cis-al2-eks/validatescan-2.png)
 
 ::::
 
@@ -130,29 +130,29 @@ aws inspector2 create-cis-scan-configuration --cli-input-json file://inspector-c
  
  Scan status  will be displayed as **IN_PROGRESS** while the instances are been scanned
 
-![Amazon-Instector-1](/static/images/regulatory-compliance/cis-al2-eks/validatescan-3.png)
+![Amazon-Inspector-1](/static/images/regulatory-compliance/cis-al2-eks/validatescan-3.png)
 
  Once the scan is complete it should display status as  **COMPLETED**
 
-![Amazon-Instector-1](/static/images/regulatory-compliance/cis-al2-eks/validatescan-4.png)
+![Amazon-Inspector-1](/static/images/regulatory-compliance/cis-al2-eks/validatescan-4.png)
 
  Click the Scan ARN to see the results
 
-![Amazon-Instector-1](/static/images/regulatory-compliance/cis-al2-eks/validatescan-5.png)
+![Amazon-Inspector-1](/static/images/regulatory-compliance/cis-al2-eks/validatescan-5.png)
 
 - Snippet of **PASSED** checks
 
-![Amazon-Instector-1](/static/images/regulatory-compliance/cis-al2-eks/validatescan-6.png)
+![Amazon-Inspector-1](/static/images/regulatory-compliance/cis-al2-eks/validatescan-6.png)
 
 - Snippet of **SKIPPED** checks
 
-The checks that requires manual steps to determine whether a system’s configured state is as expected is skipped in the scan. Manual recommendations are equally important to automated and this should be validated using the assesment steps provided in [ CIS Amazon Linux 2 Benchmark ](https://www.cisecurity.org/benchmark/amazon_linux). 
+The checks that requires manual steps to determine whether a system’s configured state is as expected is skipped in the scan. Manual recommendations are equally important to automated and this should be validated using the assessement steps provided in [ CIS Amazon Linux 2 Benchmark ](https://www.cisecurity.org/benchmark/amazon_linux). 
 
-![Amazon-Instector-1](/static/images/regulatory-compliance/cis-al2-eks/validatescan-8.png)
+![Amazon-Inspector-1](/static/images/regulatory-compliance/cis-al2-eks/validatescan-8.png)
 
 - Snippet of **FAILED** checks
 
-![Amazon-Instector-1](/static/images/regulatory-compliance/cis-al2-eks/validatescan-7.png)
+![Amazon-Inspector-1](/static/images/regulatory-compliance/cis-al2-eks/validatescan-7.png)
 
 
 

@@ -104,7 +104,7 @@ Note that there is only 1 listener created for `HTTPS` under **Routing** Tab for
 
 ![app4-routes.png](/static/images/6-network-security/2-vpc-lattice-service-access/app4-routes.png)
 
-Also note that both of this listener is configured with the  Target group `k8s-app4-app4-v1-roniknmnge`, which itself point to the **appv4** pod IP address.
+Also note that both of this listener is configured with the  Target group `k8s-app4-app4-v1-roniknmnge`, which itself point to the **appV4** pod IP address.
 
 ## Install and configure External DNS to manage records automatically
 

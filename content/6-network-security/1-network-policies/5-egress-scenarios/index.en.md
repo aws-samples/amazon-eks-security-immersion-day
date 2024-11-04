@@ -67,7 +67,7 @@ command terminated with exit code 28
 
 In this scenario, we will allow egress traffic to a specific **port(53)** on **coredns** from **client-one** pod
 
-![sc7-egree-to-coredns](/static/images/6-network-security/1-network-policies/sc7-egree-to-coredns.png)
+![sc7-egress-to-coredns](/static/images/6-network-security/1-network-policies/sc7-egree-to-coredns.png)
 
 ### Deploy the Network Policy
 
@@ -122,7 +122,7 @@ Test the connectivity from **client-one** pod to **demo-app** pod with in same `
 ```bash
 kubectl exec -it client-one -- curl --max-time 3 -v demo-app
 ```
-Now, **client-one** app pod is able to communicate with **coredn** pod in `kube-system` namespace to resolve the service ip of **demo-app**, but failed to connect to **demo-app** due to missing egress rule.
+Now, **client-one** app pod is able to communicate with **coredns** pod in `kube-system` namespace to resolve the service ip of **demo-app**, but failed to connect to **demo-app** due to missing egress rule.
 
 ::::expand{header="Check Output"}
 ```bash
@@ -136,11 +136,10 @@ command terminated with exit code 28
 ::::
 
 
-## Scenario #8: Allow egress to coredna and demo-app from client-one pod
-
+## Scenario #8: Allow egress to coredns and demo-app from client-one pod
 
 In this scenario, we will block all the egress traffic from **client-one** pod to **coredns** and **demo-app(())
-]
+
 ![sc8-allow-egress-coredns-demo-app](/static/images/6-network-security/1-network-policies/sc8-allow-egress-coredns-demo-app.png)
 
 ### Deploy the Network Policy

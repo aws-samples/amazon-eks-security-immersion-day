@@ -27,7 +27,7 @@ Defaulted container "aws-node" out of: aws-node, aws-vpc-cni-init (init)
 
 Go back to the [Amazon GuardDuty console](https://console.aws.amazon.com/guardduty/home) to check if a finding is generated.
 
-![GDexecinkubepods](/static/images/detective-controls/GDexecinkubepods.png)
+![GD exec in kube pods](/static/images/detective-controls/GDexecinkubepods.png)
 
 
 Amazon GuardDuty sends a notification to the Eventbridge.

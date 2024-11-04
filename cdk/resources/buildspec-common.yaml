@@ -35,6 +35,7 @@ phases:
         WORKSHOP_GIT_BRANCH=${WORKSHOP_GIT_BRANCH:-mainline}
         IS_WS=${IS_WS:-false}
         GITEA_PASSWORD=${GITEA_PASSWORD}
+        PARTICIPANT_ROLE_ARN=${PARTICIPANT_ROLE_ARN}
 
         env | sort
 
@@ -90,8 +91,22 @@ phases:
           # Project Creation
           DEBUG=1 TF_VAR_gitea_external_url=$GITEA_EXTERNAL_URL TF_VAR_gitea_password=$GITEA_PASSWORD $BASE_DIR/terraform/common/deploy.sh
 
-          eksdemo create kms-key eks-security-kms
-          eksdemo create cluster eksworkshop-eksctl --vpc-cidr 10.254.0.0/16 -N 3 --version 1.30 --encrypt-secrets eks-security-kms
+          # Check if KMS key exists
+          if ! aws kms describe-key --key-id alias/eks-security-kms &> /dev/null; then
+              echo "Creating KMS key eks-security-kms"
+              eksdemo create kms-key eks-security-kms
+          else
+              echo "KMS key eks-security-kms already exists"
+          fi
+
+          # Check if EKS cluster exists
+          if ! aws eks describe-cluster --name eksworkshop-eksctl &> /dev/null; then
+              echo "Creating EKS cluster eksworkshop-eksctl"
+              eksdemo create cluster eksworkshop-eksctl --vpc-cidr 10.254.0.0/16 -N 3 --version 1.30 --encrypt-secrets eks-security-kms
+          else
+              echo "EKS cluster eksworkshop-eksctl already exists"
+          fi
+
 
         fi
   post_build:

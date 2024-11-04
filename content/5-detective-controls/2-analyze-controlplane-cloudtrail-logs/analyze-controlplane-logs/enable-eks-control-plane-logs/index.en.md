@@ -157,4 +157,4 @@ Click on any of these log streams to view the entries being sent to CloudWatch L
 
 :::::
 
-In the next setction, we will use Log Insights to run queries on these logs.
+In the next section, we will use Log Insights to run queries on these logs.

@@ -149,7 +149,7 @@ clusterpolicy.kyverno.io/inject-sidecar created
 ::::
 
 
-Ensure that Kyvero ClusterPolicy is configured properly.
+Ensure that Kyverno ClusterPolicy is configured properly.
 
 ```bash
 kubectl --context $EKS_CLUSTER1_CONTEXT get ClusterPolicy 

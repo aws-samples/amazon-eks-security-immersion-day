@@ -7,14 +7,14 @@ In the earlier section, we enabled EKS protection for Amazon GuardDuty.
 
 Under **EKS Protection**, go to **EKS clusters runtime coverage** to check the status.
 
-![GDRuneTimeAgenthealthy](/static/images/detective-controls/GDRuneTimeAgenthealthy.png)
+![GD RuneTime Agent healthy](/static/images/detective-controls/GDRuneTimeAgenthealthy.png)
 
 
 Choosing the option **Manage agent automatically** will also create a VPC endpoint through which the security agent delivers the runtime events to GuardDuty.
 
 Go to the [Endpoints section in VPC Console](https://us-west-2.console.aws.amazon.com/vpc/home?region=us-west-2#Endpoints:) to view thw VPC Endpoint created by the Amazon GuardDuty.
 
-![GDVPCEndpoint](/static/images/detective-controls/GDVPCEndpoint.png)
+![GD VPC Endpoint](/static/images/detective-controls/GDVPCEndpoint.png)
 
 Go to EKS Console and ensure that Amazon GuardDuty EKS Runtime Monitoring EKS Managed Add-on is deployed into the EKS cluster.
 
@@ -36,7 +36,7 @@ Below is the deployment Architecture for the GuardDuty security agent.
 ![GDAgentArch](/static/images/detective-controls/GDAgentArch.png)
 
 
-The GuardDuty Agent utilizes the worker node **Instance Identity Role** for temporary credentials for sending security telemetry to the GuardDuty back-end. That means, unlike other agents or controllers, which reqquires specific IAM permissions configured via IAM Roles for service accounts(IRSA), you dont have to configure any special IAM permissions for the Agent.
+The GuardDuty Agent utilizes the worker node **Instance Identity Role** for temporary credentials for sending security telemetry to the GuardDuty back-end. That means, unlike other agents or controllers, which requires specific IAM permissions configured via IAM Roles for service accounts(IRSA), you don't have to configure any special IAM permissions for the Agent.
 
 You can see that IRSA is not used (which means Instance Node Role is used by default) for GuardDuty Agent pod i.e. the Service Account assigned GuardDuty Agent pod for the does not have any annotation with an IAM Role.
 

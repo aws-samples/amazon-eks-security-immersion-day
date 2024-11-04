@@ -90,7 +90,7 @@ command terminated with exit code 254
 ```
 ::::
 
-The `AccessDenied` error is expected since the Pod is not confugured with any IAM permissions to list S3 Buckets.
+The `AccessDenied` error is expected since the Pod is not configured with any IAM permissions to list S3 Buckets.
 
 
 ## Configure Amazon EKS Pod Identity

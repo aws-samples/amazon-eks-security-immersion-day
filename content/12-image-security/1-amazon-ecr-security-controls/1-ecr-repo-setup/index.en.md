@@ -148,7 +148,7 @@ ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/team-b/alpine repo created...
 
 After both repositories are created, [AWS Console](https://us-west-2.console.aws.amazon.com/ecr/repositories) will show the repositories as shown below:
 
-![reflistrepositories](/static/images/image-security/ecr-security-controls/list-repositories.png)
+![list repositories](/static/images/image-security/ecr-security-controls/list-repositories.png)
 
 6. Tag the `alpine` image to prepare it for push to ECR repositories
 
@@ -232,7 +232,7 @@ The output will look like below:
 
 AWS Console will list the images in a repository as shown below:
 
-![reflistimages](/static/images/image-security/ecr-security-controls/list-images.png)
+![list images](/static/images/image-security/ecr-security-controls/list-images.png)
 
 11. List images in the ECR repository `team-b/alpine` using the Cloud9 workspace IAM role permissions (_AdministratorAccess_)
 

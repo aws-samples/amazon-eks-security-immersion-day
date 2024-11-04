@@ -70,7 +70,7 @@ aws sts get-caller-identity --profile dev
 
 The output looks like below.
 
-```json
+```
 {
     "UserId": "AROAUD5VMKW75WJEHFU4X:botocore-session-1581687024",
     "Account": "ACCOUNT_ID",
@@ -88,7 +88,7 @@ aws sts get-caller-identity --profile admin
 
 The output looks like below.
 
-```bash
+```
 {
     "UserId": "AROAUD5VMKW77KXQAL7ZX:botocore-session-1582022121",
     "Account": "ACCOUNT_ID",
@@ -100,13 +100,6 @@ The output looks like below.
 
 ## Using AWS profiles with the Kubectl config file
 
-### Install yq for yaml processing
-```bash
-echo 'yq() {
-  docker run --rm -i -v "${PWD}":/workdir mikefarah/yq "$@"
-}' | tee -a ~/.bashrc && source ~/.bashrc
-```
-
 It is also possible to specify the AWS\_PROFILE to use with the aws-iam-authenticator in the `~/.kube/config` file, so that it will use the appropriate profile.
 
 
@@ -115,46 +108,17 @@ It is also possible to specify the AWS\_PROFILE to use with the aws-iam-authenti
 Create a new KUBECONFIG file to test this:
 
 ```bash
-export KUBECONFIG=/tmp/kubeconfig-dev && eksctl utils write-kubeconfig -c eksworkshop-eksctl
-cat $KUBECONFIG | yq e '.users.[].user.exec.args += ["--profile", "dev"]' - -- | sed 's/eksworkshop-eksctl./eksworkshop-eksctl-dev./g' | sponge $KUBECONFIG
+export KUBECONFIG=/tmp/kubeconfig-dev
+eksctl utils write-kubeconfig -c eksworkshop-eksctl
+cat $KUBECONFIG | yq e '.users.[].user.exec.args += ["--profile", "dev"]' - | sed 's/eksworkshop-eksctl./eksworkshop-eksctl-dev./g' > ${KUBECONFIG}.tmp && mv ${KUBECONFIG}.tmp $KUBECONFIG
+
 ```
 
 ::::expand{header="Check Output"}
-```bash
-
+```
 2023-03-14 10:16:28 [✔]  saved kubeconfig as "/tmp/kubeconfig-dev"
-
-Unable to find image 'mikefarah/yq:latest' locally
-latest: Pulling from mikefarah/yq
-63b65145d645: Pulling fs layer
-865242c25e72: Pulling fs layer
-48f2cb577b3c: Pulling fs layer
-6b38082b4af1: Pulling fs layer
-0a8c5b7f3b42: Pulling fs layer
-6b38082b4af1: Waiting
-0a8c5b7f3b42: Waiting
-48f2cb577b3c: Verifying Checksum
-48f2cb577b3c: Download complete
-63b65145d645: Verifying Checksum
-63b65145d645: Download complete
-865242c25e72: Verifying Checksum
-865242c25e72: Download complete
-63b65145d645: Pull complete
-6b38082b4af1: Verifying Checksum
-6b38082b4af1: Download complete
-0a8c5b7f3b42: Verifying Checksum
-0a8c5b7f3b42: Download complete
-865242c25e72: Pull complete
-48f2cb577b3c: Pull complete
-6b38082b4af1: Pull complete
-0a8c5b7f3b42: Pull complete
-Digest: sha256:29ebb32f7d89a6b8e102a9cf1fb1c073d7154c17e5eda8a584f60f036b11f655
-Status: Downloaded newer image for mikefarah/yq:latest
 ```
 ::::
-
-
-> Note: this assume you uses yq >= version 4. you can reference to [this page](https://mikefarah.gitbook.io/yq/upgrading-from-v3)  to adapt this command for another version.
 
 We added the `--profile dev` parameter to our kubectl config file, so that this will ask kubectl to use our IAM role associated to our dev profile, and we rename the context using suffix **\-dev**.
 
@@ -167,7 +131,7 @@ kubectl run nginx-dev --image=nginx -n development
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 pod/nginx-dev created
 ```
 ::::
@@ -180,7 +144,7 @@ kubectl get pods -n development
 
 The output looks like below
 
-```bash
+```
 NAME                     READY   STATUS    RESTARTS   AGE
 nginx-dev   1/1     Running   0          28s
 ```
@@ -192,23 +156,23 @@ kubectl get pods -n integration
 ```
 The output looks like below
 
-```bash
+```
 Error from server (Forbidden): pods is forbidden: User "dev-user" cannot list resource "pods" in API group "" in the namespace "integration"
 ```
 #### Test with integ profile
 
 ```bash
-export KUBECONFIG=/tmp/kubeconfig-integ && eksctl utils write-kubeconfig -c eksworkshop-eksctl
-cat $KUBECONFIG | yq e '.users.[].user.exec.args += ["--profile", "integ"]' - -- | sed 's/eksworkshop-eksctl./eksworkshop-eksctl-integ./g' | sponge $KUBECONFIG
+export KUBECONFIG=/tmp/kubeconfig-integ
+eksctl utils write-kubeconfig -c eksworkshop-eksctl
+cat $KUBECONFIG | yq e '.users.[].user.exec.args += ["--profile", "integ"]' - | sed 's/eksworkshop-eksctl./eksworkshop-eksctl-integ./g' > ${KUBECONFIG}.tmp && mv ${KUBECONFIG}.tmp $KUBECONFIG
+
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 2023-03-14 10:24:31 [✔]  saved kubeconfig as "/tmp/kubeconfig-integ"
 ```
 ::::
-
-> Note: this assume you uses yq >= version 4. you can reference to [this page](https://mikefarah.gitbook.io/yq/upgrading-from-v3)  to adapt this command for another version.
 
 Let's create a pod:
 
@@ -217,7 +181,7 @@ kubectl run nginx-integ --image=nginx -n integration
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 pod/nginx-integ created
 ```
 ::::
@@ -228,7 +192,7 @@ We can list the pods:
 kubectl get pods -n integration
 ```
 
-```bsh
+```
 NAME          READY   STATUS    RESTARTS   AGE
 nginx-integ   1/1     Running   0          43s
 ```
@@ -239,26 +203,25 @@ nginx-integ   1/1     Running   0          43s
 kubectl get pods -n development
 ```
 
-```bash
+```
 Error from server (Forbidden): pods is forbidden: User "integ-user" cannot list resource "pods" in API group "" in the namespace "development"
 ```
 
 #### Test with admin profile
 
 ```bash
-export KUBECONFIG=/tmp/kubeconfig-admin && eksctl utils write-kubeconfig -c eksworkshop-eksctl
-cat $KUBECONFIG | yq e '.users.[].user.exec.args += ["--profile", "admin"]' - -- | sed 's/eksworkshop-eksctl./eksworkshop-eksctl-admin./g' | sponge $KUBECONFIG
+export KUBECONFIG=/tmp/kubeconfig-admin
+eksctl utils write-kubeconfig -c eksworkshop-eksctl
+cat $KUBECONFIG | yq e '.users.[].user.exec.args += ["--profile", "admin"]' - | sed 's/eksworkshop-eksctl./eksworkshop-eksctl-admin./g' > ${KUBECONFIG}.tmp && mv ${KUBECONFIG}.tmp $KUBECONFIG
+
 ```
 
 
 ::::expand{header="Check Output"}
-```bash
+```
 2023-03-14 10:30:52 [✔]  saved kubeconfig as "/tmp/kubeconfig-admin"
 ```
 ::::
-
-
-> Note: this assume you uses yq >= version 4. you can reference to [this page](https://mikefarah.gitbook.io/yq/upgrading-from-v3)  to adapt this command for another version.
 
 Let's create a pod in the default namespace:
 
@@ -267,7 +230,7 @@ kubectl run nginx-admin --image=nginx
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 pod/nginx-admin created
 ```
 ::::
@@ -280,7 +243,7 @@ kubectl get pods
 
 We can list the pods:
 
-```bash
+```
 NAME          READY   STATUS    RESTARTS   AGE
 nginx-admin   1/1     Running   0          2m21s
 ```
@@ -292,7 +255,7 @@ kubectl get pods -A
 ```
 The output looks like below.
 
-```bash
+```
 NAMESPACE     NAME                       READY   STATUS    RESTARTS   AGE
 default       nginx-admin                1/1     Running   0          15s
 development   nginx-dev                  1/1     Running   0          11m

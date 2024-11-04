@@ -7,7 +7,7 @@ In this section, we will create multiple template files, which we will be using 
 
 ## Create template for Gateway 
 
-This will create a template file to later create `Namespace` and `Gateway` Kubernetes objects. The Gateway  will have HTTP and HTTPS listeners, and HTTPS listenet with custom domain that will terminate TLS using associated ACM certificate.
+This will create a template file to later create `Namespace` and `Gateway` Kubernetes objects. The Gateway  will have HTTP and HTTPS listeners, and HTTPS listener with custom domain that will terminate TLS using associated ACM certificate.
 
 ```bash
 cat > templates/gateway-template.yaml <<EOF

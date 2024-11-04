@@ -31,7 +31,7 @@ kubectl apply -f eks-iam-test1.yaml
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 pod/eks-iam-test1 created
 ```
 ::::
@@ -44,7 +44,7 @@ kubectl get pod
 
 The output looks like below
 
-```bash
+```
 NAME            READY   STATUS   RESTARTS   AGE
 eks-iam-test1   0/1     Error    0          30s
 ```
@@ -57,7 +57,7 @@ kubectl logs  eks-iam-test1
 
 The output looks like below.
 
-```bash
+```
 An error occurred (AccessDenied) when calling the ListBuckets operation: Access Denied
 ```
 

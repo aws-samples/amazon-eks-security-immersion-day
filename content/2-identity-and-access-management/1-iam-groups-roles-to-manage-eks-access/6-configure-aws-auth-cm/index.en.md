@@ -91,7 +91,7 @@ eksctl get iamidentitymapping --cluster eksworkshop-eksctl
 
 The output looks like below.
 
-```bash
+```
 arn:aws:iam::ACCOUNT_ID:role/eksctl-quick-nodegroup-ng-fe1bbb6-NodeInstanceRole-1KRYARWGGHPTTsystem:node:{{EC2PrivateDNSName}}system:bootstrappers,system:nodes
 arn:aws:iam::ACCOUNT_ID:role/k8sAdmin           adminsystem:masters
 arn:aws:iam::ACCOUNT_ID:role/k8sDev             dev-user

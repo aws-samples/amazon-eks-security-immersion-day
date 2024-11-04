@@ -20,7 +20,7 @@ echo $oidc_id
 ```
 The output will looks like below
 
-```bash
+```
 80D562ED8026E91294D52E09BEA261D4
 ```
 2. Determine whether an IAM OIDC provider with your cluster's ID is already in your account.
@@ -75,7 +75,7 @@ eksctl create iamserviceaccount \
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 2023-03-05 07:36:33 [ℹ]  8 existing iamserviceaccount(s) (amazon-cloudwatch/cloudwatch-agent,amazon-cloudwatch/cwagent-prometheus,amazon-cloudwatch/fluent-bit,default/xray-daemon,karpenter/karpenter,kube-system/aws-node,kube-system/cluster-autoscaler,workshop/iam-test) will be excluded
 2023-03-05 07:36:33 [ℹ]  1 iamserviceaccount (default/iam-test) was included (based on the include/exclude rules)
 2023-03-05 07:36:33 [!]  metadata of serviceaccounts that exist in Kubernetes will be updated, as --override-existing-serviceaccounts was set
@@ -98,7 +98,7 @@ kubectl describe sa iam-test
 ```
 The output looks like below.
 
-```bash
+```
 Name:                iam-test
 Namespace:           default
 Labels:              app.kubernetes.io/managed-by=eksctl
@@ -111,7 +111,7 @@ Events:              <none>
 
 In the above input, note that the service account annotation contains the IAM Role.
 
-::alert[If you go to the [AWS CloudFormation in IAM Console](https://console.aws.amazon.com/cloudformation/), you will find that the stack "**eksctl-eksworkshop-eksctl-addon-iamserviceaccount-default-iam-test**" has created a role for your service account.]{header="Note"}
+::alert[If you go to the [AWS CloudFormation in IAM Console](https://console.aws.amazon.com/cloudformation/), you will find that the stack `eksctl-eksworkshop-eksctl-addon-iamserviceaccount-default-iam-test` has created a role for your service account.]{header="Note"}
 
 Let’s see how this IAM role looks within the AWS Management Console. Navigate to IAM and then IAM Roles and search for the role. You will see the Annotations field when you describe your Service Account.
 
@@ -138,7 +138,7 @@ aws s3 mb s3://eksworkshop-$ACCOUNT_ID-$AWS_REGION --region $AWS_REGION
 
 The output looks like below
 
-```bash
+```
 make_bucket: eksworkshop-XXXXXXXX-us-west-2
 ```
 Now let us use the above Service Account with our initial Pod example, which lists S3 objects.
@@ -166,7 +166,7 @@ kubectl apply -f eks-iam-test3.yaml
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 pod/eks-iam-test3 created
 ```
 ::::
@@ -179,7 +179,7 @@ kubectl get pod
 
 The output looks like below
 
-```bash
+```
 NAME            READY   STATUS    RESTARTS   AGE
 NAME            READY   STATUS      RESTARTS   AGE
 eks-iam-test1   0/1     Error       0          115m
@@ -194,7 +194,7 @@ kubectl logs  eks-iam-test3
 ```
 The output should look like below.
 
-```bash
+```
 2023-03-14 12:32:02 eksworkshop-XXXXXXXXXX-us-west-2
 ```
 
@@ -224,7 +224,7 @@ kubectl apply -f eks-iam-test4.yaml
 ```
 
 ::::expand{header="Check Output"}
-```bash
+```
 pod/eks-iam-test4 created
 ```
 ::::
@@ -237,7 +237,7 @@ kubectl get pod
 
 The output looks like below
 
-```bash
+```
 NAME            READY   STATUS      RESTARTS   AGE
 eks-iam-test1   0/1     Error       0          125m
 eks-iam-test2   1/1     Running     0          30m

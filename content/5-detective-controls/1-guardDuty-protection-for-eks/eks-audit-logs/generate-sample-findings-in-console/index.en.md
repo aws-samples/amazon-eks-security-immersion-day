@@ -15,19 +15,19 @@ Use the following procedure to generate sample findings. This process generates 
 1. Open the [GuardDuty console](https://console.aws.amazon.com/guardduty/)
 2. In the navigation pane, choose **Settings**.
 3. On the **Settings** page, under **Sample findings**, choose **Generate sample findings**.
-![GDGenerateSamplefindings](/static/images/detective-controls/GDGenerateSamplefindings.png)
+![GD Generate Sample findings](/static/images/detective-controls/GDGenerateSamplefindings.png)
 4. In the navigation pane, choose **Findings**. The sample findings are displayed on the **Current findings** page with the prefix **[SAMPLE]**.
-![GDSampleFindings](/static/images/detective-controls/GDSampleFindings.png)
+![GD Sample Findings](/static/images/detective-controls/GDSampleFindings.png)
 
 ::alert[Note the above step generate Sample Findings for all the resource types. Let us apply some filters to see Findings for Amazon EKS]{header="Note"}
 
 5. In the filters list, select key **Resource Type**, select **EKS Cluster** and Click **Apply**
 
-![GDSampleFindingsforEKS](/static/images/detective-controls/GDSampleFindingsforEKSResource.png)
+![GD Sample Findings for EKS](/static/images/detective-controls/GDSampleFindingsforEKSResource.png)
 
 6. Select one of the sample Findings and click on it. You will see Finding Summary details on the right side.
 
-![GDSampleFindingsDetails](/static/images/detective-controls/GDSampleFindingsDetails.png)
+![GD Sample Findings Details](/static/images/detective-controls/GDSampleFindingsDetails.png)
 
 ::::
 

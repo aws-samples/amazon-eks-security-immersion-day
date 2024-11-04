@@ -133,7 +133,7 @@ root@ubuntunetcat:/# ./xmrig -o stratum+tcp://xmr.pool.minergate.com:45700 -u fo
 
 Go back [AWS GuardDuty console](<[console.aws.amazon.com/guardduty](https://us-west-2.console.aws.amazon.com/guardduty/home?region=us-west-2#/findings?macros=current)>) and check that a finding is generated for this.
 
-::alert[If the finding doesn’t appear immediateley in the GuardDuty Console, keep refreshing the page since it make take few minutes to to generate the Kubernetes Findings]{header="Note"}
+::alert[If the finding doesn’t appear immediately in the GuardDuty Console, keep refreshing the page since it make take few minutes to to generate the Kubernetes Findings]{header="Note"}
 
 You can find three findings in the Console.
 
@@ -309,7 +309,7 @@ Ncat: Connection refused.
 
 Go back [AWS GuardDuty console](<[console.aws.amazon.com/guardduty](https://us-west-2.console.aws.amazon.com/guardduty/home?region=us-west-2#/findings?macros=current)>) and check that a finding is generated for this.
 
-::alert[If the finding doesn’t appear immediateley in the GuardDuty Console, keep refreshing the page since it make take few minutes to to generate the Kubernetes Findings]{header="Note"}
+::alert[If the finding doesn’t appear immediately in the GuardDuty Console, keep refreshing the page since it make take few minutes to to generate the Kubernetes Findings]{header="Note"}
 
 You can find the following findings in the Console.
 

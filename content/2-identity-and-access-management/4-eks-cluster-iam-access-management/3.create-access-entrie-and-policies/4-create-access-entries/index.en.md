@@ -69,7 +69,7 @@ aws eks   create-access-entry --cluster-name $EKS_CLUSTER_NAME --principal-arn $
 
 ## Associate Access policies
 
-Let us assoicate the required access policy to each of the access entries created above.
+Let us associate the required access policy to each of the access entries created above.
 
 
 ```bash

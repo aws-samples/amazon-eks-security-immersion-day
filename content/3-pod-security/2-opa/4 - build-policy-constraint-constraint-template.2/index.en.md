@@ -101,7 +101,7 @@ constrainttemplate.templates.gatekeeper.sh/k8srequiredlabels created
 ```
 ::::
 
-Ensure that the CRD constrainttemplate is created.
+Ensure that the CRD constraint template is created.
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
 kubectl get constrainttemplate
@@ -116,7 +116,7 @@ k8srequiredlabels           2m18s
 
 ### Build Constraint
 
-Below example contraint defines that any `namespace` objects that are created must have a value set for the `owner` label. 
+Below example constraint defines that any `namespace` objects that are created must have a value set for the `owner` label. 
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
 cd ~/environment

@@ -10,7 +10,7 @@ In this section, let us explore possible options to switch between different Aut
 
 ### Prerequisites
 
-Before procedding further, ensure that the EKS cluster must have a [platform version that is the same or later than the version listed in the table, or a Kubernetes version that is later than the versions listed in the table](https://docs.aws.amazon.com/eks/latest/userguide/access-entries.html).
+Before proceeding further, ensure that the EKS cluster must have a [platform version that is the same or later than the version listed in the table, or a Kubernetes version that is later than the versions listed in the table](https://docs.aws.amazon.com/eks/latest/userguide/access-entries.html).
 
 
 Check the platform version of the EKS cluster.

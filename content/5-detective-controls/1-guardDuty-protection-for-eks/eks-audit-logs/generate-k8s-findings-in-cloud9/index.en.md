@@ -48,7 +48,7 @@ clusterrolebinding.rbac.authorization.k8s.io/anonymous-admin created
 
 Go back [AWS GuardDuty console]([console.aws.amazon.com/guardduty](https://us-west-2.console.aws.amazon.com/guardduty/home?region=us-west-2#/findings?macros=current)) and check that a finding is generated for this.
 
-::alert[If the finding doesn’t appear immediateley in the GuardDuty Console, try changing the name under metadata (ex: **anonymous-admin2**) in the anonymous.yaml file and re-run the `kubectl apply -f anonymous.yaml`. Also keep refreshing the page since it make take few minutes to to generate the Kubernetes Findings]{header="Note"}
+::alert[If the finding doesn’t appear imediateley in the GuardDuty Console, try changing the name under metadata (ex: **anonymous-admin2**) in the anonymous.yaml file and re-run the `kubectl apply -f anonymous.yaml`. Also keep refreshing the page since it make take few minutes to to generate the Kubernetes Findings]{header="Note"}
 
 
 ![Anonymous Finding](/static/images/detective-controls/AnonFinding.png)
@@ -97,7 +97,7 @@ clusterrolebinding.rbac.authorization.k8s.io/default-service-acct-admin created
 Go back AWS GuardDuty console and check that a finding is generated for this.
 
 
-![Eleveated Access to Serviceaccount](/static/images/detective-controls/eleveatedaccesstoserviceaccount.png)
+![Elevated Access to Serviceaccount](/static/images/detective-controls/eleveatedaccesstoserviceaccount.png)
 
 
 ### [`PrivilegeEscalation:Kubernetes/PrivilegedContainer` and `Persistence:Kubernetes/ContainerWithSensitiveMount`](https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_finding-types-kubernetes.html)
@@ -161,7 +161,7 @@ deployment.apps/ubuntu-privileged-with-mount created
 
 Go to AWS GuardDuty Console to check the findings.
 
-![GDprevilegedandSensitive](/static/images/detective-controls/GDprevilegedandSensitive.png)
+![GD previleged and Sensitive](/static/images/detective-controls/GDprevilegedandSensitive.png)
 
 
 Let's take a moment to review findings' detail. Click on each finding in the GuardDuty console to open its detail.

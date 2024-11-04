@@ -9,12 +9,12 @@ Amazon VPC Lattice uses AWS Signature Version 4 (SigV4) for client authenticatio
 
 There are multiple options to sign the request for Amazon VPC Lattice services.
 
-1. **[AWS SDK](https://docs.aws.amazon.com/vpc-lattice/latest/ug/sigv4-authenticated-requests.html)**: This option has the optimal performance and is the **prefered solution**, but requires code changes for the application.
+1. **[AWS SDK](https://docs.aws.amazon.com/vpc-lattice/latest/ug/sigv4-authenticated-requests.html)**: This option has the optimal performance and is the **preferred solution**, but requires code changes for the application.
 1. By using a container sidecar to sign the requests:
     1. **[AWS SIGv4 Proxy Admission Controller](https://github.com/awslabs/aws-sigv4-proxy)**:  This option use AWS SIGv4 Proxy to forward HTTP request and add AWS Sigv4 headers. The details is covered in this [post](https://aws.amazon.com/blogs/containers/application-networking-with-amazon-vpc-lattice-and-amazon-eks/).
     1. Using new [envoy proxy signature](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/aws_request_signing_filter) functionality
 
-Additionaly, if we uses the sidecar pattern, we can uses an admission controller to dynamically inject the signing sidecar in the Pod.
+Additionally, if we uses the sidecar pattern, we can uses an admission controller to dynamically inject the signing sidecar in the Pod.
 
 3. **[Kyverno policy engine](https://kyverno.io/)**: It runs as a [dynamic admission controller](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/) and receives mutating admission webhook HTTP callbacks from the API server, and applies matching policies to return results that enforce admission policies. In other words, Kyverno can automatically inject the sidecar and init containers automatically. We will be using ths option in this module.
 
@@ -198,7 +198,7 @@ eks-pod-identity-agent-fd2zw eks-pod-identity-agent {"client-addr":"10.254.145.2
 
 In this first step, which will be the recommended one, we are going to simulate how you can leverage AWS SDK to use the IAM Role to sign the requests directly.
 
-We are going to emulate this by using the `curl` programm which has an integration with AWS SDK to sign the requests.
+We are going to emulate this by using the `curl` program which has an integration with AWS SDK to sign the requests.
 
 
 ```bash
@@ -359,7 +359,7 @@ You can find more detail on how EKS Pod Identity works in the [Pod Identity modu
 
 At this step, we saw how we can connect to app2 through vpc lattice, and benefits from the IAM Auth policy.
 
-But what prevent me to directly connecto to the internal kubernetes service ?
+But what prevent me to directly connect to the internal kubernetes service ?
 
 ```bash
 kubectl --context $EKS_CLUSTER1_CONTEXT exec -ti -n app1 deployments/app1-v1 -- curl app2-v1.app2

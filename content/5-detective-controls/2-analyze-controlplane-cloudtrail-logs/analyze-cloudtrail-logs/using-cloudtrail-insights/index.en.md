@@ -5,7 +5,7 @@ weight : 23
 
 We'll take a look at some [AWS CloudTrail Insights](https://console.aws.amazon.com/cloudtrail/home#/insights) from the AWS Console. 
 
-### Scenario : Let's unearth suspecious/unusual activitiy
+### Scenario : Let's unearth suspicious/unusual activity
 
 ::alert[To generate high volume of Traffic, I have scaled managed nodes]
 

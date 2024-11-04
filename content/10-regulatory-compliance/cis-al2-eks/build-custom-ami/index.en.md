@@ -3,9 +3,9 @@ title : "Building Amazon EKS CIS AL2 Hardened Custom AMI"
 weight : 22
 ---
 
-In this section we will walk through the process of building custom ami hardened as per CIS specification benchmark using community provided script. We will be using Hasihcorp [packer](https://www.packer.io/) to build the ami.
+In this section we will walk through the process of building custom ami hardened as per CIS specification benchmark using community provided script. We will be using Hashicorp [packer](https://www.packer.io/) to build the ami.
 
-Remove binary already installed which is name packer to avoid  conflict with Hasihcorp packer installation.
+Remove binary already installed which is name packer to avoid  conflict with Hashicorp packer installation.
 
 ```bash
 sudo rm /usr/sbin/packer
@@ -21,7 +21,7 @@ sudo yum -y install packer
 ```
 Clone the repo for building a custom Amazon EKS AMI with CIS hardening script. The code used in this solution is available in GitHub. Please clone the repository to prepare for the walkthrough. The hardening scripts by default applies both Level 1 and Level 2 [CIS benchmark for Amazon Linux 2](https://www.cisecurity.org/benchmark/amazon_linux).
 Customer can edit the file ~/environment/amazon-eks-custom-amis/scripts/cis-benchmark.sh prior to AMI build if they have a requirement to disable any specific control. 
-The Iptables rules prescribed by CIS hardening can restrict some Pod communication. These rules may need to be reviewd and accordingly modified or disabled, depending on application requirements and security priorities, to allow Kubernetes' kube-proxy to fully manage Pod networking.
+The Iptables rules prescribed by CIS hardening can restrict some Pod communication. These rules may need to be reviewed and accordingly modified or disabled, depending on application requirements and security priorities, to allow Kubernetes' kube-proxy to fully manage Pod networking.
 
 ```bash
 cd ~/environment
