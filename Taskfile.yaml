@@ -86,12 +86,12 @@ tasks:
     cmds:
       - task: cfn
       - task: check_creds
-      - aws s3 sync ./assets s3://ws-assets-us-east-1/d2b662ae-e9d7-4b31-b68b-64ade19d5dcc --delete
+      - aws s3 sync ./assets s3://ws-assets-us-east-1/165b0729-2791-4452-8920-53b734419050/ --delete
 
   check-assets:
     desc: "Check Assets with Workshop Studio"
     cmds:
-      - aws s3 ls s3://ws-assets-us-east-1/d2b662ae-e9d7-4b31-b68b-64ade19d5dcc/
+      - aws s3 ls s3://ws-assets-us-east-1/165b0729-2791-4452-8920-53b734419050/
 
   get-tfstate-bucket-name:
     desc: "retrieve the bucket name to use"

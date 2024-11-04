@@ -34,7 +34,7 @@ kubectl --context $EKS_CLUSTER1_CONTEXT delete ns app-services-gw
 
 ## Clean first EKS cluster add-ons
 
-If you don't need anymore thoses addons, you can remove them
+If you don't need anymore theses addons, you can remove them
 ```bash
 eksdemo uninstall vpc-lattice-controller -c $EKS_CLUSTER1_NAME -D
 

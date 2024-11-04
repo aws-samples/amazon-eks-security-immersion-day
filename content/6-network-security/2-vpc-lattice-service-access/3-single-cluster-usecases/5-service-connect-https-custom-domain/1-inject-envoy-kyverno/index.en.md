@@ -3,7 +3,7 @@ title : "Use envoy proxy to sign requests"
 weight : 26
 ---
 
-In this module let's see how we can use envoy proxy to do the signv4 signature of our requests and proxify https requests to VPC lattice, and again we will rely on Kyverno to dynamically inject the sidecar configuration into the application pod
+In this module, we'll explore how to utilize Envoy Proxy to perform AWS Signature Version 4 (SigV4) signing for our requests and proxy HTTPS requests to AWS Cloud Map. Additionally, we'll leverage Kyverno to dynamically inject the sidecar configuration into the application pod.
 
 ![](/static/images/6-network-security/2-vpc-lattice-service-access/lattice-usecase4-kyverno.png)
 
@@ -113,10 +113,11 @@ kubectl stern --context $EKS_CLUSTER1_CONTEXT -n app1 app1 -c envoy-sigv4 --tail
 
 
 ::::alert{type="info" header="Congratulation!!"}
-With this setup, we do not need to make any change into our application code:
-- We let our app connect to the remote application in HTTP. (note: the app4 service does not listen on HTTP) 
-- The iptable rule, redirect the traffic to the envoy proxy in HTTP (using local host)
-- Envoy proxy sign the request, and proxify it to the lattice service in HTTPS, using PCA certificate, installed by the docker entrypoint.
-- VPC Lattice receive the request in HTTPS with valid sigv4 signature. It verify the signature, extract the IAM session tags, and checks with the service IAM Policy that the entity is allowed to access the service.
-- The app4 service receive an HTTP request from the VPC Lattice service, and can respond to the requester through VPC lattice.
+With this setup, we do not need to make any changes to the application code:
+
+- The application connects to the remote service using HTTP, even though the remote service (app4) does not listen on HTTP.
+- An iptables rule redirects the traffic to the Envoy proxy, also using HTTP on the local host.
+- The Envoy proxy signs the request and proxies it to the Lattice service using HTTPS, with a certificate installed by the Docker entrypoint and signed by the Private Certificate Authority (PCA).
+- The VPC Lattice service receives the request over HTTPS with a valid SigV4 signature. It verifies the signature, extracts the IAM session tags, and checks the service's IAM policy to ensure the entity is authorized to access the service.
+- The app4 service receives the HTTP request from the VPC Lattice service and can respond to the requester through the VPC Lattice.
 ::::

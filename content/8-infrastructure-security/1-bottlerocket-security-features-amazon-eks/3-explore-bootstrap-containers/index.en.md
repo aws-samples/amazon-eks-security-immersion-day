@@ -7,7 +7,7 @@ In this section of the workshop, you will explore [Bootstrap Containers](https:/
 
 Bootstrap containers allow you to run a container that performs a task as the system boots. They are containers that can be used to “bootstrap” the host before other services start, solving for node configuration through Bottlerocket’s design of container-based customization.
 
-Bootstrap containers have access to the underlying host filesystem at /.bottlerocket/ which contains the root filesystem (/.bottlerocket/rootfs). Additionally, bootstrap containers run with the CAP_SYS_ADMIN capability, allowing for the creation of files, directories, and mounts accessible to the host (however the root filesystem remains immutable). Both bootstrap and superpowered host containers are configured with the /.bottlerocket/rootfs/mnt bind mount.
+Bootstrap containers have access to the host filesystem at /.bottlerocket/, which contains the root filesystem (/.bottlerocket/rootfs). Moreover, bootstrap containers execute with the CAP_SYS_ADMIN capability, enabling the creation of files, directories, and mounts accessible to the host, while the root filesystem remains immutable. Both bootstrap and superpowered host containers are configured with the /.bottlerocket/rootfs/mnt bind mount.
 
 1. Exit out of the `control` container, back to the Cloud9 workspace to create a container image for the bootstrap container.
 

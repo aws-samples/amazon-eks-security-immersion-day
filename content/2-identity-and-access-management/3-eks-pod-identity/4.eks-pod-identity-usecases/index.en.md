@@ -1,5 +1,5 @@
 ---
-title : "Access control to IAM Role using EKS Pod Identity Usecases"
+title : "Access control to IAM Role using EKS Pod Identity Use  cases"
 weight : 24
 ---
 

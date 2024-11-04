@@ -1,5 +1,5 @@
 ---
-title : "Usecase 4: Service Connectivity with HTTPS on Custom Domain and IAM Auth Access Controls"
+title : "Use case 4: Service Connectivity with HTTPS on Custom Domain and IAM Auth Access Controls"
 weight : 16
 ---
 
@@ -9,7 +9,7 @@ In this section, we will deploy a new service `app4` and configure `HTTPRoute` w
 - We Deploy app4 with an HTTPRoute pointing to a custom Domain Name
 - Gateway api controller will create a `DNSEndpoint` object based on the wanted domain name
 - We add External-DNS to create DNS records from the HTTPRoute object
-- VPC Lattice will deal with TLS termination of our custom domain name, thanks to the Certificat we attached to the `app-service-gw` Gateway.
+- VPC Lattice will deal with TLS termination of our custom domain name, thanks to the Certificate we attached to the `app-service-gw` Gateway.
 
 ## Deploy and register Service `app4` to Service Network `app-services-gw`
 
@@ -79,7 +79,7 @@ httproute.gateway.networking.k8s.io/app4 condition met
 ```
 ::::
 
-Check that the HTTPRoute has created the VPC Lattive endpoint:
+Check that the HTTPRoute has created the VPC Lattice endpoint:
 
 ```bash
 app4DNS=$(kubectl --context $EKS_CLUSTER1_CONTEXT get httproute app4 -n app4 -o json | jq -r '.metadata.annotations."application-networking.k8s.aws/lattice-assigned-domain-name"')
@@ -104,11 +104,11 @@ Note that there is only 1 listener created for `HTTPS` under **Routing** Tab for
 
 ![app4-routes.png](/static/images/6-network-security/2-vpc-lattice-service-access/app4-routes.png)
 
-Also note that both of this listener is configured with the  Target group `k8s-app4-app4-v1-roniknmnge`, which itself point to the appv4 pod IP adress.
+Also note that both of this listener is configured with the  Target group `k8s-app4-app4-v1-roniknmnge`, which itself point to the **appv4** pod IP address.
 
 ## Install and configure External DNS to manage records automatically
 
-Let's use eksdemo to help us installing ExternalDNS with proper IAM Role for serviceaccount configuration. We also ask External-dns to watch for `service`, `ingress`, and `crd` source type, and we provide Extra configuration so that it watch for `DNSEndpoint` custom ressource definition.
+Let's use eksdemo to help us installing ExternalDNS with proper IAM Role for serviceaccount configuration. We also ask External-dns to watch for `service`, `ingress`, and `crd` source type, and we provide Extra configuration so that it watch for `DNSEndpoint` custom resource definition.
 
 ```bash
 eksdemo install external-dns -c $EKS_CLUSTER1_NAME --set policy=sync \
@@ -254,7 +254,7 @@ With this command, we add the environment variable `CA_ARN` in the Application c
 ...          
 :::
 
-This environment variable is used by our application entrypoint script, and if present, will install the associated certificat in the running container. This is for this call that we added the `AWSCertificateManagerPrivateCAReadOnly` policy to our `aws-sigv4-client` IAM role. 
+This environment variable is used by our application entrypoint script, and if present, will install the associated certificate in the running container. This is for this call that we added the `AWSCertificateManagerPrivateCAReadOnly` policy to our `aws-sigv4-client` IAM role. 
 
 Our entrypoint script looks like this, and download and install our PCA root certificate:
 
@@ -276,13 +276,13 @@ fi
 
 #### 5. Exec into an `app1-v1` pod to check connectivity again to `app4` service using custom domain at `HTTPS` listener, along with Root CA certificate.
 
-Because the certificat is now part of the trusted ca store of our container, we can call directly our application in https
+Because the certificate is now part of the trusted ca store of our container, we can call directly our application in https
 ```bash
 kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -c app1-v1 -n app1 -- \
 curl https://app4.vpc-lattice-custom-domain.io
 ```
 
-The TLS error should have disapear and we should now see the authentication issue
+The TLS error should have disappear and we should now see the authentication issue
 
 ::::expand{header="Check Output"}
 ```
@@ -306,9 +306,9 @@ We should now see the proper response from the `app4`.
 
 ::::expand{header="Check Output"}
 ```
-Requsting to Pod(app4-v1-85d4d9c455-22fgw): Hello from app4-v1
+Requesting to Pod(app4-v1-85d4d9c455-22fgw): Hello from app4-v1
 ::::
 
 ::::alert{type="info" header="Congratulation!!"}
-This time we managed to configure our Service with custom domain name and private certificat, with a secure connection in TLS, and authorization validated by VPC Lattice IAM policies.
+This time, we successfully configured our service with a custom domain name and a private SSL/TLS certificate, establishing a secure connection. Additionally, we implemented authorization validation using VPC Lattice IAM policies.
 ::::

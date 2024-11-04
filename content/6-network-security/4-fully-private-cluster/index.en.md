@@ -14,7 +14,7 @@ This module would deploy an Amazon EKS cluster that is deployed on the AWS Cloud
 5. Your cluster's VPC subnets must have a VPC interface endpoint for any AWS services that your Pods need access to.
 6. You can use the AWS Load Balancer Controller to deploy AWS Application Load Balancers (ALB) and Network Load Balancers to your private cluster. When deploying it, you should use command line flags to set enable-shield, enable-waf, and enable-wafv2 to false.
 
-In this module, we would create a fully private EKS cluster and explore its private behaviour. The steps would be as follows.
+In this module, we would create a fully private EKS cluster and explore its private behavior. The steps would be as follows.
 
 1. Create the Private EKS cluster
 2. Install the AWS Load Balancer Controller
@@ -28,7 +28,7 @@ If you have disabled public access for your cluster's Kubernetes API server endp
 2. Amazon EC2 bastion host
 > You can launch an Amazon EC2 instance into a public subnet in your cluster's VPC and then log in via SSH into that instance to run kubectl commands. 
 3. AWS Cloud9 IDE
-> AWS Cloud9 is a cloud-based integrated development environment (IDE) that lets you write, run, and debug your code with just a browser. You can create an AWS Cloud9 IDE in your cluster's VPC and use the IDE to communicate with your cluster. Please refer the following blog for ruuning Cloud9 in a Private Subnet.
+> AWS Cloud9 is a cloud-based integrated development environment (IDE) that lets you write, run, and debug your code with just a browser. You can create an AWS Cloud9 IDE in your cluster's VPC and use the IDE to communicate with your cluster. Please refer the following blog for running Cloud9 in a Private Subnet.
 https://aws.amazon.com/blogs/security/isolating-network-access-to-your-aws-cloud9-environments/
 
 We are going to use the third option with a mix of 2 Cloud9 instances to Create and Manage the cluster. The Final state of the lab would look this.

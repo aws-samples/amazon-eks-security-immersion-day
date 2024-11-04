@@ -18,7 +18,7 @@ phases:
         sudo mv /tmp/eksctl /usr/local/bin
         curl -sSL "https://github.com/awslabs/eksdemo/releases/download/v0.16.0/eksdemo_Linux_x86_64.tar.gz" | tar xz -C /tmp
         chmod +x /tmp/eksdemo
-        mv /tmp/eksdemo /usr/local/bin          
+        mv /tmp/eksdemo /usr/local/bin
 
   build:
     commands:

@@ -1,5 +1,5 @@
 ---
-title : "Usecase 2: Service Connectivity with HTTP and IAM Auth Access Controls"
+title : "Use 
 weight : 14
 ---
 

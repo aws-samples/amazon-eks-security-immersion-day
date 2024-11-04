@@ -69,7 +69,10 @@ export class TeamStack extends WorkshopStudioTeamStack {
     const ide = new VSCodeIde(this, "IDE-SECU", {
       bootstrapScript: bootstrapScript,
       role: sharedRole,
-      instanceType: ec2.InstanceType.of(ec2.InstanceClass.C5, ec2.InstanceSize.LARGE),
+      instanceType: ec2.InstanceType.of(
+        ec2.InstanceClass.C5,
+        ec2.InstanceSize.LARGE,
+      ),
       terminalOnStartup: false,
       bootstrapTimeoutMinutes: 30,
       enableGitea: true,

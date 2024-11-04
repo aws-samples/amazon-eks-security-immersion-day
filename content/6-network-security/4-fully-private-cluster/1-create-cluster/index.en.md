@@ -52,13 +52,13 @@ aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values
 When it comes up, customize the environment by:
 
 * Closing the **Welcome tab**
-![c9before](/static/images/create-workspace/cloud9-1.png)
+![c9 before](/static/images/create-workspace/cloud9-1.png)
 
 * Opening a new **terminal** tab in the main work area
-![c9newtab](/static/images/create-workspace/cloud9-2.png)
+![c9 new tab](/static/images/create-workspace/cloud9-2.png)
 
 * Closing the lower work area
-![c9newtab](/static/images/create-workspace/cloud9-3.png)
+![c9 new tab](/static/images/create-workspace/cloud9-3.png)
 
 * Your workspace should now look like this
 ![c9after](/static/images/create-workspace/cloud9-4.png)
@@ -70,10 +70,10 @@ When it comes up, customize the environment by:
 ![cloud9Role](/static/images/create-workspace/cloud9-role.png)
 
 2. Select the instance, then choose **Actions / Security / Modify IAM Role**
-![c9instancerole](/static/images/create-workspace/c9instancerole.png)
+![c9 instance  role](/static/images/create-workspace/c9instancerole.png)
 
 3. Choose **eks-security-workshop** from the **IAM Role** drop down, and select **Save**
-![c9attachrole](/static/images/create-workspace/c9attachrole.png)
+![c9 attach role](/static/images/create-workspace/c9attachrole.png)
 
 #### Attach a Security group to the AWS Cloud9 workspace EC2 instance
 
@@ -255,7 +255,7 @@ ip-10-***-***-***.ap-south-1.compute.internal   Ready   <none>   39h   v1.27.7-e
 ip-10-***-***-***.ap-south-1.compute.internal   Ready   <none>   39h   v1.27.7-eks-e71965b
 ```
 
-This should setup an EKS cluster with Private Endpoint for the Control Plane. The details of the newly created cluster can be fetched from the above command from kubectl commands. Notice in the output the cluster creation process first enables for the Private and Public endpoint for the API server to initial provisioning of the cluster. Later the public endpoint is delted as as a part of the eksctl command.
+This should setup an EKS cluster with Private Endpoint for the Control Plane. The details of the newly created cluster can be fetched from the above command from kubectl commands. Notice in the output the cluster creation process first enables for the Private and Public endpoint for the API server to initial provisioning of the cluster. Later the public endpoint is deleted as as a part of the eksctl command.
 
 eksctl supports creation of fully-private clusters that have no outbound internet access and have only private subnets. VPC endpoints are used to enable private access to AWS services.
 
@@ -274,7 +274,7 @@ privateCluster:
 
 After the EKS cluster was created and since it is a Private Cluster, there would be VPC endpoints created in the Cluster VPC to create PrivateLink with various AWS services. The following VPC endpoints are created behind the scene.
 
-#### List the VPC endpoints created with the EKS clusters for Private access to AWS Servcies
+#### List the VPC endpoints created with the EKS clusters for Private access to AWS Services
 
 
 ```bash
@@ -452,15 +452,15 @@ Now the eksworkshop-private Cloud9 instance is ready to manage the fully private
 * Click on **Instances** on the **EC2 Dashboard**
 * Filter with "eksworkshop-eksctl-private" and select and Instance
 * Click on the **Connect** button on the top and Select the **Session Manager** tab
-![seesionManager](/static/images/fully-private-cluster/sessionManagerConnect.png)
+![sessionManager](/static/images/fully-private-cluster/sessionManagerConnect.png)
 * Click the **Connect** button at the bottom to open the Terminal
-![seesionManagerTerminal](/static/images/fully-private-cluster/sessionManagerTerminal.png)
+![sessionManagerTerminal](/static/images/fully-private-cluster/sessionManagerTerminal.png)
 
 * Try to connect to a public site like www.google.com using curl and it would timeout. 
-* Try connecting to the API enpoint of the cluster using curl. You should receive a structured JSON response.
+* Try connecting to the API endpoint of the cluster using curl. You should receive a structured JSON response.
 ![workerNodeTest](/static/images/fully-private-cluster/workNodeTest.png)
 
-This proves that EKS cluster is fully private with connectivty to the private API endpoint.
+This proves that EKS cluster is fully private with connectivity to the private API endpoint.
 
 
 

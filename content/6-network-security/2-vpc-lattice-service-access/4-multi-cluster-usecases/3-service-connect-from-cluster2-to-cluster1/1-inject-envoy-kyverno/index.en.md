@@ -56,5 +56,5 @@ kubectl stern --context $EKS_CLUSTER2_CONTEXT -n app5 app5 -c envoy-sigv4 --tail
 
 
 ::::alert{type="info" header="Congratulation!!"}
-We are able to do cross EKS cluster service communication in HTTPS throug VPC lattice, with IAM authorization relying on EKS pod Identity to control which application from which cluster in specific namespace is able or not to access the targeted vpc lattice service.
+We have successfully established cross-EKS cluster service communication over HTTPS through AWS VPC lattice, with IAM authorization leveraging EKS Pod Identity. This allows us to control which applications from specific namespaces and clusters can access the targeted AWS VPC lattice services.
 ::::

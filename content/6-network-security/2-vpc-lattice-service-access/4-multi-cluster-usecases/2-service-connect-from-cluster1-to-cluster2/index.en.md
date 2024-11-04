@@ -1,5 +1,5 @@
 ---
-title : "Usecase 5: Service Connectivity from Cluster1 to Cluster2"
+title : "Use case 5: Service Connectivity from Cluster1 to Cluster2"
 weight : 11
 ---
 
@@ -191,7 +191,7 @@ app5DNS=app5-app5-0290b3274559b1c62.7d67968.vpc-lattice-svcs.us-west-2.on.aws
 
 ## Install and configure External DNS to manage records automatically
 
-Let's use eksdemo to help us installing ExternalDNS with proper IAM Role for serviceaccount configuration. We also ask External-dns to watch for `service`, `ingress`, and `crd` source type, and we provide Extra configuration so that it watch for `DNSEndpoint` custom ressource definition.
+Let's use eksdemo to help us installing ExternalDNS with proper IAM Role for serviceaccount configuration. We also ask External-dns to watch for `service`, `ingress`, and `crd` source type, and we provide Extra configuration so that it watch for `DNSEndpoint` custom resource definition.
 
 ```bash
 eksdemo install external-dns -c $EKS_CLUSTER2_NAME --set policy=sync \
@@ -314,9 +314,11 @@ kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app2-v1 -n app2 -c app2-
 ```
 
 ::::expand{header="Check Output"}
+/* cspell:disable */
 ```
 AccessDeniedException: User: arn:aws:sts::798082067117:assumed-role/aws-sigv4-client/eks-eksworksho-app2-v1-bd-95eec466-e227-49b0-8048-bac5db382a4a is not authorized to perform: vpc-lattice-svcs:Invoke on resource: arn:aws:vpc-lattice:eu-west-1:798082067117:service/svc-0172f5b22a68d46bc/ because no service-based policy allows the vpc-lattice-svcs:Invoke action
 ```
+/* cspell:enable */
 ::::
 
 You should have seen an error.
@@ -362,7 +364,7 @@ aws vpc-lattice get-auth-policy     --resource-identifier $APP5_SERVICE_ID | jq 
 }
 :::
 
-We can see that while we have allowed incomming requests from our both VPC, only applications in namespaces `app1` from cluster `eksworkshop-eksctl-1` has been authorized.
+We can see that while we have allowed incoming requests from our both VPC, only applications in namespaces `app1` from cluster `eksworkshop-eksctl-1` has been authorized.
 
 You can also see that this IAM Auth policy has been defined, in the `manifests/app5-https-custom-domain.yaml` file in the `IAMAuthPolicy` object.
 

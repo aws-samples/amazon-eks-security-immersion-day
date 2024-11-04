@@ -1,5 +1,5 @@
 ---
-title : "Usecase 7: Spread a same service onto the 2 different clusters (using serviceImport/serviceExport)"
+title : "Use case 7: Spread a same service onto the 2 different clusters (using serviceImport/serviceExport)"
 weight : 13
 ---
 
@@ -7,8 +7,8 @@ In this section, we will deploy a new version of `app4`, which is already deploy
 
 ![](/static/images/6-network-security/2-vpc-lattice-service-access/lattice-usecase7.png)
 - We Use only 1 HTTPRoute declared in cluster 1
-- This route reference loval app4-v1 service, and Import app4-v2 service from cluster 2
-- The route is loadbalanced 50% on each service
+- This route reference local app4-v1 service, and Import app4-v2 service from cluster 2
+- The route is load balanced 50% on each service
 
 ## Deploy K8s manifests for Service `app4 version 2` in Second EKS Cluster
 
@@ -251,8 +251,7 @@ spec:
 :::
 ::::
 
-We can see in the highlited lines, that we define 50% request on each service, which are from different clusters.
-We only allow app1 from cluster 1 to connect to the app4 service.
+In the highlighted lines, we observe that we define a 50% request distribution for each service, which originate from different clusters. Additionally, we restrict access to the app4 service, allowing only app1 from cluster 1 to establish connections.
 
 ```bash
 kubectl --context $EKS_CLUSTER1_CONTEXT  wait --for=jsonpath='{.status.parents[-1:].conditions[-1:].reason}'=ResolvedRefs httproute/$APPNAME -n $APPNAME
@@ -276,9 +275,9 @@ Note that this time we created only 1 `HTTPS` listeners under **Routing** Tab fo
 
 ![app4-routes-weighted.png](/static/images/6-network-security/2-vpc-lattice-service-access/app4-routes-weighted.png)
 
-In the Routing section you can see that we have now 2 targetgroups for the service:
-- the app4-v1 targetgroup is from the local kubernetes service (in EKS cluster 1)
-- the app4-v2 targetgroup is from the serviceImport, referencing the remote Kubernetes service (in EKS cluster 2)
+In the Routing section you can see that we have now 2 target groups for the service:
+- the app4-v1 target group is from the local kubernetes service (in EKS cluster 1)
+- the app4-v2 target group is from the serviceImport, referencing the remote Kubernetes service (in EKS cluster 2)
 
 Note also the Access configuration with IAM policy.
 
@@ -312,7 +311,7 @@ Requsting to Pod(app4-v1-65f7f8fdff-ln9hf): Hello from app4-v1
 
 ## Test resilience when stopping the app1-v1 service.
 
-Now we want to see how VPC lattice can improva the resiliency of our application.
+Now we want to see how VPC lattice can improve the resiliency of our application.
 
 In one terminal, start calling the app4 lattice service:
 
@@ -375,8 +374,8 @@ kubectl --context $EKS_CLUSTER2_CONTEXT scale -n app4 deployment/app4-v2 --repli
 
 ### Improve situation
 
-How can we improve this ? while it is quick for Kubernetes to add a new pod and delete the old one, it take longer for this to reflect in the VPC Lattice targetgroup.
-Following the [EKS Best Practice guide for resiliency](https://aws.github.io/aws-eks-best-practices/networking/loadbalancing/loadbalancing/#ensure-pods-are-deregistered-from-load-balancers-before-termination), we are going to add a preStop Hook in our pod definition so that it will wait for 30 seconds before exiting, allowing to keep responding for ongoing request, the time it is removed from the targetgroup
+How can we improve this ? while it is quick for Kubernetes to add a new pod and delete the old one, it take longer for this to reflect in the VPC Lattice target  group.
+Following the [EKS Best Practice guide for resiliency](https://aws.github.io/aws-eks-best-practices/networking/loadbalancing/loadbalancing/#ensure-pods-are-deregistered-from-load-balancers-before-termination), we are going to add a preStop Hook in our pod definition so that it will wait for 30 seconds before exiting, allowing to keep responding for ongoing request, the time it is removed from the target group
 
 :::code{language=yaml showCopyAction=false showLineNumbers=true highlightLines='2,5'}
         lifecycle:
@@ -396,4 +395,4 @@ sed -i "s/#addprestop//g" manifests/app4-v2-deploy.yaml
 kubectl --context $EKS_CLUSTER2_CONTEXT apply -f manifests/app4-v2-deploy.yaml
 ```
 
-With this new setup you should be able to rollout your application without downtime. If needed, you can still increase the terminationGracePeriodSeconds time, so that your application continue to respond while VPC lattice is removing it from the Targetgroup.
+With this new setup, you should be able to roll out your application without incurring downtime. If necessary, you can increase the terminationGracePeriodSeconds value, allowing your application to continue responding while AWS Cloud Map removes it from the Target Group.

@@ -1,5 +1,5 @@
 ---
-title : "Usecase 6: Service Connectivity from Cluster2 to Cluster1"
+title : "Use case 6: Service Connectivity from Cluster2 to Cluster1"
 weight : 11
 ---
 
@@ -7,13 +7,13 @@ weight : 11
 In this section, we will test service connectivity from `app5` in second EKS Cluster to `app1` in the first EKS Cluster.
 
 ![](/static/images/6-network-security/2-vpc-lattice-service-access/lattice-usecase6.png)
-- We redeploy app1 with Authentication and custom domain name on HTTPS
-- Gateway api controller will create a `DNSEndpoint` object based on the wanted domain name
-- We add External-DNS to create DNS records from the HTTPRoute object
-- VPC Lattice will deal with TLS termination of our custom domain name, thanks to the Certificat we attached to the `app-service-gw`Gateway.
-- We configure app5 with PodIdentity so it has appropriate IAM role to sign request using sigv4
-- We also need to associate our Route53 private domain name with VPC of cluster2 so that it can resolve names from it
-- We create a kyverno clusterpolicy so that app5 will have the envoy proxy for sigv4 signing.
+- We redeploy app1 with Authentication and a custom domain name over HTTPS.
+- The Gateway API Controller will create a DNSEndpoint object based on the desired domain name.
+- We integrate External-DNS to create DNS records from the HTTPRoute object.
+- AWS Cloud Map handles TLS termination for our custom domain name, leveraging the Certificate attached to the app-service-gw Gateway. 
+- We configure app5 with Pod Identity, granting it an appropriate IAM role for signing requests using SigV4.
+- We associate our Route53 private domain name with the VPC of cluster2, enabling name resolution.
+- We create a Kyverno ClusterPolicy to inject the Envoy Proxy sidecar into app5 for SigV4 signing.
 
 ## Test Service Connectivity from `app5` to `app1` with HTTPS and custom Lattice Domain, and IAM Auth policy enabled
 
@@ -91,7 +91,7 @@ What happen is that our Private Hosted Zone, is not yet associated with the VPC 
 ![route53-vpc1.png](/static/images/6-network-security/2-vpc-lattice-service-access/route53-vpc1.png)
 
 
-### 6. Run below commmand to associate second EKS Cluster VPC to Route53 Private Hosted Zone.
+### 6. Run below command to associate second EKS Cluster VPC to Route53 Private Hosted Zone.
 
 ```bash
 aws route53 associate-vpc-with-hosted-zone --hosted-zone-id $HOSTED_ZONE_ID --vpc VPCRegion=$AWS_REGION,VPCId=$EKS_CLUSTER2_VPC_ID
@@ -111,7 +111,7 @@ aws route53 associate-vpc-with-hosted-zone --hosted-zone-id $HOSTED_ZONE_ID --vp
 ```
 ::::
 
-Ensure that the seocond EKS Cluster is associated now.
+Ensure that the second EKS Cluster is associated now.
 
 ![route53-vpc2.png](/static/images/6-network-security/2-vpc-lattice-service-access/route53-vpc2.png)
 

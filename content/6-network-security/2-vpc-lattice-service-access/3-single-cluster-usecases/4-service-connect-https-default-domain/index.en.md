@@ -1,5 +1,5 @@
 ---
-title : "Usecase 3: Service Connectivity with HTTPS on Default Domain and IAM Auth Access Controls"
+title : "Use case 3: Service Connectivity with HTTPS on Default Domain and IAM Auth Access Controls"
 weight : 15
 ---
 
@@ -140,7 +140,7 @@ Requsting to Pod(app3-v1-69ccf4bf4d-nfqzh): Hello from app3-v1
 ::::alert{type="info" header="Congratulation!"}
 You were able to sign the request and use HTTPS + IAM controls to access the VPC lattice service.
 
-Again, we use a complexe curl command that simulate how your application can use the AWS SDK to retrieve the Pod Identity and properly sign the request using SigV4 algorythm using the temporary IAM credentials of the pod.
+Furthermore, we'll employ a complex curl command that simulates how your application can leverage the AWS SDK to retrieve the Pod Identity and appropriately sign the request using the SigV4 algorithm with the temporary IAM credentials associated with the pod.
 
 > Here, the request is in HTTPS, and sign with SigV4!
 ::::

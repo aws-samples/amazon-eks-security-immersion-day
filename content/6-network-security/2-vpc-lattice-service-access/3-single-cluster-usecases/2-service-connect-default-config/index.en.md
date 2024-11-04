@@ -1,5 +1,5 @@
 ---
-title : "Usecase 1: Service Connectivity with HTTP in Default Configuration"
+title : "Use case 1: Service Connectivity with HTTP in Default Configuration"
 weight : 11
 ---
 
@@ -327,10 +327,12 @@ kubectl exec -ti -n app2 deployments/app2-v1 -- curl $app1DNS
 ```
 
 ::::expand{header="Check Output" defaultExpanded=true}
+/* cspell:disable */
 ```
-Requsting to Pod(app2-v1-56f7c48bbf-nl6gg): Hello from app2-v1
-Requsting to Pod(app1-v1-7ccbcc48b6-jv499): Hello from app1-v1
+Requesting to Pod(app2-v1-56f7c48bbf-nl6gg): Hello from app2-v1
+Requesting to Pod(app1-v1-7ccbcc48b6-jv499): Hello from app1-v1
 ```
+/* cspell:enable */
 ::::
 
 
