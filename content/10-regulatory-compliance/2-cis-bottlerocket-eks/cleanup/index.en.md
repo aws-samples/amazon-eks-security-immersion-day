@@ -1,6 +1,6 @@
 ---
-title : "Cleanup"
-weight : 28
+title: "Cleanup"
+weight: 28
 ---
 
 Use these commands to delete the resources created during this post:
@@ -14,10 +14,12 @@ kubectl delete -f deploy-nginx.yaml
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 job.batch "eks-cis-benchmark" deleted
 deployment.apps "nginx" deleted
 ```
+
 ::::
 
 Delete the Amazon ECR Repositories
@@ -28,6 +30,7 @@ aws ecr delete-repository --repository-name ${VALIDATION_ECR_REPO} --force
 ```
 
 ::::expand{header="Check Output"}
+
 ```json
 {
     "repository": {
@@ -51,8 +54,8 @@ aws ecr delete-repository --repository-name ${VALIDATION_ECR_REPO} --force
     }
 }
 ```
-::::
 
+::::
 
 Delete Amazon EKS Managed nodegroup
 
@@ -62,6 +65,7 @@ eksctl delete nodegroup -f br-mng.yaml --approve --wait
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 2023-03-16 09:30:27 [ℹ]  comparing 0 nodegroups defined in the given config ("br-mng.yaml") against remote state
 2023-03-16 09:30:27 [ℹ]  1 nodegroup (bottlerocket-mng) was included (based on the include/exclude rules)
@@ -80,4 +84,5 @@ eksctl delete nodegroup -f br-mng.yaml --approve --wait
 2023-03-16 09:33:35 [ℹ]  will delete 0 nodegroups from auth ConfigMap in cluster "eksworkshop-eksctl"
 2023-03-16 09:33:35 [✔]  deleted 1 nodegroup(s) from cluster "eksworkshop-eksctl"
 ```
+
 ::::

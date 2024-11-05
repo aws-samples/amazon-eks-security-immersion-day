@@ -1,12 +1,12 @@
 ---
-title : "Single Cluster VPC Lattice Use cases"
-weight : 12
+title: "Single Cluster VPC Lattice Use cases"
+weight: 12
 ---
 
 In this section, We are going to work only in Cluster1. we will execute the following modules. It is recommended to execute these modules in the same order mentioned.
 
 1. [**Deploy AWS Gateway API Controller and Gateway Resource**](1-deploy-gw-api-controller)
-2. [**Use case 1: Service Connectivity with HTTP in Default Configuration**](2-service-connect-defalt-config)
+2. [**Use case 1: Service Connectivity with HTTP in Default Configuration**](2-service-connect-default-config)
 3. [**Use case 2: Service Connectivity with HTTP and IAM Auth Access Controls**](3-service-connect-with-iam)
 4. [**Use case 3: Service Connectivity with HTTPS on Default Domain and IAM Auth Access Controls**](4-service-connect-https-default-domain)
 5. [**Use case 4: Service Connectivity with HTTPS on Custom Domain and IAM Auth Access Controls**](5-service-connect-https-custom-domain)
@@ -17,7 +17,8 @@ Final module Use case 4 diagram:
 
 In this module we are going to finally create microservice connectivity between the same EKS cluster, using custom domain name and IAM authorization between our application client (app1) and our application server (app4).
 
-We are going to rely on: 
+We are going to rely on:
+
 - Private Certificate Authority to secure our TLS connections
 - AWS Route 53 to host our private domain name
 - External DNS to register our VPC lattice service with AWS Route 53

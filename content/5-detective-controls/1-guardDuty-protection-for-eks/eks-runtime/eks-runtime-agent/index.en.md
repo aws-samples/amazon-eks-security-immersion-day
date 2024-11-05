@@ -1,6 +1,6 @@
 ---
-title : "Amazon GuardDuty EKS Runtime Monitoring EKS Add-on"
-weight : 21
+title: "Amazon GuardDuty EKS Runtime Monitoring EKS Add-on"
+weight: 21
 ---
 
 In the earlier section, we enabled EKS protection for Amazon GuardDuty.
@@ -8,7 +8,6 @@ In the earlier section, we enabled EKS protection for Amazon GuardDuty.
 Under **EKS Protection**, go to **EKS clusters runtime coverage** to check the status.
 
 ![GD RuneTime Agent healthy](/static/images/detective-controls/GDRuneTimeAgenthealthy.png)
-
 
 Choosing the option **Manage agent automatically** will also create a VPC endpoint through which the security agent delivers the runtime events to GuardDuty.
 
@@ -35,15 +34,14 @@ Below is the deployment Architecture for the GuardDuty security agent.
 
 ![GDAgentArch](/static/images/detective-controls/GDAgentArch.png)
 
-
 The GuardDuty Agent utilizes the worker node **Instance Identity Role** for temporary credentials for sending security telemetry to the GuardDuty back-end. That means, unlike other agents or controllers, which requires specific IAM permissions configured via IAM Roles for service accounts(IRSA), you don't have to configure any special IAM permissions for the Agent.
 
 You can see that IRSA is not used (which means Instance Node Role is used by default) for GuardDuty Agent pod i.e. the Service Account assigned GuardDuty Agent pod for the does not have any annotation with an IAM Role.
 
-
 ```bash
 kubectl -n amazon-guardduty describe sa aws-guardduty-agent
 ```
+
 The output will like below.
 
 ```bash
@@ -103,5 +101,3 @@ As you see in the below output, it uses 200m of cpu and 256MN of memory.
 **Pricing**
 
 Both EKS Audit Log Monitoring and EKS Runtime Monitoring offer 30 day trial period. Amazon EKS audit log analysis is charged per 1 million audit logs per month, is prorated, and is discounted with volume. Runtime Monitoring pricing is based on the number and size of protected EKS workloads, measured in virtual CPUs (vCPUs). Check [documentation](https://aws.amazon.com/guardduty/pricing/) for details.
-
-

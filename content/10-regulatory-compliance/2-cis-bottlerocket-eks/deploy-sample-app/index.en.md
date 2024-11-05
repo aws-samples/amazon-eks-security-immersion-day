@@ -1,6 +1,6 @@
 ---
-title : "Deploy a sample nginx pod on the Bottlerocket nodes"
-weight : 23
+title: "Deploy a sample nginx pod on the Bottlerocket nodes"
+weight: 23
 ---
 
 With a working cluster and managed node group, we can deploy a sample application to make sure everything is running properly. For this example, we’ll use a simple nginx deployment defined in the [GitHub repository](https://github.com/aws-samples/containers-blog-maelstrom/tree/main/cis-bottlerocket-benchmark-eks) to deploy pods to the cluster into the bottlerocket nodegroup using Kubernetes pod scheduling property [nodeSelector](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#nodeselector). We can then verify the pods are running, and the nginx webserver started correctly:
@@ -35,9 +35,11 @@ kubectl apply -f deploy-nginx.yaml
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 deployment.apps/nginx created
 ```
+
 ::::
 
 Run below command to check pod status.
@@ -77,7 +79,7 @@ exit
 Run the below command to access the logs from the pod and then Ctrl + C to exit from the container log output:
 
 ```bash
- kubectl logs -f  $POD_NAME  
+ kubectl logs -f  $POD_NAME
 ```
 
 The output looks like the following:
@@ -91,5 +93,3 @@ The output looks like the following:
 127.0.0.1 - - [23/Nov/2022:08:24:29 +0000] "GET / HTTP/1.1" 200 615 "-" "curl/7.74.0" "-"
 ^C
 ```
-
-

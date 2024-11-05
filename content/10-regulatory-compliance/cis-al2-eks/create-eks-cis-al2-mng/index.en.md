@@ -1,10 +1,9 @@
 ---
-title : "Create EKS-managed node group with EKS CIS AL2 Hardened Custom AMI"
-weight : 23
+title: "Create EKS-managed node group with EKS CIS AL2 Hardened Custom AMI"
+weight: 23
 ---
 
-With the custom ami created and ready for use, we can create a managed node group running Amazon Linux 2 configured to CIS Amazon Linux 2 Benchmark. 
-
+With the custom ami created and ready for use, we can create a managed node group running Amazon Linux 2 configured to CIS Amazon Linux 2 Benchmark.
 
 Let us set some environment variables.
 
@@ -20,7 +19,9 @@ echo $EKS_VPC_PRIV_SUBNET3
 EKS_CLUSTER_SEC_GROUP_ID=$(eksctl get cluster eksworkshop-eksctl -ojson | jq -r '.[0]["ResourcesVpcConfig"]["ClusterSecurityGroupId"]')
 echo $EKS_CLUSTER_SEC_GROUP_ID
 ```
+
 ::::expand{header="Check Output"}
+
 ```bash
 vpc-05cf31aefff9934aa
 subnet-08e99c40c0940d870
@@ -28,6 +29,7 @@ subnet-0359ff8f81cd0d1d5
 subnet-020879b19a498b40b
 sg-0589016de7f3d2cee
 ```
+
 ::::
 
 Run the below command to create an Amazon EKS managed node group using custom Amazon EKS AMI.
@@ -73,7 +75,7 @@ managedNodeGroups:
         - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
         - arn:aws:iam::aws:policy/AmazonInspector2ManagedCisPolicy
-  
+
   overrideBootstrapCommand: |
       #!/bin/bash
       set -ex
@@ -84,12 +86,15 @@ EOF
 ```
 
 Create the managed node group
+
 ```bash
 eksctl create nodegroup --config-file=cis-al2-mng.yaml
 ```
+
 It will take approximately 10-15 minutes to create the Amazon EKS managed nodegroup.
 
 ::::expand{header="Check Output"}
+
 ```bash
 2024-02-10 20:28:43 [!]  no eksctl-managed CloudFormation stacks found for "eksworkshop-eksctl", will attempt to create nodegroup(s) on non eksctl-managed cluster
 2024-02-10 20:28:43 [ℹ]  nodegroup "custom-ng-amd" will use "ami-072199f45f5ae588d" [AmazonLinux2/1.28]
@@ -120,9 +125,10 @@ It will take approximately 10-15 minutes to create the Amazon EKS managed nodegr
 2024-02-10 20:36:50 [ℹ]  checking security group configuration for all nodegroups
 2024-02-10 20:36:50 [ℹ]  all nodegroups have up-to-date cloudformation templates
 ```
+
 ::::
 
-Once the managed nodegroup is created, ensure that custome ami nodes join the cluster:
+Once the managed nodegroup is created, ensure that custom ami nodes join the cluster:
 
 Run below command to filter only custom ami nodes.
 
@@ -130,6 +136,7 @@ Run below command to filter only custom ami nodes.
  kubectl get nodes -l  eks.amazonaws.com/nodegroup=custom-ng-amd
 
 ```
+
 The output will look like below.
 
 ```bash

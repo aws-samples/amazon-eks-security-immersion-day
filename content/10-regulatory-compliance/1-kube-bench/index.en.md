@@ -1,6 +1,6 @@
 ---
-title : "CIS EKS Benchmark Assessment Using Kube-bench"
-weight : 34
+title: "CIS EKS Benchmark Assessment Using Kube-bench"
+weight: 34
 ---
 
 Ensuring security is essential when setting up and managing Kubernetes clusters and applications. Amazon EKS offers secure, managed Kubernetes clusters by default, but it remains crucial to properly configure the nodes and applications within the cluster to guarantee a secure setup.
@@ -13,7 +13,6 @@ The Center for Internet Security (CIS) publishes best practice security recommen
 2. Worker Nodes: Guidelines for worker node configurations and Kubelet. The Amazon EKS optimized [Amazon Linux AMIs](https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html) supports CIS EKS benchmark by default
 3. Policies: Security recommendations encompassing RBAC, service accounts, Pod security standards, CNI and network policies.
 4. Managed Services: This includes Secret Management, Container Image Scanning and Least privileged RBAC and IAM Roles etc.
-
 
 ### [CIS Amazon Elastic Kubernetes Service (EKS) Benchmark](https://aws.amazon.com/blogs/containers/introducing-cis-amazon-eks-benchmark/)
 

@@ -1,15 +1,15 @@
 ---
-title : "Create AWS IAM Roles"
-weight : 22
+title: "Create AWS IAM Roles"
+weight: 22
 ---
 
 Let us create 3 least privileged IAM Roles
 
 We are going to create 3 roles:
 
--   a **k8sAdmin** role which will have **admin** rights in our Amazon EKS cluster
--   a **k8sDev** role which will give access to the **developers** namespace in our Amazon EKS cluster
--   a **k8sInteg** role which will give access to the **integration** namespace in our Amazon EKS cluster
+- a **k8sAdmin** role which will have **admin** rights in our Amazon EKS cluster
+- a **k8sDev** role which will give access to the **developers** namespace in our Amazon EKS cluster
+- a **k8sInteg** role which will give access to the **integration** namespace in our Amazon EKS cluster
 
 Create the IAM Roles:
 
@@ -29,7 +29,7 @@ then
         --output text \
         --query 'Role.Arn')
       echo "IAM Role ${IAM_ROLE} created. IAM_ROLE_ARN=$IAM_ROLE_ARN"
-  
+
 else
       echo "IAM Role ${IAM_ROLE} already exist..."
 fi
@@ -48,7 +48,7 @@ then
         --output text \
         --query 'Role.Arn')
       echo "IAM Role ${IAM_ROLE} created. IAM_ROLE_ARN=$IAM_ROLE_ARN"
-  
+
 else
       echo "IAM Role ${IAM_ROLE} already exist..."
 fi
@@ -66,7 +66,7 @@ then
         --output text \
         --query 'Role.Arn')
       echo "IAM Role ${IAM_ROLE} created. IAM_ROLE_ARN=$IAM_ROLE_ARN"
-  
+
 else
       echo "IAM Role ${IAM_ROLE} already exist..."
 fi
@@ -74,16 +74,16 @@ fi
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 IAM Role k8sAdmin created. IAM_ROLE_ARN=arn:aws:iam::ACCOUNT_ID:role/k8sAdmin
 IAM Role k8sDev created. IAM_ROLE_ARN=arn:aws:iam::ACCOUNT_ID:role/k8sDev
 IAM Role k8sInteg created. IAM_ROLE_ARN=arn:aws:iam::ACCOUNT_ID:role/k8sInteg
 ```
+
 ::::
 
-
-> In this example, the assume-role-policy allows the root account to assume the role. We are going to allow specific groups to also be able to assume those roles. Check the [official documentation](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts-technical-overview.html)  for more information.
-
+> In this example, the assume-role-policy allows the root account to assume the role. We are going to allow specific groups to also be able to assume those roles. Check the [official documentation](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts-technical-overview.html) for more information.
 
 Because the above roles are only used to authenticate within our Amazon EKS cluster, they don't need to have AWS permissions. We will only use them to allow some IAM groups to assume this role in order to have access to our EKS cluster.
 
@@ -91,9 +91,7 @@ Let's go to the AWS IAM Console and check one of the above IAM Role and see that
 
 ![k8s Admin role](/static/images/iam/iam-role-rbac/k8sAdmin-role.png)
 
-
-And also let's see trust policy of the IAM Role that allows the root account to assume the role, which means 
+And also let's see trust policy of the IAM Role that allows the root account to assume the role, which means
 any IAM principal (user or role) can now assume the role.
 
 ![k8sAdmin-trust-policy](/static/images/iam/iam-role-rbac/k8sAdmin-trust-policy.png)
-

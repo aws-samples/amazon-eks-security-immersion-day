@@ -17,6 +17,7 @@ repos:
         pass_filenames: false
       - id: cfn
         language: node
+        language_version: 18.20.4
         name: Generate Cfn
         entry: task cfn
         # uses current branch for WORKSHOP_GIT_BRANCH

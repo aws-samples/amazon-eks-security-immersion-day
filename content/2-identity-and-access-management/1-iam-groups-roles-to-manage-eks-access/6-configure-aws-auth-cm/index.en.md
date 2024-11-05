@@ -1,6 +1,6 @@
 ---
-title : "Configure aws-auth configmap"
-weight : 26
+title: "Configure aws-auth configmap"
+weight: 26
 ---
 
 In this section, we will configure aws-auth configmap for mapping between IAM Role(i.e. Kubernetes User) to Kubernetes RBAC Role.
@@ -11,14 +11,13 @@ In order to give access to the IAM Roles we defined previously to our Amazon EKS
 
 The advantage of using Role to access the cluster instead of specifying directly IAM users is that it will be easier to manage so we won't have to update the ConfigMap each time we want to add or remove users, we will just need to add or remove users from the IAM Group and we just configure the ConfigMap to allow the IAM Role associated to the IAM Group.
 
-
 ### Update the aws-auth configmap to allow our IAM roles
 
 The **aws-auth** configmap from the kube-system namespace must be edited in order to allow or delete IAM roles arns.
 
 This file makes the mapping between IAM role and Kubernetes RBAC rights. We can edit it manually:
 
-We can edit it using [eksctl](https://github.com/weaveworks/eksctl)  :
+We can edit it using [eksctl](https://github.com/weaveworks/eksctl) :
 
 ```bash
 eksctl create iamidentitymapping \
@@ -39,6 +38,7 @@ eksctl create iamidentitymapping \
 ```
 
 ::::expand{header="Check Output"}
+
 ```json
 2023-03-14 09:57:10 [ℹ]  checking arn arn:aws:iam::ACCOUNT_ID:role/k8sDev against entries in the auth ConfigMap
 2023-03-14 09:57:10 [ℹ]  adding identity "arn:aws:iam::ACCOUNT_ID:role/k8sDev" to auth ConfigMap
@@ -49,6 +49,7 @@ eksctl create iamidentitymapping \
 2023-03-14 09:57:10 [ℹ]  checking arn arn:aws:iam::ACCOUNT_ID:role/k8sAdmin against entries in the auth ConfigMap
 2023-03-14 09:57:10 [ℹ]  adding identity "arn:aws:iam::ACCOUNT_ID:role/k8sAdmin" to auth ConfigMap
 ```
+
 ::::
 
 you should have the config map looking something like:
@@ -83,7 +84,7 @@ kind: ConfigMap
 
 In the above output, the AWS IAM Role for example `arn:aws:iam::ACCOUNT_ID:role/k8sAdmin` is mapped to a Kubernetes RBAC user `admin`, which is added to the Kubernetes RBAC group `system:masters`.
 
-We can leverage eksctl to get a list of all identities managed in our cluster. 
+We can leverage eksctl to get a list of all identities managed in our cluster.
 
 ```bash
 eksctl get iamidentitymapping --cluster eksworkshop-eksctl
@@ -100,9 +101,9 @@ arn:aws:iam::ACCOUNT_ID:role/k8sInteg           integ-user
 
 Here is what we have created so far:
 
--   a RBAC role for `K8sAdmin`, that we map to admin user and give access to **system\:masters** kubernetes Groups so that it has Full Admin rights on the cluster.
-::alert[This is only for example purpose. It is highly recommended not to add any Kubernetes user to **system\:masters** group unless it is necessary]{header="Note"}
--   a RBAC role for `k8sDev` that we map on dev-user in development Namespace
--   a RBAC role for `k8sInteg` that we map on integ-user in integration Namespace
+- a RBAC role for `K8sAdmin`, that we map to admin user and give access to **system\:masters** kubernetes Groups so that it has Full Admin rights on the cluster.
+  ::alert[This is only for example purpose. It is highly recommended not to add any Kubernetes user to **system\:masters** group unless it is necessary]{header="Note"}
+- a RBAC role for `k8sDev` that we map on dev-user in development Namespace
+- a RBAC role for `k8sInteg` that we map on integ-user in integration Namespace
 
 We will see on next section how we can test it.

@@ -1,7 +1,8 @@
 ---
-title : "Network Policy Agent CLI"
-weight : 21
+title: "Network Policy Agent CLI"
+weight: 21
 ---
+
 The latest version of the Amazon VPC CNI ships an SDK that provides an interface to interact with eBPF programs on the node. The SDK is installed when the aws-node is deployed onto the nodes. You can find the SDK binary installed under `/opt/cni/bin` directory on the node. Consider using this SDK when you would like to identify connectivity issue. Make sure eBPF programs are being created for the pods on the node.
 
 Run the below command to connect one of the worker nodes in the EKS Cluster.
@@ -10,16 +11,16 @@ Run the below command to connect one of the worker nodes in the EKS Cluster.
 aws ssm start-session --target $(aws ec2 describe-instances --filters "Name=tag:eks:nodegroup-name,Values=mng-al2" | jq -r '.[][0]["Instances"][0]["InstanceId"]')
 ```
 
-
 ::::expand{header="Check Output"}
+
 ```bash
 Starting session with SessionId: i-06ffbd08f775157e6-062fff1d92f37bd3d
-sh-4.2$ 
+sh-4.2$
 ```
+
 ::::
 
 In the SSM shell, Run the below command to load all eBPF programs managed by Network Policy Agent.
-
 
 ```bash
 sudo /opt/cni/bin/aws-eks-na-cli ebpf progs
@@ -28,7 +29,7 @@ sudo /opt/cni/bin/aws-eks-na-cli ebpf progs
 The output will look like below.
 
 ```bash
-Programs currently loaded : 
+Programs currently loaded :
 Type : 26 ID : 6 Associated maps count : 1
 ========================================================================================
 Type : 26 ID : 8 Associated maps count : 1
@@ -93,7 +94,6 @@ Type : 2 ID : 42 Associated maps count : 6
 ========================================================================================
 ```
 
-
 Run the below command to load all eBPF maps managed by Network Policy Agent.
 
 ```bash
@@ -103,7 +103,7 @@ sudo /opt/cni/bin/aws-eks-na-cli ebpf maps
 The output will look like below.
 
 ```bash
-Maps currently loaded : 
+Maps currently loaded :
 Type : 2 ID : 3
 Keysize 4 Valuesize 98 MaxEntries 1
 ========================================================================================
@@ -183,4 +183,5 @@ Flags:
 
 Use "aws-eks-na-cli [command] --help" for more information about a command.
 ```
+
 ::::

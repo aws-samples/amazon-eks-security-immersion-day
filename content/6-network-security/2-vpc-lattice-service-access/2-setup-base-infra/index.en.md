@@ -1,8 +1,7 @@
 ---
-title : "Setup the Base Infrastructure"
-weight : 11
+title: "Setup the Base Infrastructure"
+weight: 11
 ---
-
 
 In this section, we will create the Base Infrastructure needed to run various workshop modules. Please follow these sections in the same order mentioned below.
 

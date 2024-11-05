@@ -1,6 +1,6 @@
 ---
-title : "Multi Cluster VPC Lattice Use cases"
-weight : 14
+title: "Multi Cluster VPC Lattice Use cases"
+weight: 14
 ---
 
 In this section, we will execute the following modules. It is recommended to execute these modules in the same order mentioned.

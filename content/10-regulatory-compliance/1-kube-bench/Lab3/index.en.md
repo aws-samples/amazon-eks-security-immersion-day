@@ -1,20 +1,24 @@
 ---
-title : "Lab 3 - Kube-bench Integration with AWS Security Hub"
-weight : 21
+title: "Lab 3 - Kube-bench Integration with AWS Security Hub"
+weight: 21
 ---
 
 In this lab, we will integrate kube-bench with AWS Security Hub to publish findings.
-1. Open the [AWS Cloud9 console](https://console.aws.amazon.com/cloud9/) created for the workshop 
+
+1. Open the [AWS Cloud9 console](https://console.aws.amazon.com/cloud9/) created for the workshop
 2. Enable Security Hub in the account
+
 ```shell
 aws securityhub enable-security-hub \
     --enable-default-standards \
     --tags '{"Name": "eks_security_im_day"}'
 ```
+
 3. Search of kube-bench in integrations in [AWS Security Hub](https://console.aws.amazon.com/securityhub/) and accept findings:
-![Kube-bench integration](/static/images/regulatory-compliance/kube-bench/Lab3/kube-bench-integration.jpg)
+   ![Kube-bench integration](/static/images/regulatory-compliance/kube-bench/Lab3/kube-bench-integration.jpg)
 
 4. Create a policy for the kube-bench job service account role
+
 ```shell
 cat >my-policy.json <<EOF
 {
@@ -32,12 +36,16 @@ cat >my-policy.json <<EOF
 EOF
 PolicyArn=$(aws iam create-policy --policy-name kube-bench-policy --policy-document file://my-policy.json --output text --query Policy.Arn)
 ```
+
 5. Create a service account
+
 ```shell
 eksctl create iamserviceaccount --name kube-bunch-sa --namespace default --cluster eksworkshop-eksctl --role-name kube-bunch-role  \
     --attach-policy-arn $PolicyArn --approve
 ```
+
 6. Configure kube-bench job with `--asff` to send findings to AWS Security Hub)
+
 ```shell
 cat <<EOF >kubebench-asff.yaml
 apiVersion: v1
@@ -114,19 +122,23 @@ kubectl apply -f kubebench-asff.yaml
 ```
 
 7. Verify the job
+
 ```shell
 kubectl get jobs
 ```
+
 ::::expand{header="Check Output"}
+
 ```shell
 NAME              COMPLETIONS   DURATION   AGE
 kube-bench-asff   1/1           8s         33s
 ```
-::::
-8. View the findings in security hub
+
+:::: 8. View the findings in security hub
 ![Security Hub](/static/images/regulatory-compliance/kube-bench/Lab3/security-hub.png)
-   
+
 ### Cleanup
+
 ```shell
 kubectl delete -f kubebench-asff.yaml
 eksctl delete iamserviceaccount --name kube-bunch-sa --namespace default --cluster eksworkshop-eksctl

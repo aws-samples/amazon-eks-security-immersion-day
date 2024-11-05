@@ -1,6 +1,6 @@
 ---
-title : "Introduction"
-weight : 21
+title: "Introduction"
+weight: 21
 ---
 
 In this module, we will deploy an example scenario of using [Enclaves with Amazon EKS](https://docs.aws.amazon.com/enclaves/latest/user/kubernetes.html). We will be performing the following activities in this lab module:
@@ -15,9 +15,9 @@ In this module, we will deploy an example scenario of using [Enclaves with Amazo
 
 We will be implementing the following System Architecture in this Workshop Module.
 
-* The EC2 instance (worker node) is enclave-enabled.
-* The [Nitro Enclaves Kubernetes device plugin](https://github.com/aws/aws-nitro-enclaves-k8s-device-plugin) installed enables Kubernetes pods to access Nitro Enclaves device driver.
-* The sample pod will be able to communicate with the enclave attached to the worker node.
-* The sample application uses [Nitro CLI](https://docs.aws.amazon.com/enclaves/latest/user/nitro-enclave-cli.html) to create and terminate enclaves. It prints a simple text periodically on the Nitro Enclave debug console.
+- The EC2 instance (worker node) is enclave-enabled.
+- The [Nitro Enclaves Kubernetes device plugin](https://github.com/aws/aws-nitro-enclaves-k8s-device-plugin) installed enables Kubernetes pods to access Nitro Enclaves device driver.
+- The sample pod will be able to communicate with the enclave attached to the worker node.
+- The sample application uses [Nitro CLI](https://docs.aws.amazon.com/enclaves/latest/user/nitro-enclave-cli.html) to create and terminate enclaves. It prints a simple text periodically on the Nitro Enclave debug console.
 
 ![Enclaves-EKS.png](/static/images/using-enclaves/1-intro/Enclaves-EKS.png)

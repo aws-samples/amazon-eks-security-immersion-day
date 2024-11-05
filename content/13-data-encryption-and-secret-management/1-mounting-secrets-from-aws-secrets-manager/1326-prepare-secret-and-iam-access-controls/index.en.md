@@ -1,6 +1,6 @@
 ---
-title : "Prepare Secret and IAM Access Controls"
-weight : 26
+title: "Prepare Secret and IAM Access Controls"
+weight: 26
 ---
 
 ### **Set Variables**
@@ -42,18 +42,20 @@ aws --region "$AWS_REGION" secretsmanager \
   create-secret --name dbsecret_eksid \
   --secret-string '{"username":"testdb_user", "password":"super-sekret"}'
 ```
+
 ::::expand{header="Check Output"}
+
 ```json
 {
-    "ARN": "arn:aws:secretsmanager:us-west-2:XXXXXXXXXX:secret:dbsecret_eksid-IGLIc2",
-    "Name": "dbsecret_eksid",
-    "VersionId": "2024aaa3-0ccb-42b4-ad57-d197bb1a6fe9"
+  "ARN": "arn:aws:secretsmanager:us-west-2:XXXXXXXXXX:secret:dbsecret_eksid-IGLIc2",
+  "Name": "dbsecret_eksid",
+  "VersionId": "2024aaa3-0ccb-42b4-ad57-d197bb1a6fe9"
 }
 ```
+
 ::::
 
-
-If you go to [AWS Secrets Manager console](https://console.aws.amazon.com/secretsmanager/listsecrets), select a region and click on ***Secrets***, you can see the newly created secret.
+If you go to [AWS Secrets Manager console](https://console.aws.amazon.com/secretsmanager/listsecrets), select a region and click on **_Secrets_**, you can see the newly created secret.
 
 ![AWS Secret Manager Secret](/static/images/mounting-secrets-from-aws-secrets-manager/ds2-prepare-secret-and-iam-img1.png)
 
@@ -68,9 +70,11 @@ echo $SECRET_ARN
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 arn:aws:secretsmanager:us-west-2:XXXXXXXXXX:secret:dbsecret_eksid-IGLIc2
 ```
+
 ::::
 
 ### **Create an IAM Policy**
@@ -94,10 +98,13 @@ IAM_POLICY_ARN_SECRET=$(aws --region "$AWS_REGION" iam \
 
 echo $IAM_POLICY_ARN_SECRET | tee -a 00_iam_policy_arn_dbsecret
 ```
+
 ::::expand{header="Check Output"}
+
 ```bash
 arn:aws:iam::XXXXXXXXXX:policy/dbsecret_eksid_secrets_policy_27759
 ```
+
 ::::
 
 ### **Create an IAM OIDC identity provider**
@@ -111,9 +118,11 @@ aws iam list-open-id-connect-providers | grep $oidc_id | cut -d "/" -f4
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 9D1D6AD25F469E87134A29759D14509C"
 ```
+
 ::::
 
 If output is returned, then you already have an IAM OIDC provider for your cluster and you can skip the next step. If no output is returned, then you must create an IAM OIDC provider for your cluster with following step.
@@ -137,12 +146,13 @@ eksctl create iamserviceaccount \
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 2023-08-21 18:26:38 [ℹ]  1 existing iamserviceaccount(s) (kyverno-notation-aws/kyverno-notation-aws) will be excluded
 2023-08-21 18:26:38 [ℹ]  1 iamserviceaccount (default/nginx-deployment-sa) was included (based on the include/exclude rules)
 2023-08-21 18:26:38 [!]  metadata of serviceaccounts that exist in Kubernetes will be updated, as --override-existing-serviceaccounts was set
-2023-08-21 18:26:38 [ℹ]  1 task: { 
-    2 sequential sub-tasks: { 
+2023-08-21 18:26:38 [ℹ]  1 task: {
+    2 sequential sub-tasks: {
         create IAM role for serviceaccount "default/nginx-deployment-sa",
         create serviceaccount "default/nginx-deployment-sa",
     } }2023-08-21 18:26:38 [ℹ]  building iamserviceaccount stack "eksctl-eksworkshop-eksctl-addon-iamserviceaccount-default-nginx-deployment-sa"
@@ -151,6 +161,7 @@ eksctl create iamserviceaccount \
 2023-08-21 18:27:08 [ℹ]  waiting for CloudFormation stack "eksctl-eksworkshop-eksctl-addon-iamserviceaccount-default-nginx-deployment-sa"
 2023-08-21 18:27:08 [ℹ]  created serviceaccount "default/nginx-deployment-sa"
 ```
+
 ::::
 
 ### **Confirm that the role and service account are configured correctly**

@@ -64,7 +64,7 @@ export class TeamStack extends WorkshopStudioTeamStack {
         process.env.WORKSHOP_GIT_URL ||
         "https://github.com/aws-samples/amazon-eks-security-immersion-day",
       WORKSHOP_GIT_BRANCH: process.env.WORKSHOP_GIT_BRANCH || "mainline",
-      PARTICIPANT_ROLE_ARN: ParticipantAssumedRoleArn
+      PARTICIPANT_ROLE_ARN: ParticipantAssumedRoleArn,
     });
 
     const ide = new VSCodeIde(this, "IDE-SECU", {

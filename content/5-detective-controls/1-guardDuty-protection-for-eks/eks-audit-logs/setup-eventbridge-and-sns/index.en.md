@@ -1,12 +1,11 @@
 ---
-title : "Setup EventBridge and SNS"
-weight : 23
+title: "Setup EventBridge and SNS"
+weight: 23
 ---
 
 In this section we will look at how to be notified for any findings detected by Amazon GuardDuty in your EKS cluster. To do this, we will create an Amazon EventBridge rule to filter specific Amazon GuardDuty Kubernetes events and send messages to an Amazon SNS topic, which has an email subscription to get an automated email notification.
 
 We will start by creating the Amazon SNS topic and subscribe it with your email address.
-
 
 :::::tabs{variant="container"}
 
@@ -20,6 +19,7 @@ Run the following command to create a SNS Topic
 SNS_TOPIC_ARN=$(aws sns create-topic --name K8sAudit | jq -r '.TopicArn')
 echo $SNS_TOPIC_ARN
 ```
+
 The output will look like below
 
 ```bash
@@ -42,6 +42,7 @@ aws sns subscribe \
     --protocol email \
     --notification-endpoint $MY_EMAIL_ID
 ```
+
 The output looks like below
 
 ```bash
@@ -66,7 +67,9 @@ aws events put-rule \
 }
 '
 ```
+
 The output looks like below
+
 ```bash
 {
     "RuleArn": "arn:aws:events:us-west-2:XXXXXXXX:rule/EKSAuditRoute"
@@ -112,7 +115,7 @@ Select **Standard** for Type, name it as **K8sAudit**. Keep everything as defaul
 
 #### Create a Subscription for the SNS Topic
 
-Next, Under the **Subscription** Tab, click **Create Subscription**, choose **Email** for `Protocol` and add your *email address* for the `Endpoint`. Keep everything else as default and click on **Create Subscription**
+Next, Under the **Subscription** Tab, click **Create Subscription**, choose **Email** for `Protocol` and add your _email address_ for the `Endpoint`. Keep everything else as default and click on **Create Subscription**
 
 ![CreateSub](/static/images/detective-controls/CreateSub.png)
 
@@ -132,13 +135,10 @@ Keep everything as default in `Event source` and `Sample event`. Scroll down to 
 `AWS service` : **GuardDuty**
 `Event type` : **GuardDuty Finding**
 
-
 ![EBridgePattern](/static/images/detective-controls/EBridgePattern.png)
-
 
 The default GuardDuty event pattern matches all the Guardduty findings. Keep it default. You can find more information about Event Pattern rules [here](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-event-patterns.html)
 . Click Next.
-
 
 ```bash
 {
@@ -151,12 +151,6 @@ Under Target types, select **AWS service**. Under `Select a target`, pick `SNS t
 
 ![SelectTopic](/static/images/detective-controls/SelectTopic.png)
 
-
 ::::
 
 :::::
-
-
-
-
-

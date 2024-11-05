@@ -1,6 +1,6 @@
 ---
-title : "Generate Kubernetes Findings using Kubectl in Cloud9 Instance"
-weight : 22
+title: "Generate Kubernetes Findings using Kubectl in Cloud9 Instance"
+weight: 22
 ---
 
 In this section, we will generate some Kubernetes findings in your Amazon EKS cluster using your Cloud9 instance.
@@ -33,33 +33,31 @@ roleRef:
 EoF
 ```
 
-As you can see, we are granting the user `system:anonymous` with access to the view ClusterRole. This will allow an anonymous user to view all objects in your cluster using the kubernetes API. This is generally an unexpected configuration and should be reviewed. Run kubectl apply to apply this configuration. You can see more details fo this finding [here](https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_finding-types-kubernetes.html#policy-kubernetes-anonymousaccessgranted) 
-
+As you can see, we are granting the user `system:anonymous` with access to the view ClusterRole. This will allow an anonymous user to view all objects in your cluster using the kubernetes API. This is generally an unexpected configuration and should be reviewed. Run kubectl apply to apply this configuration. You can see more details fo this finding [here](https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_finding-types-kubernetes.html#policy-kubernetes-anonymousaccessgranted)
 
 ```bash
 kubectl apply -f anonymous.yaml
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 clusterrolebinding.rbac.authorization.k8s.io/anonymous-admin created
 ```
+
 ::::
 
-Go back [AWS GuardDuty console]([console.aws.amazon.com/guardduty](https://us-west-2.console.aws.amazon.com/guardduty/home?region=us-west-2#/findings?macros=current)) and check that a finding is generated for this.
+Go back [AWS GuardDuty console](<[console.aws.amazon.com/guardduty](https://us-west-2.console.aws.amazon.com/guardduty/home?region=us-west-2#/findings?macros=current)>) and check that a finding is generated for this.
 
-::alert[If the finding doesn’t appear imediateley in the GuardDuty Console, try changing the name under metadata (ex: **anonymous-admin2**) in the anonymous.yaml file and re-run the `kubectl apply -f anonymous.yaml`. Also keep refreshing the page since it make take few minutes to to generate the Kubernetes Findings]{header="Note"}
-
+::alert[If the finding doesn’t appear immediately in the GuardDuty Console, try changing the name under metadata (ex: **anonymous-admin2**) in the anonymous.yaml file and re-run the `kubectl apply -f anonymous.yaml`. Also keep refreshing the page since it make take few minutes to to generate the Kubernetes Findings]{header="Note"}
 
 ![Anonymous Finding](/static/images/detective-controls/AnonFinding.png)
-
 
 ### [`Policy:Kubernetes/AdminAccessToDefaultServiceAccount`](https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_finding-types-kubernetes.html#policy-kubernetes-adminaccesstodefaultserviceaccount)
 
 This finding means **The default service account was granted admin privileges on a Kubernetes cluster.**
 
 From your terminal, run the command below to create the YAML manifest for the finding.
-
 
 ```bash
 cd ~/environment
@@ -89,21 +87,20 @@ kubectl apply -f elevate.yaml
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 clusterrolebinding.rbac.authorization.k8s.io/default-service-acct-admin created
 ```
+
 ::::
 
 Go back AWS GuardDuty console and check that a finding is generated for this.
 
-
 ![Elevated Access to Serviceaccount](/static/images/detective-controls/eleveatedaccesstoserviceaccount.png)
-
 
 ### [`PrivilegeEscalation:Kubernetes/PrivilegedContainer` and `Persistence:Kubernetes/ContainerWithSensitiveMount`](https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_finding-types-kubernetes.html)
 
 These findings means **A privileged container with root level access was launched on your Kubernetes cluster.** and **A container was launched with a sensitive external host path mounted inside.**
-
 
 ```bash
 cd ~/environment
@@ -141,10 +138,8 @@ spec:
 EoF
 ```
 
-
 This yaml file generates 2 findings using a single Kubernetes deployment spec. The first is related to privileged container with root level access. This is accomplished through the `privileged: true` setting in the securityContext configuration of the nginx container spec. Secondly, the container mounts /etc directory on the host as a writable volume. More information about the two findings here - [sensitive mount](https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_finding-types-kubernetes.html#persistence-kubernetes-containerwithsensitivemount)
 and [privileged container](https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_finding-types-kubernetes.html#privilegeescalation-kubernetes-privilegedcontainer)
-
 
 Run `kubectl apply` to apply this configuration.
 
@@ -153,23 +148,22 @@ kubectl apply -f pod_with_sensitive_mount.yaml
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 deployment.apps/ubuntu-privileged-with-mount created
 ```
-::::
 
+::::
 
 Go to AWS GuardDuty Console to check the findings.
 
-![GD previleged and Sensitive](/static/images/detective-controls/GDprevilegedandSensitive.png)
-
+![GD privileged and Sensitive](/static/images/detective-controls/GDprevilegedandSensitive.png)
 
 Let's take a moment to review findings' detail. Click on each finding in the GuardDuty console to open its detail.
 
 As an example, click `PolicyKubernetes/AdminAccessToDefaultServiceAccount` finding. In the finding details, examine the Action section.
 
 Click the body of Parameters to determine when the finding was generated, what kind of API object was the target for the API call.
-
 
 ### [`Policy:Kubernetes/ExposedDashboard`](https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_finding-types-kubernetes.html#persistence-kubernetes-containerwithsensitivemount)
 
@@ -185,8 +179,8 @@ First off, we'll install the Kubernetes dashboard component. We'll be using the 
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
 ```
 
-
 ::::expand{header="Check Output"}
+
 ```bash
 namespace/kubernetes-dashboard created
 serviceaccount/kubernetes-dashboard created
@@ -203,6 +197,7 @@ deployment.apps/kubernetes-dashboard created
 service/dashboard-metrics-scraper created
 deployment.apps/dashboard-metrics-scraper created
 ```
+
 ::::
 
 Let us patch the `kubernetes-dashboard` service to be type `LoadBalancer`.
@@ -212,13 +207,13 @@ kubectl patch svc kubernetes-dashboard -n kubernetes-dashboard -p='{"spec": {"ty
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 service/kubernetes-dashboard patched
 ```
-::::
 
+::::
 
 ![k8s-dashboard](/static/images/detective-controls/k8s-dashboard.png)
 
 Within a few minutes we'll see the finding `Policy:Kubernetes/ExposedDashboard` in the GuardDuty portal.
-

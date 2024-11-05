@@ -1,6 +1,6 @@
 ---
-title : "Use case 3: Service Connectivity with HTTPS on Default Domain and IAM Auth Access Controls"
-weight : 15
+title: "Use case 3: Service Connectivity with HTTPS on Default Domain and IAM Auth Access Controls"
+weight: 15
 ---
 
 In this section, we will deploy a new service `app3` and configure `HTTPRoute` with `HTTPS` listener with default VPC Lattice Domain. We will then test connectivity from `app1` to `app3`.
@@ -19,19 +19,21 @@ kubectl  --context $EKS_CLUSTER1_CONTEXT apply -f manifests/$APPNAME-$VERSION-de
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 namespace/app3 created
 deployment.apps/app3-v1 created
 service/app3-v1 created
 ```
-::::
 
+::::
 
 ```bash
 kubectl --context $EKS_CLUSTER1_CONTEXT -n $APPNAME get all
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 NAME                         READY   STATUS    RESTARTS   AGE
 pod/app3-v1-c6f47948-bsfp9   1/1     Running   0          11s
@@ -45,6 +47,7 @@ deployment.apps/app3-v1   1/1     1            1           11s
 NAME                               DESIRED   CURRENT   READY   AGE
 replicaset.apps/app3-v1-c6f47948   1         1         1       11s
 ```
+
 ::::
 
 ### Deploy HTTPRoute for Service `app3` with `HTTPS` listener with Default Lattice Domain
@@ -55,9 +58,11 @@ kubectl --context $EKS_CLUSTER1_CONTEXT apply -f manifests/$APPNAME-https-defaul
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 httproute.gateway.networking.k8s.io/app3 created
 ```
+
 ::::
 
 We also deploy the IAM authentication Policy to the app3 service, so both Authentication and HTTPS will be use.
@@ -77,16 +82,16 @@ kubectl --context $EKS_CLUSTER1_CONTEXT  wait --for=jsonpath='{.status.parents[-
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 httproute.gateway.networking.k8s.io/app3 condition met
 ```
-::::
 
+::::
 
 View the VPC Lattice Service `app3-app3` in the [Amazon VPC Console](https://us-west-2.console.aws.amazon.com/vpc/home?region=us-west-2#Services:)
 
 ![app3-service.png](/static/images/6-network-security/2-vpc-lattice-service-access/app3-service.png)
-
 
 Note that there are two listeners created one for `HTTP` and other for `HTTPS` under **Routing** Tab for VPC Service `app3-app3` in the Console.
 
@@ -96,7 +101,7 @@ Also note that both of these listeners are configured with the same Target group
 
 ## Get the DNS Names for `app3` service
 
-1. List the route’s yaml file to see the DNS address (highlighted here on the message line): 
+1. List the route’s yaml file to see the DNS address (highlighted here on the message line):
 
 ```bash
 kubectl --context $EKS_CLUSTER1_CONTEXT get httproute app3 -n app3 -o yaml
@@ -112,14 +117,16 @@ echo "app3DNS=$app3DNS"
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 app3DNS=app3-app3-09b674948b9fb4016.7d67968.vpc-lattice-svcs.us-west-2.on.aws
 ```
+
 ::::
 
 ::alert[If the above command returns `null`, wait a little and re-run the command again]{header="Note"}
 
-## Test Service Connectivity from `app1` to `app3` 
+## Test Service Connectivity from `app1` to `app3`
 
 1. Exec into an app1 pod to check connectivity to `app3` service using `HTTPS` listener
 
@@ -132,9 +139,11 @@ curl -s --aws-sigv4 "aws:amz:${AWS_REGION}:vpc-lattice-svcs" --user $(echo $STS 
 ```
 
 ::::expand{header="Check Output" defaultExpanded=true}
+
 ```
 Requsting to Pod(app3-v1-69ccf4bf4d-nfqzh): Hello from app3-v1
 ```
+
 ::::
 
 ::::alert{type="info" header="Congratulation!"}
@@ -143,11 +152,11 @@ You were able to sign the request and use HTTPS + IAM controls to access the VPC
 Furthermore, we'll employ a complex curl command that simulates how your application can leverage the AWS SDK to retrieve the Pod Identity and appropriately sign the request using the SigV4 algorithm with the temporary IAM credentials associated with the pod.
 
 > Here, the request is in HTTPS, and sign with SigV4!
-::::
+> ::::
 
-## Test Service Connectivity from `app2` to `app3` 
+## Test Service Connectivity from `app2` to `app3`
 
-Let's associate our app2 with our `aws-sigv4-client` IAM Role, and restart the pod 
+Let's associate our app2 with our `aws-sigv4-client` IAM Role, and restart the pod
 
 ```bash
 aws eks create-pod-identity-association \
@@ -160,7 +169,7 @@ sleep 10
 kubectl --context $EKS_CLUSTER1_CONTEXT -n app2 rollout restart deployment/app2-v1
 ```
 
-Now try the connection from app2 to app3: 
+Now try the connection from app2 to app3:
 
 ```bash
 kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app2-v1 -n app2 -c app2-v1 -- /bin/bash -c '\
@@ -177,44 +186,46 @@ AccessDeniedException: User: arn:aws:sts::823571991546:assumed-role/aws-sigv4-cl
 ::::expand{header="Why it has failed ?"}
 It has failed this time, because our app3 application has no IAM Policy that allow namespace app2 as the origin.
 
-let's check the actual policy: 
+let's check the actual policy:
 
 ```bash
 services=$(aws vpc-lattice list-services)
-service=$(echo $services | jq '.items[] | select(.name == "app3-app3")') 
+service=$(echo $services | jq '.items[] | select(.name == "app3-app3")')
 export APP3_SERVICE_ID=$(echo $service | jq -r '.id')
 echo APP3_SERVICE_ID=$APP3_SERVICE_ID
 
 aws vpc-lattice get-auth-policy     --resource-identifier $APP3_SERVICE_ID | jq ".policy | fromjson"
 ```
+
+<!-- prettier-ignore-start -->
 :::code{language=json showCopyAction=false showLineNumbers=false highlightLines='14'}
 {
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "arn:aws:iam::823571991546:root"
-      },
-      "Action": "vpc-lattice-svcs:Invoke",
-      "Resource": "*",
-      "Condition": {
-        "StringEquals": {
-          "aws:PrincipalTag/eks-cluster-name": "eksworkshop-eksctl",
-          "aws:PrincipalTag/kubernetes-namespace": "app1",
-          "vpc-lattice-svcs:SourceVpc": [
-            "vpc-0bf4d6ef77964c6dd",
-            "vpc-0f843979491022d91"
-          ]
-        }
+   "Version":"2012-10-17",
+   "Statement":[
+      {
+         "Effect":"Allow",
+         "Principal":{
+            "AWS":"arn:aws:iam::823571991546:root"
+         },
+         "Action":"vpc-lattice-svcs:Invoke",
+         "Resource":"\\*",
+         "Condition":{
+            "StringEquals":{
+               "aws:PrincipalTag/eks-cluster-name":"eksworkshop-eksctl",
+               "aws:PrincipalTag/kubernetes-namespace":"app1",
+               "vpc-lattice-svcs:SourceVpc":[
+                  "vpc-0bf4d6ef77964c6dd",
+                  "vpc-0f843979491022d91"
+               ]
+            }
+         }
       }
-    }
-  ]
+   ]
 }
 :::
+<!-- prettier-ignore-end -->
 
 ::::
-
 
 ::::expand{header="How to fix this ?"}
 You can try redeploy the IAM Auth Policy for service app3, to allow also in source the app2 namespace
@@ -234,7 +245,7 @@ spec:
         name: app3
     policy: |
         {
-            "Version": "2012-10-17", 
+            "Version": "2012-10-17",
             "Statement": [
                 {
                     "Effect": "Allow",
@@ -243,7 +254,7 @@ spec:
                     },
                     "Action": [
                         "vpc-lattice-svcs:Invoke"
-                    ],                    
+                    ],
                     "Resource": "*",
                     "Condition": {
                         "StringEquals": {
@@ -252,15 +263,15 @@ spec:
                                 "vpc-0f843979491022d91"
                             ],
                             "aws:PrincipalTag/eks-cluster-name": "eksworkshop-eksctl",
-                            "aws:PrincipalTag/kubernetes-namespace": [ 
+                            "aws:PrincipalTag/kubernetes-namespace": [
                                 "app1",
-                                "app2"                              
-                            ] 
-                        }                    
+                                "app2"
+                            ]
+                        }
                     }
                 }
             ]
-        }         
+        }
 EOF
 
 kubectl --context $EKS_CLUSTER1_CONTEXT apply -f manifests/app3-iam-auth-policy-app2.yaml

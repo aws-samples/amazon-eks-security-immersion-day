@@ -1,5 +1,5 @@
 ---
-title: 'Generate Kubernetes Findings using Kubectl in Cloud9 Instance'
+title: "Generate Kubernetes Findings using Kubectl in Cloud9 Instance"
 weight: 23
 ---
 

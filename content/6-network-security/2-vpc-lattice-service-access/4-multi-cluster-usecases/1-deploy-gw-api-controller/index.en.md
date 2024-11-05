@@ -1,8 +1,7 @@
 ---
-title : "Deploy AWS Gateway API Controller and Gateway Resource"
-weight : 10
+title: "Deploy AWS Gateway API Controller and Gateway Resource"
+weight: 10
 ---
-
 
 ## Deploy AWS Gateway API Controller in Second EKS Cluster `eksworkshop-eksctl-2`
 
@@ -14,7 +13,7 @@ Follow these instructions deploy the AWS Gateway API Controller in the second cl
 
 ```bash
 eksdemo install vpc-lattice-controller -c $EKS_CLUSTER2_NAME \
-  --set log.level=debug \ 
+  --set log.level=debug \
   --set "defaultServiceNetwork=$GATEWAY_NAME"
 ```
 
@@ -33,6 +32,7 @@ aws vpc-lattice list-service-network-vpc-associations --vpc-id $EKS_CLUSTER2_VPC
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 {
     "items": [
@@ -51,6 +51,7 @@ aws vpc-lattice list-service-network-vpc-associations --vpc-id $EKS_CLUSTER2_VPC
     ]
 }
 ```
+
 ::::
 
 ### 3. Ensure the WS Gateway API Controller Pod is running fine.
@@ -60,6 +61,7 @@ kubectl --context $EKS_CLUSTER2_CONTEXT get all -n vpc-lattice
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 NAME                                         READY   STATUS    RESTARTS   AGE
 pod/gateway-api-controller-965646b47-st8bm   2/2     Running   0          39h
@@ -73,8 +75,8 @@ deployment.apps/gateway-api-controller   1/1     1            1           39h
 NAME                                               DESIRED   CURRENT   READY   AGE
 replicaset.apps/gateway-api-controller-965646b47   1         1         1       39h
 ```
-::::
 
+::::
 
 ## Deploy `Gateway` Resource in Second EKS Cluster `eksworkshop-eksctl-2`
 
@@ -86,26 +88,29 @@ kubectl  --context $EKS_CLUSTER2_CONTEXT apply -f manifests/$GATEWAY_NAME.yaml
 
 ::alert[The above configuration creates Kubernetes `Gateway` object `app-services-gw` in namespace `app-services-gw` in the second EKS Cluster]{header="Note"}
 
-
 ::::expand{header="Check Output"}
+
 ```
 namespace/app-services-gw created
 gateway.gateway.networking.k8s.io/app-services-gw created
 ```
+
 ::::
 
-2. Verify that `app-services-gw` Gateway is created: 
+2. Verify that `app-services-gw` Gateway is created:
 
 ```bash
 kubectl  --context $EKS_CLUSTER2_CONTEXT get gateway -n $GATEWAY_NAMESPACE
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 _NAMESPACE
 NAME              CLASS                ADDRESS   PROGRAMMED   AGE
 app-services-gw   amazon-vpc-lattice                          97s
 ```
+
 ::::
 
 3. Once the Gateway is created, find the VPC Lattice Service Network.
@@ -115,123 +120,108 @@ kubectl  --context $EKS_CLUSTER2_CONTEXT get gateway $GATEWAY_NAME -n $GATEWAY_N
 ```
 
 ::::expand{header="Check Output"}
+
+<!-- prettier-ignore-start -->
+
 :::code{language=yaml showCopyAction=false showLineNumbers=true highlightLines='68'}
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: Gateway
 metadata:
-  annotations:
-    application-networking.k8s.aws/lattice-vpc-association: "false"
-    kubectl.kubernetes.io/last-applied-configuration: |
-      {"apiVersion":"gateway.networking.k8s.io/v1beta1","kind":"Gateway","metadata":{"annotations":{"application-networking.k8s.aws/lattice-vpc-association":"false"},"name":"app-services-gw","namespace":"app-services-gw"},"spec":{"gatewayClassName":"amazon-vpc-lattice","listeners":[{"allowedRoutes":{"kinds":[{"kind":"HTTPRoute"}],"namespaces":{"from":"Selector","selector":{"matchLabels":{"allow-attachment-to-infra-gw":"true"}}}},"name":"http-listener","port":80,"protocol":"HTTP"},{"allowedRoutes":{"kinds":[{"kind":"HTTPRoute"}],"namespaces":{"from":"Selector","selector":{"matchLabels":{"allow-attachment-to-infra-gw":"true"}}}},"name":"https-listener-with-default-domain","port":443,"protocol":"HTTPS"},{"allowedRoutes":{"kinds":[{"kind":"HTTPRoute"}],"namespaces":{"from":"Selector","selector":{"matchLabels":{"allow-attachment-to-infra-gw":"true"}}}},"name":"https-listener-with-custom-domain","port":443,"protocol":"HTTPS","tls":{"mode":"Terminate","options":{"application-networking.k8s.aws/certificate-arn":"arn:aws:acm:us-west-2:ACCOUNT_ID:certificate/d5ebbf85-9b6a-4501-9bfb-65d638b9c0f2"}}}]}}
-  creationTimestamp: "2023-10-27T03:40:38Z"
-  finalizers:
-  - gateway.k8s.aws/resources
-  generation: 1
-  name: app-services-gw
-  namespace: app-services-gw
-  resourceVersion: "7823"
-  uid: 4ac2556c-ef8e-47dd-b5ca-fb3909ed8ba1
+annotations:
+application-networking.k8s.aws/lattice-vpc-association: "false"
+kubectl.kubernetes.io/last-applied-configuration: |
+{"apiVersion":"gateway.networking.k8s.io/v1beta1","kind":"Gateway","metadata":{"annotations":{"application-networking.k8s.aws/lattice-vpc-association":"false"},"name":"app-services-gw","namespace":"app-services-gw"},"spec":{"gatewayClassName":"amazon-vpc-lattice","listeners":[{"allowedRoutes":{"kinds":[{"kind":"HTTPRoute"}],"namespaces":{"from":"Selector","selector":{"matchLabels":{"allow-attachment-to-infra-gw":"true"}}}},"name":"http-listener","port":80,"protocol":"HTTP"},{"allowedRoutes":{"kinds":[{"kind":"HTTPRoute"}],"namespaces":{"from":"Selector","selector":{"matchLabels":{"allow-attachment-to-infra-gw":"true"}}}},"name":"https-listener-with-default-domain","port":443,"protocol":"HTTPS"},{"allowedRoutes":{"kinds":[{"kind":"HTTPRoute"}],"namespaces":{"from":"Selector","selector":{"matchLabels":{"allow-attachment-to-infra-gw":"true"}}}},"name":"https-listener-with-custom-domain","port":443,"protocol":"HTTPS","tls":{"mode":"Terminate","options":{"application-networking.k8s.aws/certificate-arn":"arn:aws:acm:us-west-2:ACCOUNT_ID:certificate/d5ebbf85-9b6a-4501-9bfb-65d638b9c0f2"}}}]}}
+creationTimestamp: "2023-10-27T03:40:38Z"
+finalizers: - gateway.k8s.aws/resources
+generation: 1
+name: app-services-gw
+namespace: app-services-gw
+resourceVersion: "7823"
+uid: 4ac2556c-ef8e-47dd-b5ca-fb3909ed8ba1
 spec:
-  gatewayClassName: amazon-vpc-lattice
-  listeners:
-  - allowedRoutes:
-      kinds:
-      - group: gateway.networking.k8s.io
-        kind: HTTPRoute
-      namespaces:
-        from: Selector
-        selector:
-          matchLabels:
-            allow-attachment-to-infra-gw: "true"
-    name: http-listener
-    port: 80
-    protocol: HTTP
-  - allowedRoutes:
-      kinds:
-      - group: gateway.networking.k8s.io
-        kind: HTTPRoute
-      namespaces:
-        from: Selector
-        selector:
-          matchLabels:
-            allow-attachment-to-infra-gw: "true"
-    name: https-listener-with-default-domain
-    port: 443
-    protocol: HTTPS
-  - allowedRoutes:
-      kinds:
-      - group: gateway.networking.k8s.io
-        kind: HTTPRoute
-      namespaces:
-        from: Selector
-        selector:
-          matchLabels:
-            allow-attachment-to-infra-gw: "true"
-    name: https-listener-with-custom-domain
-    port: 443
-    protocol: HTTPS
-    tls:
-      mode: Terminate
-      options:
-        application-networking.k8s.aws/certificate-arn: arn:aws:acm:us-west-2:ACCOUNT_ID:certificate/d5ebbf85-9b6a-4501-9bfb-65d638b9c0f2
+gatewayClassName: amazon-vpc-lattice
+listeners: - allowedRoutes:
+kinds: - group: gateway.networking.k8s.io
+kind: HTTPRoute
+namespaces:
+from: Selector
+selector:
+matchLabels:
+allow-attachment-to-infra-gw: "true"
+name: http-listener
+port: 80
+protocol: HTTP - allowedRoutes:
+kinds: - group: gateway.networking.k8s.io
+kind: HTTPRoute
+namespaces:
+from: Selector
+selector:
+matchLabels:
+allow-attachment-to-infra-gw: "true"
+name: https-listener-with-default-domain
+port: 443
+protocol: HTTPS - allowedRoutes:
+kinds: - group: gateway.networking.k8s.io
+kind: HTTPRoute
+namespaces:
+from: Selector
+selector:
+matchLabels:
+allow-attachment-to-infra-gw: "true"
+name: https-listener-with-custom-domain
+port: 443
+protocol: HTTPS
+tls:
+mode: Terminate
+options:
+application-networking.k8s.aws/certificate-arn: arn:aws:acm:us-west-2:ACCOUNT_ID:certificate/d5ebbf85-9b6a-4501-9bfb-65d638b9c0f2
 status:
-  conditions:
-  - lastTransitionTime: "2023-10-27T03:40:38Z"
-    message: application-networking.k8s.aws/gateway-api-controller
-    observedGeneration: 1
-    reason: Accepted
-    status: "True"
-    type: Accepted
-  - lastTransitionTime: "2023-10-27T03:40:39Z"
-    message: 'aws-gateway-arn: arn:aws:vpc-lattice:us-west-2:ACCOUNT_ID:servicenetwork/sn-0cc73287505ac121a'
-    observedGeneration: 1
-    reason: Programmed
-    status: "True"
-    type: Programmed
-  listeners:
-  - attachedRoutes: 0
-    conditions:
-    - lastTransitionTime: "2023-10-27T03:40:38Z"
-      message: ""
-      observedGeneration: 1
-      reason: Accepted
-      status: "True"
-      type: Accepted
-    name: http-listener
-    supportedKinds:
-    - group: gateway.networking.k8s.io
-      kind: HTTPRoute
-  - attachedRoutes: 0
-    conditions:
-    - lastTransitionTime: "2023-10-27T03:40:38Z"
-      message: ""
-      observedGeneration: 1
-      reason: Accepted
-      status: "True"
-      type: Accepted
-    name: https-listener-with-default-domain
-    supportedKinds:
-    - group: gateway.networking.k8s.io
-      kind: GRPCRoute
-    - group: gateway.networking.k8s.io
-      kind: HTTPRoute
-  - attachedRoutes: 0
-    conditions:
-    - lastTransitionTime: "2023-10-27T03:40:38Z"
-      message: ""
-      observedGeneration: 1
-      reason: Accepted
-      status: "True"
-      type: Accepted
-    name: https-listener-with-custom-domain
-    supportedKinds:
-    - group: gateway.networking.k8s.io
-      kind: GRPCRoute
-    - group: gateway.networking.k8s.io
-      kind: HTTPRoute
+conditions: - lastTransitionTime: "2023-10-27T03:40:38Z"
+message: application-networking.k8s.aws/gateway-api-controller
+observedGeneration: 1
+reason: Accepted
+status: "True"
+type: Accepted - lastTransitionTime: "2023-10-27T03:40:39Z"
+message: 'aws-gateway-arn: arn:aws:vpc-lattice:us-west-2:ACCOUNT_ID:servicenetwork/sn-0cc73287505ac121a'
+observedGeneration: 1
+reason: Programmed
+status: "True"
+type: Programmed
+listeners: - attachedRoutes: 0
+conditions: - lastTransitionTime: "2023-10-27T03:40:38Z"
+message: ""
+observedGeneration: 1
+reason: Accepted
+status: "True"
+type: Accepted
+name: http-listener
+supportedKinds: - group: gateway.networking.k8s.io
+kind: HTTPRoute - attachedRoutes: 0
+conditions: - lastTransitionTime: "2023-10-27T03:40:38Z"
+message: ""
+observedGeneration: 1
+reason: Accepted
+status: "True"
+type: Accepted
+name: https-listener-with-default-domain
+supportedKinds: - group: gateway.networking.k8s.io
+kind: GRPCRoute - group: gateway.networking.k8s.io
+kind: HTTPRoute - attachedRoutes: 0
+conditions: - lastTransitionTime: "2023-10-27T03:40:38Z"
+message: ""
+observedGeneration: 1
+reason: Accepted
+status: "True"
+type: Accepted
+name: https-listener-with-custom-domain
+supportedKinds: - group: gateway.networking.k8s.io
+kind: GRPCRoute - group: gateway.networking.k8s.io
+kind: HTTPRoute
 :::
-::::
 
+<!-- prettier-ignore-start -->
+
+::::
 
 The `status` conditions contains the ARN of the Amazon VPC Lattice Service Network.
 
@@ -242,7 +232,9 @@ echo "gatewayARN=$gatewayARN"
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 gatewayARN=arn:aws:vpc-lattice:us-west-2:ACCOUNT_ID:servicenetwork/sn-0cc73287505ac121a
 ```
+
 ::::

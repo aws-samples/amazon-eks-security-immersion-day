@@ -1,11 +1,11 @@
 ---
-title : "Upgrading Bottlerocket host"
-weight : 22
+title: "Upgrading Bottlerocket host"
+weight: 22
 ---
 
 Bottlerocket OS update [methods](https://bottlerocket.dev/en/os/latest/#/update/methods/) can be classified into two main categories. You can choose the appropriate OS update method based on your cluster workload requirements.
 
-**Node replacement**:  Bottlerocket clusters can be updated via node replacement, meaning that the existing Bottlerocket nodes will be replaced by new Bottlerocket nodes that run updated software. This process requires complete node reprovisioning, which involves terminating existing nodes and launching new ones with updated configurations. When running the aws-k8s-* variants of Bottlerocket on EKS, you can use either the EKS Console or eksctl to update your Bottlerocket nodes using the node replacement method. If you use Karpenter for EKS cluster autoscaling, [Drift](https://catalog.workshops.aws/karpenter/en-US/basic-nodepool/drift) will allow node replacements. Changes in Bottlerocket variants (e.g. upgrading k8s version) must be handled through a node replacement.
+**Node replacement**: Bottlerocket clusters can be updated via node replacement, meaning that the existing Bottlerocket nodes will be replaced by new Bottlerocket nodes that run updated software. This process requires complete node reprovisioning, which involves terminating existing nodes and launching new ones with updated configurations. When running the aws-k8s-\* variants of Bottlerocket on EKS, you can use either the EKS Console or eksctl to update your Bottlerocket nodes using the node replacement method. If you use Karpenter for EKS cluster autoscaling, [Drift](https://catalog.workshops.aws/karpenter/en-US/basic-nodepool/drift) will allow node replacements. Changes in Bottlerocket variants (e.g. upgrading k8s version) must be handled through a node replacement.
 
 **In-place updates**: Bottlerocket clusters can be updated in-place, meaning that the existing Bottlerocket nodes will download updated software to use, without re-provisioning the nodes. In this section of the workshop, we will explore the in-place updates using `apiclient`.
 
@@ -18,6 +18,7 @@ apiclient get settings.updates
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 {
   "settings": {
@@ -31,6 +32,7 @@ apiclient get settings.updates
   }
 }
 ```
+
 ::::
 
 2. Check for available OS versions.
@@ -42,6 +44,7 @@ apiclient update check
 Based on `version-lock` setting, the `update check` command will show `chosen_update` with the latest version and `update_state` will be **Available**. At the time you are running this workshop, if there are no available updates, `chosen_update` will show **null** and `update_state` will show **Idle**.
 
 ::::expand{header="Check Output"}
+
 ```
 23:47:20 [INFO] Refreshing updates...
 {
@@ -74,6 +77,7 @@ Based on `version-lock` setting, the `update check` command will show `chosen_up
   "update_state": "Idle"
 }
 ```
+
 ::::
 
 3. Check the `update check` command's output in your `control container` (Cloud9 workspace). If `chosen_update` value is **null** and `update_state` is **Idle**, you can skip the commands until `step #5`, however please read through the steps and expected outputs. If `chosen_update` shows a version and `update_state` is **Available**, `apply` the chosen update.
@@ -107,6 +111,7 @@ apiclient update check
 Existing version will be in `active_partition` and new version will be in `staging_partition`. `update_state` will be **Ready**.
 
 ::::expand{header="Check Output"}
+
 ```
 21:12:06 [INFO] Refreshing updates...
 {
@@ -148,6 +153,7 @@ Existing version will be in `active_partition` and new version will be in `stagi
   "update_state": "Ready"
 }
 ```
+
 ::::
 
 5. Reboot the OS to activate `staging_partition` (inactive partition) as `active_partition`.
@@ -158,9 +164,11 @@ exit
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 06:21:13 [INFO] Rebooting, goodbye...
 
 Exiting session with sessionId: i-12345999999-abcdexxxxxxxx
 ```
+
 ::::

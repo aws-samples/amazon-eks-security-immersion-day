@@ -1,6 +1,6 @@
 ---
-title : "Introduction to Demo System Architecture"
-weight : 10
+title: "Introduction to Demo System Architecture"
+weight: 10
 ---
 
 We will be implementing the following System Architecture in this Workshop Module.

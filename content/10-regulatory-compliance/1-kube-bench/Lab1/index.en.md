@@ -1,41 +1,51 @@
 ---
-title : "Lab 1 - Validating using kube-bench CLI on Amazon Linux 2 Worker node"
-weight : 21
+title: "Lab 1 - Validating using kube-bench CLI on Amazon Linux 2 Worker node"
+weight: 21
 ---
 
 In this lab, we will install kube-bench directly in one of the linux nodes and run the CIS Amazon EKS Benchmark node assessment against eks-1.2.0 node controls.
-1. Open the [AWS Cloud9 console](https://console.aws.amazon.com/cloud9/) created for the workshop 
+
+1. Open the [AWS Cloud9 console](https://console.aws.amazon.com/cloud9/) created for the workshop
 2. List Amazon EKS cluster nodes
+
 ```shell
 kubectl get nodes
 ```
+
 ::::expand{header="Check Output"}
+
 ```shell
 NAME                                           STATUS   ROLES    AGE    VERSION
 ip-10-254-168-73.us-west-2.compute.internal    Ready    <none>   2d2h   v1.25.11-eks-a5565ad
 ip-10-254-178-204.us-west-2.compute.internal   Ready    <none>   26m    v1.25.9-eks-0a21954
 ip-10-254-193-104.us-west-2.compute.internal   Ready    <none>   2d2h   v1.25.11-eks-a5565ad
 ```
-::::
-3. Select one of the worker node from the AWS console
-   ![AWS Console Instance](/static/images/regulatory-compliance/kube-bench/Lab1/instance.jpg)
-   
+
+:::: 3. Select one of the worker node from the AWS console
+![AWS Console Instance](/static/images/regulatory-compliance/kube-bench/Lab1/instance.jpg)
+
 4. Connect the Instance through Sessions Manager
    ![SSM Connect](/static/images/regulatory-compliance/kube-bench/Lab1/ssm-connect.jpg)
-   
 5. Install kube-bench using the commands below.
+
 ```shell
 KUBEBENCH_URL=$(curl -s https://api.github.com/repos/aquasecurity/kube-bench/releases/latest | jq -r '.assets[] | select(.name | contains("amd64.rpm")) | .browser_download_url')
 ```
+
 6. Install kubebench package with yum command
+
 ```shell
 sudo yum install -y $KUBEBENCH_URL
 ```
+
 7. Run the kube bench command
+
 ```shell
 kube-bench --benchmark eks-1.2.0
 ```
+
 ::::expand{header="Check Output"}
+
 ```bash
 ] 3 Worker Node Security Configuration
 [INFO] 3.1 Worker Node Configuration Files
@@ -284,9 +294,11 @@ any other namespaces you would like to use with Fargate.
 38 checks WARN
 0 checks INFO
 ```
+
 ::::
 
 ### Cleanup
+
 ```shell
 sudo yum remove -y kube-bench
 ```

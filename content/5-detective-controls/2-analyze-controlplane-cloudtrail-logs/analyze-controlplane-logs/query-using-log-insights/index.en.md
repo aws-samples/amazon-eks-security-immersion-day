@@ -1,5 +1,5 @@
 ---
-title: 'Query EKS Control Plane logs using CloudWatch Logs Insights'
+title: "Query EKS Control Plane logs using CloudWatch Logs Insights"
 weight: 23
 ---
 

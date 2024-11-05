@@ -1,5 +1,5 @@
 ---
-title: 'Create IAM role for CodeBuild'
+title: "Create IAM role for CodeBuild"
 weight: 21
 ---
 
@@ -84,10 +84,10 @@ data:
     []
 kind: ConfigMap
 metadata:
-  creationTimestamp: '2023-09-19T04:27:41Z'
+  creationTimestamp: "2023-09-19T04:27:41Z"
   name: aws-auth
   namespace: kube-system
-  resourceVersion: '437687'
+  resourceVersion: "437687"
   uid: b8e4bdf3-cfa6-497b-83f2-9669c6fb00ca
 ```
 

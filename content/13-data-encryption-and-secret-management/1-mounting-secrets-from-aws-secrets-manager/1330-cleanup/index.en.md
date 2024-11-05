@@ -1,6 +1,6 @@
 ---
-title : "Cleanup"
-weight : 30
+title: "Cleanup"
+weight: 30
 ---
 
 Confirm the environment variable setup correctly.
@@ -31,7 +31,7 @@ ls -p
 ::::expand{header="Output" defaultExpanded=true}
 
 ```text
-00_iam_policy_arn_dbsecret		    nginx-deployment-spc-k8s-secrets.yaml	
+00_iam_policy_arn_dbsecret		    nginx-deployment-spc-k8s-secrets.yaml
 nginx-deployment.yaml
 nginx-deployment-k8s-secrets.yaml	nginx-deployment-spc.yaml
 ```
@@ -55,7 +55,7 @@ rm nginx-deployment-spc.yaml
 
 eksctl delete iamserviceaccount \
     --region="$AWS_REGION" --name "nginx-deployment-sa"  \
-    --cluster "$EKS_CLUSTER" 
+    --cluster "$EKS_CLUSTER"
 
 sleep 5
 

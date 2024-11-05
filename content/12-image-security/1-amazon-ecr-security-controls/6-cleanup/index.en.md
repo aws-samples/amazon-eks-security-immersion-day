@@ -1,6 +1,6 @@
 ---
-title : "Cleanup"
-weight : 26
+title: "Cleanup"
+weight: 26
 ---
 
 You created a few resources for this workshop. If you are participating in an AWS hosted event, then you don't need to clean up anything. The temporary accounts will get deleted after the workshop.
@@ -41,6 +41,7 @@ rm -f Dockerfile
 ```
 
 ::::expand{header="Check Output"}
+
 ```json
 {
     "repository": {
@@ -83,6 +84,7 @@ Deleted: sha256:7e01a0d0a1dcd9e539f8e9bbd80106d59efbdf97293b3d38f5d7a34501526cdb
 Deleted: sha256:4693057ce2364720d39e57e85a5b8e0bd9ac3573716237736d6470ec5b7b7230
 
 ```
+
 ::::
 
 ::alert[VPC Endpoint security group has no rules after above clean-up, but is in use until the VPC endpoints are fully deleted. You can remove the security group once the VPC endpoint deletion process is completed: `aws ec2 delete-security-group --group-id $VPCE_SG_ID --region $AWS_REGION`.]{header=""}

@@ -1,13 +1,13 @@
 ---
-title : "Use case #2: Whitelist only known registry"
-weight : 22
+title: "Use case #2: Whitelist only known registry"
+weight: 22
 ---
 
 This section will define a new constraint template and constraint that will verify that every pod's image comes from a known registry on a whitelist.
 
 ### Build Constraint Templates
 
-In the example below, the cluster administrator will mandate that only known image repositories be used in the cluster. 
+In the example below, the cluster administrator will mandate that only known image repositories be used in the cluster.
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
 cd ~/environment
@@ -15,31 +15,29 @@ cat > constrainttemplate-2.yaml <<EOF
 apiVersion: templates.gatekeeper.sh/v1beta1
 kind: ConstraintTemplate
 metadata:
-  name: k8swhitelistedimages
+name: k8swhitelistedimages
 spec:
-  crd:
-    spec:
-      names:
-        kind: k8sWhitelistedImages
-      validation:
-        # Schema for the parameters field
-        openAPIV3Schema:
-          properties:
-            images:
-              type: array
-              items: string
-  targets:
-    - target: admission.k8s.gatekeeper.sh
-      rego: |
-        package k8swhitelistedimages
-        whitelisted_images = {images |
-            images = input.parameters.images[_]
-        }
-    
+crd:
+spec:
+names:
+kind: k8sWhitelistedImages
+validation: # Schema for the parameters field
+openAPIV3Schema:
+properties:
+images:
+type: array
+items: string
+targets: - target: admission.k8s.gatekeeper.sh
+rego: |
+package k8swhitelistedimages
+whitelisted*images = {images |
+images = input.parameters.images[*]
+}
+
         images_whitelisted(str, patterns) {
             image_matches(str, patterns[_])
         }
-    
+
         image_matches(str, pattern) {
             contains(str, pattern)
         }
@@ -50,10 +48,10 @@ spec:
           not images_whitelisted(image, whitelisted_images)
           msg := sprintf("pod %q has invalid image %q. Please, contact your DevOps. Follow the whitelisted images %v", [name, image, whitelisted_images])
         }
+
 EOF
 
 :::
-
 
 Create the ConstraintTemplate using the following command
 
@@ -62,9 +60,11 @@ kubectl create -f constrainttemplate-2.yaml
 :::
 
 ::::expand{header="Check Output"}
+
 ```bash
 constrainttemplate.templates.gatekeeper.sh/k8swhitelistedimages created
 ```
+
 ::::
 
 Ensure that the CRD for constraint template is created.
@@ -74,12 +74,13 @@ kubectl get constrainttemplate
 :::
 
 ::::expand{header="Check Output"}
+
 ```bash
 NAME                        AGE
 k8swhitelistedimages   4m15s
 ```
-::::
 
+::::
 
 ### Build Constraint
 
@@ -91,42 +92,13 @@ cat > constraint-2.yaml <<EOF
 apiVersion: constraints.gatekeeper.sh/v1beta1
 kind: k8sWhitelistedImages
 metadata:
-  name: k8senforcewhitelistedimages
+name: k8senforcewhitelistedimages
 spec:
-  match:
-    kinds:
-      - apiGroups: [""]
-        kinds: ["Pod"]
-  parameters:
-    images:
-      # AWS Internal ECR registries
-      - 999999999999.dkr.ecr.us-east-1.amazonaws.com/
-      # AWS Public Registries
-      - 888888888888.dkr.ecr.us-west-2.amazonaws.com/
-      - 888888888888.dkr.ecr.us-east-1.amazonaws.com/
-      # Images used by the infrastructure services inside the kubernetes cluster
-      - amazon/aws-node-termination-handler
-      - amazon/aws-alb-ingress-controller
-      - amazon/aws-efs-csi-driver
-      - amazon/cloudwatch-agent
-      - docker.io/amazon/aws-alb-ingress-controller
-      - nvidia/k8s-device-plugin
-      - k8s.gcr.io/autoscaling/cluster-autoscaler
-      - k8s.gcr.io/metrics-server-amd64
-      - quay.io/coreos/kube-state-metrics
-      - quay.io/kubernetes-ingress-controller/nginx-ingress-controller
-      - kubernetesui/dashboard
-      - kubernetesui/metrics-scraper
-      - jtblin/kube2iam
-      - grafana/grafana
-      - prom/alertmanager
-      - prom/prometheus
-      - openpolicyagent/gatekeeper
-      # Images for support
-      - amazon/aws-cli
-      - radial/busyboxplus
-      - docker.io/radial/busyboxplus
-      - busybox
+match:
+kinds: - apiGroups: [""]
+kinds: ["Pod"]
+parameters:
+images: # AWS Internal ECR registries - 999999999999.dkr.ecr.us-east-1.amazonaws.com/ # AWS Public Registries - 888888888888.dkr.ecr.us-west-2.amazonaws.com/ - 888888888888.dkr.ecr.us-east-1.amazonaws.com/ # Images used by the infrastructure services inside the kubernetes cluster - amazon/aws-node-termination-handler - amazon/aws-alb-ingress-controller - amazon/aws-efs-csi-driver - amazon/cloudwatch-agent - docker.io/amazon/aws-alb-ingress-controller - nvidia/k8s-device-plugin - k8s.gcr.io/autoscaling/cluster-autoscaler - k8s.gcr.io/metrics-server-amd64 - quay.io/coreos/kube-state-metrics - quay.io/kubernetes-ingress-controller/nginx-ingress-controller - kubernetesui/dashboard - kubernetesui/metrics-scraper - jtblin/kube2iam - grafana/grafana - prom/alertmanager - prom/prometheus - openpolicyagent/gatekeeper # Images for support - amazon/aws-cli - radial/busyboxplus - docker.io/radial/busyboxplus - busybox
 EOF
 :::
 
@@ -137,9 +109,11 @@ kubectl create -f constraint-2.yaml
 :::
 
 ::::expand{header="Check Output"}
+
 ```bash
 k8swhitelistedimages.constraints.gatekeeper.sh/k8senforcewhitelistedimages created
 ```
+
 ::::
 
 Ensure that the CRD for constraint is created.
@@ -149,14 +123,15 @@ kubectl get constraint
 :::
 
 ::::expand{header="Check Output"}
+
 ```bash
 NAME                       ENFORCEMENT-ACTION   TOTAL-VIOLATIONS
 k8swhitelistedimages.constraints.gatekeeper.sh/k8senforcewhitelistedimages
 ```
+
 ::::
 
-
-### Test the policy 
+### Test the policy
 
 Let’s deploy a nginx pod from unknown registry.
 
@@ -167,16 +142,17 @@ cat > example-2.yaml <<EOF
 apiVersion: v1
 kind: Pod
 metadata:
-  name: bad-nginx
-  labels:
-    app: bad-nginx
+name: bad-nginx
+labels:
+app: bad-nginx
 spec:
-  containers:
-  - name: nginx
-    image: nginx
-EOF
-kubectl create -f example-2.yaml
-:::
+containers:
+
+- name: nginx
+  image: nginx
+  EOF
+  kubectl create -f example-2.yaml
+  :::
 
 You should now see an error message similar to below:
 ::::expand{header="Check Output"}
@@ -202,4 +178,3 @@ Additionally, check the Controller manager logs to see the webhook requests sent
 ::::
 
 The request was denied by Kubernetes API, because it didn’t meet the requirement of known registries on whitelist imposed by OPA Gatekeeper constraint.
-

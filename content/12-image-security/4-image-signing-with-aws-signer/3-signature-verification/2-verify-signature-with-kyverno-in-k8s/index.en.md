@@ -1,5 +1,5 @@
 ---
-title: 'Container image verification in Kubernetes with Kyverno'
+title: "Container image verification in Kubernetes with Kyverno"
 weight: 22
 ---
 
@@ -376,7 +376,6 @@ EOF
 
 We updated the `caBundle` element in the Kyverno cluster policy with `tls.crt` and `tls.key` values from the secret svc.kyverno-notation-aws.svc.tls-ca in namespace kyverno-notation-aws.
 
-
 ::::expand{header="Check for final kyverno-policy.yaml"}
 
 ```yaml
@@ -402,7 +401,7 @@ spec:
             method: POST
             data:
               - key: images
-                value: '{{ request.object.spec.[ephemeralContainers, initContainers, containers][].image }}'
+                value: "{{ request.object.spec.[ephemeralContainers, initContainers, containers][].image }}"
             service:
               url: https://svc.kyverno-notation-aws/checkimages
               caBundle: |-
@@ -435,11 +434,11 @@ spec:
                 -----END CERTIFICATE-----
 
       validate:
-        message: 'not allowed'
+        message: "not allowed"
         deny:
           conditions:
             all:
-              - key: '{{ result.verified }}'
+              - key: "{{ result.verified }}"
                 operator: EQUALS
                 value: false
 ```
@@ -633,7 +632,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: signed-pod
-  namespace: test-notation  
+  namespace: test-notation
 spec:
   containers:
   - name: signed-pod
@@ -677,4 +676,4 @@ The output will look like below.
 2023-07-21T06:44:50.650Z        INFO    /verify.go:144  verifying image XXXXXXXXXX.dkr.ecr.us-east-1.amazonaws.com/pause@sha256:33f19d2d8ba5fc17ac1099a840b0feac5f40bc6ac02d99891dbd13b0e204af4e
 ```
 
-Congratulations! You have setup an automatic verification control for your images in the **test-notation** namespace, that you can easilly replicate for your sensible workloads.
+Congratulations! You have setup an automatic verification control for your images in the **test-notation** namespace, that you can easily replicate for your sensible workloads.

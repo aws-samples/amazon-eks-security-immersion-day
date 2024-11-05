@@ -1,6 +1,6 @@
 ---
-title : "Lab: Amazon EKS  Pod Security"
-weight : 23
+title: "Lab: Amazon EKS  Pod Security"
+weight: 23
 ---
 
 #### Introduction
@@ -31,11 +31,10 @@ In this lab we are going to update many times files in the code environment (IDE
 
 7. Change the `policy-test` Namespace settings and run the next test scenario.
 
-> __Note:__ If you have time and are so inclined, feel free to mix PSA modes and PSS profiles to go beyond the documented test scenarios.
+> **Note:** If you have time and are so inclined, feel free to mix PSA modes and PSS profiles to go beyond the documented test scenarios.
 
 #### Summary
 
 PSA and PSS are the native Kubernetes replacement for PSP; moreover, PSA and PSS can coexist with PSP in the same cluster, to facilitate PSP replacement. Testing of PSA and PSS with Amazon EKS 1.23 is documented in this [AWS Samples OSS project](https://github.com/aws-samples/k8s-psa-pss-testing).
 
 The default configurations of PSA and PSS are part of Amazon EKS 1.23+, and Kubernetes Namespaces can be configured with labels to opt into Pod security defined by PSS and implemented by PSA. With appropriate policies you can successfully replace PSP.
-

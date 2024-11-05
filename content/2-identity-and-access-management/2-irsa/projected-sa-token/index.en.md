@@ -1,6 +1,6 @@
 ---
-title : "Projected Service Account Token"
-weight : 21
+title: "Projected Service Account Token"
+weight: 21
 ---
 
 Before we get into how IRSA works, let us understand some Basics and underlying Kubernetes which enables IRSA functionality.
@@ -11,10 +11,9 @@ A service account is a type of non-human account that, in Kubernetes, provides a
 
 There are different ways to manage the credentials for the Service Accounts.
 
-* [TokenRequest AP](https://kubernetes.io/docs/reference/kubernetes-api/authentication-resources/token-request-v1/) (recommended): Request a short-lived service account token from within your own application code. The token expires automatically and can rotate upon expiration. If you have a legacy application that is not aware of Kubernetes, you could use a sidecar container within the same pod to fetch these tokens and make them available to the application workload.
-* [Token Volume Projection](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#serviceaccount-token-volume-projection) (also recommended): In Kubernetes v1.20 and later, use the Pod specification to tell the kubelet to add the service account token to the Pod as a projected volume. Projected tokens expire automatically, and the kubelet rotates the token before it expires.
-* [Service Account Token Secrets](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#manually-create-an-api-token-for-a-serviceaccount) (not recommended): You can mount service account tokens as Kubernetes Secrets in Pods. These tokens don't expire and don't rotate. This method is not recommended, especially at scale, because of the risks associated with static, long-lived credentials. In Kubernetes v1.24 and later, the LegacyServiceAccountTokenNoAutoGeneration feature gate prevents Kubernetes from automatically creating these tokens for ServiceAccounts. LegacyServiceAccountTokenNoAutoGeneration is enabled by default; in other words, Kubernetes does not create these tokens.
-
+- [TokenRequest AP](https://kubernetes.io/docs/reference/kubernetes-api/authentication-resources/token-request-v1/) (recommended): Request a short-lived service account token from within your own application code. The token expires automatically and can rotate upon expiration. If you have a legacy application that is not aware of Kubernetes, you could use a sidecar container within the same pod to fetch these tokens and make them available to the application workload.
+- [Token Volume Projection](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#serviceaccount-token-volume-projection) (also recommended): In Kubernetes v1.20 and later, use the Pod specification to tell the kubelet to add the service account token to the Pod as a projected volume. Projected tokens expire automatically, and the kubelet rotates the token before it expires.
+- [Service Account Token Secrets](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#manually-create-an-api-token-for-a-serviceaccount) (not recommended): You can mount service account tokens as Kubernetes Secrets in Pods. These tokens don't expire and don't rotate. This method is not recommended, especially at scale, because of the risks associated with static, long-lived credentials. In Kubernetes v1.24 and later, the LegacyServiceAccountTokenNoAutoGeneration feature gate prevents Kubernetes from automatically creating these tokens for ServiceAccounts. LegacyServiceAccountTokenNoAutoGeneration is enabled by default; in other words, Kubernetes does not create these tokens.
 
 #### Default ServiceAccount credentials from Kubernetes version 1.24 or later
 
@@ -50,7 +49,6 @@ In Kubernetes 1.12 the [ProjectedServiceAccountToken](https://kubernetes.io/docs
 
 To inspect this OIDC Token, let us create a new pod that just has a sleep process inside with the following command:
 
-
 ```bash
 cat > eks-iam-test2.yaml <<EOF
 apiVersion: v1
@@ -69,9 +67,11 @@ kubectl apply -f eks-iam-test2.yaml
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 pod/eks-iam-test2 created
 ```
+
 ::::
 
 Run the below command to see the pod status
@@ -93,6 +93,7 @@ Let us look at the Volumes and volumeMounts in the pod `eks-iam-test2` specifica
 ```bash
 kubectl get pod eks-iam-test2 -oyaml
 ```
+
 The output looks like below. Only relevant fields are shown below.
 
 ```yaml
@@ -152,9 +153,7 @@ Decoding this token at [https://jwt.io/](https://jwt.io/) shows below Payload Da
 
 ```json
 {
-  "aud": [
-    "https://kubernetes.default.svc"
-  ],
+  "aud": ["https://kubernetes.default.svc"],
   "exp": 1709458083,
   "iat": 1677922083,
   "iss": "https://oidc.eks.us-east-1.amazonaws.com/id/80D562ED8026E91294D52E09BEA261D4",
@@ -183,11 +182,8 @@ Let us understand few important fields in the above output.
 
 For security reasons, you may not want to include any token into a Kubernetes Pod if the workload in the Pod is not going to be making calls to the Kubernetes API server. This can be done by passing `automountServiceAccountToken: false` into the pod Spec when you create a Pod.
 
-**exp** and **iat** :  These represents the expiry time for the token which basically enables the time bound tokens.
-
+**exp** and **iat** : These represents the expiry time for the token which basically enables the time bound tokens.
 
 This compliant OIDC token now gives us a foundation to build upon to find a token that can be used to authenticate to AWS APIs. However, we will need an additional component to inject a second token for use with AWS APIs into our Kubernetes Pods. Kubernetes supports validating and mutating webhooks, and AWS has created an [identity webhook](https://github.com/aws/amazon-eks-pod-identity-webhook/) that comes preinstalled in an Amazon EKS cluster. This webhook listens to create pod API calls and can inject an additional Token into our pods. This webhook can also be installed into self-managed Kubernetes clusters on AWS using [this guide](https://github.com/aws/amazon-eks-pod-identity-webhook/blob/master/SELF_HOSTED_SETUP.md)
 
 This additional token, apart from the service account, enables the IRSA functionality. Let's see it in action in next sections.
-
-

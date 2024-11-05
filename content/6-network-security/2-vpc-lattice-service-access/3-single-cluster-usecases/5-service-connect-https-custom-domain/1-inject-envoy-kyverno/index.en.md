@@ -1,6 +1,6 @@
 ---
-title : "Use envoy proxy to sign requests"
-weight : 26
+title: "Use envoy proxy to sign requests"
+weight: 26
 ---
 
 In this module, we'll explore how to utilize Envoy Proxy to perform AWS Signature Version 4 (SigV4) signing for our requests and proxy HTTPS requests to AWS Cloud Map. Additionally, we'll leverage Kyverno to dynamically inject the sidecar configuration into the application pod.
@@ -14,11 +14,13 @@ eksdemo install policy kyverno -c $EKS_CLUSTER1_NAME
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 Downloading Chart: https://kyverno.github.io/kyverno/kyverno-v2.5.2.tgz
 Helm installing...
 Error: helm install failed: cannot re-use a name that is still in use
 ```
+
 ::::
 
 Let us create a Kyverno ClusterPolicy to inject envoy sidecar and init containers automatically by annotating the target deployment with `vpc-lattices-svcs.amazonaws.com/agent-inject` set to `true`. Note this annotation is configured in the below ClusterPolicy.
@@ -63,7 +65,7 @@ spec:
                   iptables -t nat -A EGRESS_PROXY -m owner --gid-owner 0 -j RETURN;
                   iptables -t nat -A EGRESS_PROXY -p tcp -j REDIRECT --to-ports 8080;
                   iptables -t nat -L -n -v;
-              containers: 
+              containers:
               - name: envoy-sigv4
                 image: public.ecr.aws/seb-demo/envoy-sigv4:v0.5
                 securityContext:
@@ -72,8 +74,8 @@ spec:
                 - name: APP_DOMAIN
                   value: "vpc-lattice-custom-domain.io"
                 - name: CA_ARN
-                  value: "$CA_ARN"                   
-                                
+                  value: "$CA_ARN"
+
                 args: [
                     "-l", "info"
                 ]
@@ -93,16 +95,17 @@ kubectl --context $EKS_CLUSTER1_CONTEXT rollout restart deployment/app1-v1 -n ap
 
 No try again to connect to our service:
 
-
 ```bash
 kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -n app1 -c app1-v1 -- /bin/bash -c '\
 curl http://app4.vpc-lattice-custom-domain.io'
 ```
 
 ::::expand{header="Check Output" defaultExpanded=true}
+
 ```
 Requsting to Pod(app4-v1-85d4d9c455-7hwmx): Hello from app4-v1
 ```
+
 ::::
 
 You can see the logs of the envoy proxy computing the sigv4 signature by looking at the logs:
@@ -110,7 +113,6 @@ You can see the logs of the envoy proxy computing the sigv4 signature by looking
 ```bash
 kubectl stern --context $EKS_CLUSTER1_CONTEXT -n app1 app1 -c envoy-sigv4 --tail=10 | grep token
 ```
-
 
 ::::alert{type="info" header="Congratulation!!"}
 With this setup, we do not need to make any changes to the application code:
@@ -120,4 +122,4 @@ With this setup, we do not need to make any changes to the application code:
 - The Envoy proxy signs the request and proxies it to the Lattice service using HTTPS, with a certificate installed by the Docker entrypoint and signed by the Private Certificate Authority (PCA).
 - The VPC Lattice service receives the request over HTTPS with a valid SigV4 signature. It verifies the signature, extracts the IAM session tags, and checks the service's IAM policy to ensure the entity is authorized to access the service.
 - The app4 service receives the HTTP request from the VPC Lattice service and can respond to the requester through the VPC Lattice.
-::::
+  ::::

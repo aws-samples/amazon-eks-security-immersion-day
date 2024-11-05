@@ -1,16 +1,16 @@
 ---
-title : "Cleanup"
-weight : 153
+title: "Cleanup"
+weight: 153
 ---
 
 You created a few resources for this workshop. If you are participating in an AWS hosted event, then you don't need to clean up anything. The temporary accounts will get deleted after the workshop.
 
 If are running this workshop in your own account, you would need to follow the below steps to cleanup the environment you set up for the workshop.
 
-1) Delete the VPC endpoints created in addition to once created as a part of EKS private cluster
-2) Delete the EKS cluster
-3) Delete the Private Cloud9 environment
-4) Delete the VPC and subnets created as a part of CFT Stack eks-private-vpc
+1. Delete the VPC endpoints created in addition to once created as a part of EKS private cluster
+2. Delete the EKS cluster
+3. Delete the Private Cloud9 environment
+4. Delete the VPC and subnets created as a part of CFT Stack eks-private-vpc
 
 List the VPC endpoints in created in the VPC
 
@@ -48,7 +48,6 @@ Now delete the EKS cluster
 eksctl delete cluster --name eksworkshop-eksctl-private
 ```
 
-
 ```
 [ℹ]  using region "region-code"
 [ℹ]  deleting EKS cluster "eksworkshop-eksctl-private"
@@ -69,4 +68,3 @@ Delete the CloudFormation stack eks-private-vpc that create the VPC, Private Sub
 ```bash
 aws cloudformation delete-stack --stack-name eks-private-vpc
 ```
-

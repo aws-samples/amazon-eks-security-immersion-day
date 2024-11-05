@@ -1,6 +1,6 @@
 ---
-title : "Exploring Bootstrap Containers"
-weight : 23
+title: "Exploring Bootstrap Containers"
+weight: 23
 ---
 
 In this section of the workshop, you will explore [Bootstrap Containers](https://bottlerocket.dev/en/os/latest/#/concepts/bootstrap-containers/). You will create a directory using bootstrap container and find it in the admin container.
@@ -16,12 +16,14 @@ exit
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 [ssm-user@control]$ exit
 exit
 
 Exiting session with sessionId: i-12345999999-abcdexxxxxxxx
 ```
+
 ::::
 
 2. Create ECR repository for container images.
@@ -51,11 +53,13 @@ fi
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/br-bootstrap does not exist. So creating it...
 
 ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/br-bootstrap repo created...
 ```
+
 ::::
 
 3. Create a Dockerfile and script for the container image. The script will create `eks-workshop` directory within the bind mount `/.bottlerocket/rootfs/mnt`. Build and push the container image to the ECR repository.
@@ -81,6 +85,7 @@ docker push $ECR_REPO_URI:v1
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 $ docker build -t $ECR_REPO:v1 .
 
@@ -104,11 +109,12 @@ $ docker tag $ECR_REPO:v1 $ECR_REPO_URI:v1
 $ docker push $ECR_REPO_URI:v1
 
 The push refers to repository [ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/br-bootstrap]
-06f1ac858607: Pushed 
-5cbe1c60b3b0: Pushed 
-5af4f8f59b76: Pushed 
+06f1ac858607: Pushed
+5cbe1c60b3b0: Pushed
+5af4f8f59b76: Pushed
 v1: digest: sha256:75989751ae2f651987ddab689b879b911aa35374ab6a90b370251bcc7487dcd2 size: 942
 ```
+
 ::::
 
 4. Login to the `control` container of the Bottlerocket host
@@ -132,6 +138,7 @@ apiclient get settings.bootstrap-containers
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 {
   "settings": {
@@ -145,6 +152,7 @@ apiclient get settings.bootstrap-containers
   }
 }
 ```
+
 ::::
 
 6. Login to the `admin` container
@@ -172,12 +180,14 @@ exit
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 Filesystem      Size  Used Avail Use% Mounted on
 /dev/nvme1n1p1   20G  2.8G   18G  14% /.bottlerocket/rootfs/mnt
 
 Directory /.bottlerocket/rootfs/mnt/eks-workshop does not exist
 ```
+
 ::::
 
 8. Reboot the Bottlerocket host using `apiclient` and then exit out of `control` container.
@@ -213,10 +223,12 @@ fi
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 
 Directory /.bottlerocket/rootfs/mnt/eks-workshop exists
 ```
+
 ::::
 
 You can use Bootstrap containers to run critical software before the node connects to an orchestrator. They give you substantial power to configure and modify the system in ways that would otherwise be difficult or impossible. Please check Bootstrap container [use cases](https://bottlerocket.dev/en/os/latest/#/concepts/bootstrap-containers/#use-cases).

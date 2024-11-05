@@ -1,11 +1,13 @@
 ---
-title : "Lab 2 - Validating with kube-bench deployed as a Kubernetes batch job"
-weight : 21
+title: "Lab 2 - Validating with kube-bench deployed as a Kubernetes batch job"
+weight: 21
 ---
 
 In this lab, we will create a kube-bench batch job in EKS cluster to run the CIS Amazon EKS Benchmark assessment.
-1. Open the [AWS Cloud9 console](https://console.aws.amazon.com/cloud9/) created for the workshop 
+
+1. Open the [AWS Cloud9 console](https://console.aws.amazon.com/cloud9/) created for the workshop
 2. Create [Kubernetes Job](https://github.com/aquasecurity/kube-bench/blob/main/job-eks.yaml)
+
 ```shell
 cat <<EOF >kubebench.yaml
 apiVersion: batch/v1
@@ -51,25 +53,32 @@ spec:
             path: "/etc/systemd"
         - name: etc-kubernetes
           hostPath:
-            path: "/etc/kubernetes"     
+            path: "/etc/kubernetes"
 EOF
 kubectl apply -f kubebench.yaml
 ```
+
 3. Verify the job
+
 ```shell
 kubectl get jobs
 ```
+
 ::::expand{header="Check Output"}
+
 ```shell
 NAME              COMPLETIONS   DURATION   AGE
 kube-bench        1/1           5s         18s
 ```
-::::
-4. View Logs
+
+:::: 4. View Logs
+
 ```shell
 kubectl logs jobs/kube-bench
 ```
+
 ::::expand{header="Check Output"}
+
 ```shell
 [INFO] 3 Worker Node Security Configuration
 [INFO] 3.1 Worker Node Configuration Files
@@ -84,7 +93,7 @@ kubectl logs jobs/kube-bench
 [PASS] 3.2.4 Ensure that the --read-only-port is disabled (Manual)
 [PASS] 3.2.5 Ensure that the --streaming-connection-idle-timeout argument is not set to 0 (Automated)
 [PASS] 3.2.6 Ensure that the --protect-kernel-defaults argument is set to true (Automated)
-[PASS] 3.2.7 Ensure that the --make-iptables-util-chains argument is set to true (Automated) 
+[PASS] 3.2.7 Ensure that the --make-iptables-util-chains argument is set to true (Automated)
 [PASS] 3.2.8 Ensure that the --hostname-override argument is not set (Manual)
 [WARN] 3.2.9 Ensure that the --eventRecordQPS argument is set to 0 or a level which ensures appropriate event capture (Automated)
 [PASS] 3.2.10 Ensure that the --rotate-certificates argument is not present or is set to true (Manual)
@@ -318,9 +327,11 @@ any other namespaces you would like to use with Fargate.
 38 checks WARN
 0 checks INFO
 ```
+
 ::::
 
 ### Cleanup
+
 ```shell
 kubectl delete -f kubebench.yaml
 ```

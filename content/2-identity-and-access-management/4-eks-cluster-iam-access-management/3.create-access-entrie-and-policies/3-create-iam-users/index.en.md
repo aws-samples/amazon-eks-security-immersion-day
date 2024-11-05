@@ -1,6 +1,6 @@
 ---
-title : "Create AWS IAM Users"
-weight : 24
+title: "Create AWS IAM Users"
+weight: 24
 ---
 
 In order to test our scenarios, we will create 3 users, one for each groups we created :
@@ -13,7 +13,7 @@ for IAM_USER in ${IAM_USERS[@]}; do
     then
         IAM_USER_ARN=$(aws iam create-user --user-name $IAM_USER | jq -r '.User.Arn')
         echo "IAM User ${IAM_USER} created. IAM_USER_ARN=$IAM_USER_ARN"
-    
+
     else
         echo "IAM User ${IAM_USER} already exist..."
     fi
@@ -21,6 +21,7 @@ done
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 An error occurred (NoSuchEntity) when calling the GetUser operation: The user with name User1Admin cannot be found.
 IAM User User1Admin created. IAM_USER_ARN=arn:aws:iam::ACCOUNT_ID:user/User1Admin
@@ -29,8 +30,8 @@ IAM User User1TeamADev created. IAM_USER_ARN=arn:aws:iam::ACCOUNT_ID:user/User1T
 An error occurred (NoSuchEntity) when calling the GetUser operation: The user with name User1TeamATest cannot be found.
 IAM User User1TeamATest created. IAM_USER_ARN=arn:aws:iam::ACCOUNT_ID:user/User1TeamATest
 ```
-::::
 
+::::
 
 Add users to associated groups:
 
@@ -49,6 +50,7 @@ aws iam get-group --group-name k8sTeamATest
 ```
 
 ::::expand{header="Check Output"}
+
 ```json
 {
     "Users": [
@@ -107,8 +109,8 @@ aws iam get-group --group-name k8sTeamATest
     }
 }
 ```
-::::
 
+::::
 
 **Note** For the sake of simplicity, in this chapter, we will save credentials to a file to make it easy to toggle back and forth between users. Never do this in production or with credentials that have privileged access; It is not a security best practice to store credentials on the filesystem.
 
@@ -121,6 +123,7 @@ aws iam create-access-key --user-name User1TeamATest | tee /tmp/User1TeamATest.j
 ```
 
 ::::expand{header="Check Output"}
+
 ```json
 {
     "AccessKey": {
@@ -152,20 +155,18 @@ aws iam create-access-key --user-name User1TeamATest | tee /tmp/User1TeamATest.j
     }
 }
 ```
-::::
 
+::::
 
 Recap:
 
--   **User1Admin** is in the **k8sClusterAdmin** group and will be able to assume the **k8sClusterAdmin** role.
--   **User1TeamADev** is in **k8sTeamADev** Group and will be able to assume IAM role **k8sTeamADev**
--   **User1TeamATest** is in **k8sTeamATest** group and will be able to assume IAM role **k8sTeamATest**
-
+- **User1Admin** is in the **k8sClusterAdmin** group and will be able to assume the **k8sClusterAdmin** role.
+- **User1TeamADev** is in **k8sTeamADev** Group and will be able to assume IAM role **k8sTeamADev**
+- **User1TeamATest** is in **k8sTeamATest** group and will be able to assume IAM role **k8sTeamATest**
 
 Let's go to the [AWS IAM Console](https://console.aws.amazon.com/iamv2/home#/home) and check one of the above IAM Groups and see that there are IAM users part of the group.
 
 ![IAM-group-users](/static/images/iam/eks-access-management/IAM-group-users.png)
-
 
 And also let's see trust policy of the IAM Group that allows users from this group to assume an IAM Role:
 

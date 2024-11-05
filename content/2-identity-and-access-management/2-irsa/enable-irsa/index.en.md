@@ -1,12 +1,11 @@
 ---
-title : "Enable IRSA"
-weight : 22
+title: "Enable IRSA"
+weight: 22
 ---
 
 ### IAM OIDC provider for your cluster
 
 The EKS cluster has an OpenID Connect (OIDC) issuer URL associated with it. To use AWS Identity and Access Management (IAM) roles for service accounts, an IAM OIDC provider must exist for your cluster's OIDC issuer URL.
-
 
 **Create IAM OIDC identity provider for EKS cluster**
 
@@ -18,11 +17,13 @@ Run the below command to retrieve the OpenID Connect issuer URL associated with 
 oidc_id=$(aws eks describe-cluster --name eksworkshop-eksctl --query "cluster.identity.oidc.issuer" --output text | cut -d '/' -f 5)
 echo $oidc_id
 ```
+
 The output will looks like below
 
 ```
 80D562ED8026E91294D52E09BEA261D4
 ```
+
 2. Determine whether an IAM OIDC provider with your cluster's ID is already in your account.
 
 ```bash
@@ -31,16 +32,15 @@ aws iam list-open-id-connect-providers | grep $oidc_id | cut -d "/" -f4
 
 If output is returned, then you already have an IAM OIDC provider for your cluster and you can skip the next step. If no output is returned, then you must create an IAM OIDC provider for your cluster
 
-3. Create an IAM OIDC identity provider for your cluster with the following command.  You only need to do this once for a cluster.
+3. Create an IAM OIDC identity provider for your cluster with the following command. You only need to do this once for a cluster.
 
 ```bash
 eksctl utils associate-iam-oidc-provider --cluster eksworkshop-eksctl  --approve
 ```
 
-If you go to the [Identity Providers in IAM Console](https://console.aws.amazon.com/iam/home#/providers), and click on the OIDC provider link, you will see OIDC provider has created for your cluster. 
+If you go to the [Identity Providers in IAM Console](https://console.aws.amazon.com/iam/home#/providers), and click on the OIDC provider link, you will see OIDC provider has created for your cluster.
 
 ![oidc](/static/images/iam/irsa/oidc.png)
-
 
 ### Create service account with attaching an IAM role
 
@@ -55,13 +55,12 @@ aws iam list-policies --query 'Policies[?PolicyName==`AmazonS3ReadOnlyAccess`].A
 ```
 
 ::::expand{header="Check Output"}
-```json
-[
-    "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
-]
-```
-::::
 
+```json
+["arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"]
+```
+
+::::
 
 Now you will create a IAM role bound to a service account with read-only access to S3
 
@@ -75,12 +74,13 @@ eksctl create iamserviceaccount \
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 2023-03-05 07:36:33 [ℹ]  8 existing iamserviceaccount(s) (amazon-cloudwatch/cloudwatch-agent,amazon-cloudwatch/cwagent-prometheus,amazon-cloudwatch/fluent-bit,default/xray-daemon,karpenter/karpenter,kube-system/aws-node,kube-system/cluster-autoscaler,workshop/iam-test) will be excluded
 2023-03-05 07:36:33 [ℹ]  1 iamserviceaccount (default/iam-test) was included (based on the include/exclude rules)
 2023-03-05 07:36:33 [!]  metadata of serviceaccounts that exist in Kubernetes will be updated, as --override-existing-serviceaccounts was set
-2023-03-05 07:36:33 [ℹ]  1 task: { 
-    2 sequential sub-tasks: { 
+2023-03-05 07:36:33 [ℹ]  1 task: {
+    2 sequential sub-tasks: {
         create IAM role for serviceaccount "default/iam-test",
         create serviceaccount "default/iam-test",
     } }2023-03-05 07:36:33 [ℹ]  building iamserviceaccount stack "eksctl-eksworkshop-eksctl-addon-iamserviceaccount-default-iam-test"
@@ -89,6 +89,7 @@ eksctl create iamserviceaccount \
 2023-03-05 07:37:03 [ℹ]  waiting for CloudFormation stack "eksctl-eksworkshop-eksctl-addon-iamserviceaccount-default-iam-test"
 2023-03-05 07:37:03 [ℹ]  created serviceaccount "default/iam-test"
 ```
+
 ::::
 
 You can see that an IAM role (See the Annotations below) is associated to the service account iam-test in the cluster we just created.
@@ -96,6 +97,7 @@ You can see that an IAM role (See the Annotations below) is associated to the se
 ```bash
 kubectl describe sa iam-test
 ```
+
 The output looks like below.
 
 ```
@@ -116,7 +118,6 @@ In the above input, note that the service account annotation contains the IAM Ro
 Let’s see how this IAM role looks within the AWS Management Console. Navigate to IAM and then IAM Roles and search for the role. You will see the Annotations field when you describe your Service Account.
 
 ![iam-role-permissions](/static/images/iam/irsa/iam-role-permissions.png)
-
 
 Select the Trust relationships tab and select Edit trust relationship to view the policy document.
 
@@ -141,6 +142,7 @@ The output looks like below
 ```
 make_bucket: eksworkshop-XXXXXXXX-us-west-2
 ```
+
 Now let us use the above Service Account with our initial Pod example, which lists S3 objects.
 
 ```bash
@@ -166,9 +168,11 @@ kubectl apply -f eks-iam-test3.yaml
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 pod/eks-iam-test3 created
 ```
+
 ::::
 
 Run the below command to see the pod status.
@@ -192,6 +196,7 @@ The pod status shows `Completed`. Let us check the logs to verify that the comma
 ```bash
 kubectl logs  eks-iam-test3
 ```
+
 The output should look like below.
 
 ```
@@ -199,7 +204,6 @@ The output should look like below.
 ```
 
 The above output indicates that the container is now able to access the AWS S3 service and list the bucket names successfully.
-
 
 ### Inspect the Projected Service Account token for IRSA
 
@@ -224,9 +228,11 @@ kubectl apply -f eks-iam-test4.yaml
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 pod/eks-iam-test4 created
 ```
+
 ::::
 
 Run the below command to see the pod status.
@@ -252,6 +258,7 @@ Let us look at the Volumes and volumeMounts in the pod specification.
 ```bash
 kubectl get pod eks-iam-test4 -oyaml
 ```
+
 The output looks like below. Only relevant fields are shown below.
 
 ```yaml
@@ -310,6 +317,7 @@ spec:
             path: namespace
  ---
 ```
+
 You can see that there are two `projected` volumes. One of them is for the default Service Account as expected and explained in the previous section. The second one is added by the pod identity webhook for the additional Service Account token used to authenticate with IAM Service to access AWS S3 Service.
 
 The mutating webhook does more than just mount an additional token into the Pod. The mutating webhook also injects environment variables.
@@ -330,9 +338,7 @@ Decoding this token at [https://jwt.io/](https://jwt.io/) shows below Payload Da
 
 ```json
 {
-  "aud": [
-    "sts.amazonaws.com"
-  ],
+  "aud": ["sts.amazonaws.com"],
   "exp": 1678099678,
   "iat": 1678013278,
   "iss": "https://oidc.eks.us-west-2.amazonaws.com/id/80D562ED8026E91294D52E09BEA261D4",
@@ -351,4 +357,5 @@ Decoding this token at [https://jwt.io/](https://jwt.io/) shows below Payload Da
   "sub": "system:serviceaccount:default:iam-test"
 }
 ```
+
 You can see that the intended audience for this token is now `sts.amazonaws.com`, the issuer who has created and signed this token is still our OIDC provider, and finally, the expiration of the token is much shorter at 24 hours. We can modify the expiration duration for the Service Account using eks.amazonaws.com/token-expiration annotation in our Pod definition or Service Account definition.

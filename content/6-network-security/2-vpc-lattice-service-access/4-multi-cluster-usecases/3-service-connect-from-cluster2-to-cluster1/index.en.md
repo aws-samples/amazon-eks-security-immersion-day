@@ -1,16 +1,16 @@
 ---
-title : "Use case 6: Service Connectivity from Cluster2 to Cluster1"
-weight : 11
+title: "Use case 6: Service Connectivity from Cluster2 to Cluster1"
+weight: 11
 ---
-
 
 In this section, we will test service connectivity from `app5` in second EKS Cluster to `app1` in the first EKS Cluster.
 
 ![](/static/images/6-network-security/2-vpc-lattice-service-access/lattice-usecase6.png)
+
 - We redeploy app1 with Authentication and a custom domain name over HTTPS.
 - The Gateway API Controller will create a DNSEndpoint object based on the desired domain name.
 - We integrate External-DNS to create DNS records from the HTTPRoute object.
-- AWS Cloud Map handles TLS termination for our custom domain name, leveraging the Certificate attached to the app-service-gw Gateway. 
+- AWS Cloud Map handles TLS termination for our custom domain name, leveraging the Certificate attached to the app-service-gw Gateway.
 - We configure app5 with Pod Identity, granting it an appropriate IAM role for signing requests using SigV4.
 - We associate our Route53 private domain name with the VPC of cluster2, enabling name resolution.
 - We create a Kyverno ClusterPolicy to inject the Envoy Proxy sidecar into app5 for SigV4 signing.
@@ -59,8 +59,6 @@ aws eks create-pod-identity-association \
 
 > Note: we reuse the existing role `aws-sigv4-client` already associated to app1 in EKS cluster 1.
 
-
-
 ### 4. Re-deploy app5 so that it Take into account the new Pod Identity
 
 ```bash
@@ -74,6 +72,7 @@ kubectl --context $EKS_CLUSTER2_CONTEXT exec -it deploy/app5-v1 -n app5 -- nsloo
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 Server:         10.100.0.10
 Address:        10.100.0.10#53
@@ -82,6 +81,7 @@ Address:        10.100.0.10#53
 
 command terminated with exit code 1
 ```
+
 ::::
 
 > Did you notice the error that domain name `app4.vpc-lattice-custom-domain.io` cannot be resolved from second EKS cluster since second EKS cluster VPC is not associated with Route53 Private Hosted Zone.
@@ -90,7 +90,6 @@ What happen is that our Private Hosted Zone, is not yet associated with the VPC 
 
 ![route53-vpc1.png](/static/images/6-network-security/2-vpc-lattice-service-access/route53-vpc1.png)
 
-
 ### 6. Run below command to associate second EKS Cluster VPC to Route53 Private Hosted Zone.
 
 ```bash
@@ -98,23 +97,23 @@ aws route53 associate-vpc-with-hosted-zone --hosted-zone-id $HOSTED_ZONE_ID --vp
 ```
 
 ::::expand{header="Check Output"}
+
 ```json
 {
-    "ChangeInfo": {
-        "Id": "/change/C02457751GMVJHJ8PS2F4",
-        "Status": "PENDING",
-        "SubmittedAt": "2023-10-27T05:50:01.166000+00:00",
-        "Comment": ""
-    }
+  "ChangeInfo": {
+    "Id": "/change/C02457751GMVJHJ8PS2F4",
+    "Status": "PENDING",
+    "SubmittedAt": "2023-10-27T05:50:01.166000+00:00",
+    "Comment": ""
+  }
 }
-
 ```
+
 ::::
 
 Ensure that the second EKS Cluster is associated now.
 
 ![route53-vpc2.png](/static/images/6-network-security/2-vpc-lattice-service-access/route53-vpc2.png)
-
 
 ### 7. Check again
 
@@ -123,6 +122,7 @@ kubectl --context $EKS_CLUSTER2_CONTEXT exec -it deploy/app5-v1 -n app5 -- nsloo
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 Server:         172.20.0.10
 Address:        172.20.0.10#53
@@ -133,11 +133,10 @@ Address: 169.254.171.65
 Name:   app1-app1-0df47cf7f9031f04e.7d67968.vpc-lattice-svcs.us-west-2.on.aws
 Address: fd00:ec2:80::a9fe:ab41
 ```
+
 ::::
 
 ::alert[It can take few minutes for DNS to propagate]{header="Note"}
-
-
 
 ### 8. Exec into an `app5-v1` pod to check connectivity to `app1` service using custom domain on `HTTPS` listener.
 
@@ -148,17 +147,17 @@ kubectl --context $EKS_CLUSTER2_CONTEXT exec -it deploy/app5-v1 -n app5 -c app5-
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 {
     "UserId": "AROAVR5MHJVYTH5XQCUZ7:eks-eksworksho-app5-v1-5d-b1844cc2-f35b-45a7-a0a4-c6245b9bceb4",
-    "Account": "012345678910",
-    "Arn": "arn:aws:sts::012345678910:assumed-role/aws-sigv4-client/eks-eksworksho-app5-v1-5d-b1844cc2-f35b-45a7-a0a4-c6245b9bceb4"
+    "Account": "012345678901",
+    "Arn": "arn:aws:sts::012345678901:assumed-role/aws-sigv4-client/eks-eksworksho-app5-v1-5d-b1844cc2-f35b-45a7-a0a4-c6245b9bceb4"
 }
 ```
 
 > the role name should contain **aws-sigv4-client**
-::::
-
+> ::::
 
 You can also watch the logs of the pod identity controller:
 
@@ -176,13 +175,13 @@ curl -s -k --aws-sigv4 "aws:amz:${AWS_REGION}:vpc-lattice-svcs" --user $(echo $S
 'https://app1.vpc-lattice-custom-domain.io
 ```
 
-
 ::::expand{header="Check Output"}
+
 ```
 Requsting to Pod(app1-v1-c86d54576-qzjqn): Hello from app1-v1
 ```
-::::
 
+::::
 
 :::::alert{type="info" header="Congratulation!!"}
 You have managed to have TLS connection in both way with IAM signature verification

@@ -1,10 +1,9 @@
 ---
-title : "Create Fully Private EKS Cluster"
-weight : 151
+title: "Create Fully Private EKS Cluster"
+weight: 151
 ---
 
 Once you have logged into the AWS Management Console from your Workshop Studio, you will already have an AWS Cloud9 environment. Your AWS Cloud9 workspace will also have all the required tools installed in it.
-
 
 #### Create a VPC with Private Subnets with Internet Egress
 
@@ -17,11 +16,13 @@ aws cloudformation deploy --template-file eks-private-vpc.yaml --stack-name eks-
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 Waiting for changeset to be created..
 Waiting for stack create/update to complete
 Successfully created/updated stack - eks-private-vpc
 ```
+
 ::::
 
 ```bash
@@ -41,27 +42,27 @@ aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values
 
 #### Create and Setup Management Cloud9 instance in Private Subnet
 
-* Go to [AWS Cloud9 Console](https://us-west-2.console.aws.amazon.com/cloud9/home?region=us-west-2)
-* Select **Create environment**
-* Name it **eksworkshop-private**, click Next.
-* Choose **t3.small** for instance type 
-* Go to **Network Setting** and expand **VPC Setting**
-* Select the "EKSSecurityImmersionDayPrivate" as VPC and "EKSSecurityImmersionDayPrivateD" as the Subnet
-* Click **Create environment**
+- Go to [AWS Cloud9 Console](https://us-west-2.console.aws.amazon.com/cloud9/home?region=us-west-2)
+- Select **Create environment**
+- Name it **eksworkshop-private**, click Next.
+- Choose **t3.small** for instance type
+- Go to **Network Setting** and expand **VPC Setting**
+- Select the "EKSSecurityImmersionDayPrivate" as VPC and "EKSSecurityImmersionDayPrivateD" as the Subnet
+- Click **Create environment**
 
 When it comes up, customize the environment by:
 
-* Closing the **Welcome tab**
-![c9 before](/static/images/create-workspace/cloud9-1.png)
+- Closing the **Welcome tab**
+  ![c9 before](/static/images/create-workspace/cloud9-1.png)
 
-* Opening a new **terminal** tab in the main work area
-![c9 new tab](/static/images/create-workspace/cloud9-2.png)
+- Opening a new **terminal** tab in the main work area
+  ![c9 new tab](/static/images/create-workspace/cloud9-2.png)
 
-* Closing the lower work area
-![c9 new tab](/static/images/create-workspace/cloud9-3.png)
+- Closing the lower work area
+  ![c9 new tab](/static/images/create-workspace/cloud9-3.png)
 
-* Your workspace should now look like this
-![c9after](/static/images/create-workspace/cloud9-4.png)
+- Your workspace should now look like this
+  ![c9after](/static/images/create-workspace/cloud9-4.png)
 
 #### Attach the IAM role to the AWS Cloud9 workspace
 
@@ -70,10 +71,10 @@ When it comes up, customize the environment by:
 ![cloud9Role](/static/images/create-workspace/cloud9-role.png)
 
 2. Select the instance, then choose **Actions / Security / Modify IAM Role**
-![c9 instance  role](/static/images/create-workspace/c9instancerole.png)
+   ![c9 instance  role](/static/images/create-workspace/c9instancerole.png)
 
 3. Choose **eks-security-workshop** from the **IAM Role** drop down, and select **Save**
-![c9 attach role](/static/images/create-workspace/c9attachrole.png)
+   ![c9 attach role](/static/images/create-workspace/c9attachrole.png)
 
 #### Attach a Security group to the AWS Cloud9 workspace EC2 instance
 
@@ -85,30 +86,32 @@ When it comes up, customize the environment by:
 
 3. Add **ClusterSharedSecurityGroup** security as an additional row and save.
 
-
 #### Update IAM settings for your Workspace
 
 Currently, if your environment’s EC2 instance is launched into a private subnet, you can't use AWS managed temporary credentials to allow the EC2 environment to access an AWS service on behalf of an AWS entity (for example, an IAM user).
 To ensure temporary credentials aren't already in place we will remove any existing credentials file as well as disabling **AWS managed temporary credentials**:
 The owner of an EC2 environment can turn on or off AWS managed temporary credentials for that environment at any time, as follows:
-* With the environment open, in the AWS Cloud9 IDE, on the menu bar choose AWS Cloud9, **Preferences**.
-* On the Preferences tab, in the navigation pane, choose **AWS Settings**, Credentials.
-* Use AWS managed temporary credentials to turn AWS managed temporary credentials on or off.
 
+- With the environment open, in the AWS Cloud9 IDE, on the menu bar choose AWS Cloud9, **Preferences**.
+- On the Preferences tab, in the navigation pane, choose **AWS Settings**, Credentials.
+- Use AWS managed temporary credentials to turn AWS managed temporary credentials on or off.
 
 ::alert[If you are [at an AWS event](/1-create-workspace-environment/awsevent), ask your instructor which **AWS region** to use.]{header="Note"}
 
 #### Install eksctl
+
 ```bash
 curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
 
 sudo mv -v /tmp/eksctl /usr/local/bin
 ```
+
 Confirm the eksctl command works:
 
 ```bash
 eksctl version
 ```
+
 Enable eksctl bash-completion
 
 ```bash
@@ -118,6 +121,7 @@ eksctl completion bash >> ~/.bash_completion
 ```
 
 #### Install kubectl
+
 ```bash
 sudo curl --silent --location -o /usr/local/bin/kubectl \
    https://s3.us-west-2.amazonaws.com/amazon-eks/1.28.1/2023-09-14/bin/linux/amd64/kubectl
@@ -126,10 +130,13 @@ sudo chmod +x /usr/local/bin/kubectl
 ```
 
 #### Install jq, envsubst (from GNU gettext utilities) and bash-completion
+
 ```bash
 sudo yum -y install jq gettext bash-completion moreutils
 ```
+
 #### Install yq for yaml processing
+
 ```bash
 echo 'yq() {
   docker run --rm -i -v "${PWD}":/workdir mikefarah/yq "$@"
@@ -137,19 +144,21 @@ echo 'yq() {
 ```
 
 #### Verify the binaries are in the path and executable
+
 ```bash
 for command in kubectl jq envsubst aws
   do
     which $command &>/dev/null && echo "$command in path" || echo "$command NOT FOUND"
   done
 ```
+
 #### Enable kubectl bash_completion
+
 ```bash
 kubectl completion bash >>  ~/.bash_completion
 . /etc/profile.d/bash_completion.sh
 . ~/.bash_completion
 ```
-
 
 Run below commands to set few environment variables. Please fetch the subnet and VPC settings from the **Create VPC** section.
 
@@ -172,7 +181,7 @@ Check if AWS_REGION is set to desired region
 test -n "$AWS_REGION" && echo AWS_REGION is "$AWS_REGION" || echo AWS_REGION is not set
 ```
 
- Let's save these into bash_profile
+Let's save these into bash_profile
 
 ```bash
 echo "export ACCOUNT_ID=${ACCOUNT_ID}" | tee -a ~/.bash_profile
@@ -233,7 +242,6 @@ EOF
 
 Next, use the file you created as the input for the eksctl cluster creation.
 
-
 ```bash
 eksctl create cluster -f eksworkshop-eksctl-private.yaml
 ```
@@ -261,26 +269,21 @@ eksctl supports creation of fully-private clusters that have no outbound interne
 
 The only required field to create a fully-private cluster is privateCluster.enabled. Only private nodegroups (both managed and self-managed) are supported in a fully-private cluster because the cluster's VPC is created without any public subnets. The privateNetworking field must be explicitly set. It is an error to leave privateNetworking unset in a fully-private cluster.
 
-
-
-If Karpenter is used for Auto scaling of worker nodes the following considerations are required. 
+If Karpenter is used for Auto scaling of worker nodes the following considerations are required.
 https://aws.github.io/aws-eks-best-practices/karpenter/#amazon-eks-private-cluster-without-outbound-internet-access
-
 
 :::code{showCopyAction=true showLineNumbers=false language=yaml}
 privateCluster:
-  enabled: true
+enabled: true
 :::
 
 After the EKS cluster was created and since it is a Private Cluster, there would be VPC endpoints created in the Cluster VPC to create PrivateLink with various AWS services. The following VPC endpoints are created behind the scene.
 
 #### List the VPC endpoints created with the EKS clusters for Private access to AWS Services
 
-
 ```bash
 aws ec2 describe-vpc-endpoints --filter "Name=vpc-id,Values=$CLUSTER_VPC" --query VpcEndpoints[].[VpcId,VpcEndpointId,ServiceName] --output table
 ```
-
 
 ```
 ----------------------------------------------------------------------------
@@ -292,26 +295,25 @@ aws ec2 describe-vpc-endpoints --filter "Name=vpc-id,Values=$CLUSTER_VPC" --quer
 |  vpc-02cc579cdd679aa3c |  com.amazonaws.ap-south-1.logs                  |
 |  vpc-02cc579cdd679aa3c |  com.amazonaws.ap-south-1.ec2                   |
 |  vpc-02cc579cdd679aa3c |  com.amazonaws.ap-south-1.sts                   |
-|  vpc-02cc579cdd679aa3c |  com.amazonaws.ap-south-1.autoscaling           ||  
+|  vpc-02cc579cdd679aa3c |  com.amazonaws.ap-south-1.autoscaling           ||
 +------------------------+-------------------------------------------------+
 ```
 
 This Workshop would additionally require these VPC endpoints additionally. We would be creating the same below.
-* elasticloadbalancing - For ALB Controller addon to create ELBs
-* eks - For Cloud9 to privately query EKS Service APIs
-* ssm - EKS Worker nodes to be accessed through SSM without opening SSH ports
-* ssmmessages - EKS Worker nodes to be accessed through SSM without opening SSH ports
-* ec2messages - EKS Worker nodes to be accessed through SSM without opening SSH ports
+
+- elasticloadbalancing - For ALB Controller addon to create ELBs
+- eks - For Cloud9 to privately query EKS Service APIs
+- ssm - EKS Worker nodes to be accessed through SSM without opening SSH ports
+- ssmmessages - EKS Worker nodes to be accessed through SSM without opening SSH ports
+- ec2messages - EKS Worker nodes to be accessed through SSM without opening SSH ports
 
 #### Create VPC endpoints
 
 Get the Security group used by the existing VPC Endpoints.
 
-
 ```bash
 export VPCE_SG=$(aws ec2 describe-vpc-endpoints --filter Name=vpc-id,Values=$CLUSTER_VPC Name=service-name,Values=*ec2 --query VpcEndpoints[].Groups[].GroupId --output text)
 ```
-
 
 Create The VPC endpoints.
 
@@ -329,6 +331,7 @@ aws ec2 create-vpc-endpoint \
 
 Check sample output. This will is the JSON representation of the resource created.
 ::::expand{header="Check Output"}
+
 ```
 {
     "VpcEndpoint": {
@@ -364,6 +367,7 @@ Check sample output. This will is the JSON representation of the resource create
     }
 }
 ```
+
 ::::
 
 VPC endpoint for EKS
@@ -414,12 +418,9 @@ aws ec2 create-vpc-endpoint \
     --tag-specifications 'ResourceType=vpc-endpoint,Tags=[{Key=service,Value=ec2messages}]'
 ```
 
-
-
 ```bash
 aws eks describe-cluster --name eksworkshop-eksctl-private --query cluster.endpoint
 ```
-
 
 This will display the API endpoint of the cluster.
 
@@ -433,7 +434,7 @@ Confirm that the API endpoint is private by using the nslookup command. You can 
 nslookup AFB4045AF25413FF766AD8CA1FF0CAEA.yl4.ap-south-1.eks.amazonaws.com
 ```
 
-````
+```
 Server:         172.31.0.2
 Address:        172.31.0.2#53
 
@@ -442,25 +443,22 @@ Name:   AFB4045AF25413FF766AD8CA1FF0CAEA.yl4.ap-south-1.eks.amazonaws.com
 Address: 10.50.153.103
 Name:   AFB4045AF25413FF766AD8CA1FF0CAEA.yl4.ap-south-1.eks.amazonaws.com
 Address: 10.50.176.167
-````
+```
 
 Now the eksworkshop-private Cloud9 instance is ready to manage the fully private cluster. The three worker nodes can be privately logged into through Session Manager.
 
 #### Test the Private connectivity of the EKS Worker Nodes
 
-* Open AWS management console and search for EC2
-* Click on **Instances** on the **EC2 Dashboard**
-* Filter with "eksworkshop-eksctl-private" and select and Instance
-* Click on the **Connect** button on the top and Select the **Session Manager** tab
-![sessionManager](/static/images/fully-private-cluster/sessionManagerConnect.png)
-* Click the **Connect** button at the bottom to open the Terminal
-![sessionManagerTerminal](/static/images/fully-private-cluster/sessionManagerTerminal.png)
+- Open AWS management console and search for EC2
+- Click on **Instances** on the **EC2 Dashboard**
+- Filter with "eksworkshop-eksctl-private" and select and Instance
+- Click on the **Connect** button on the top and Select the **Session Manager** tab
+  ![sessionManager](/static/images/fully-private-cluster/sessionManagerConnect.png)
+- Click the **Connect** button at the bottom to open the Terminal
+  ![sessionManagerTerminal](/static/images/fully-private-cluster/sessionManagerTerminal.png)
 
-* Try to connect to a public site like www.google.com using curl and it would timeout. 
-* Try connecting to the API endpoint of the cluster using curl. You should receive a structured JSON response.
-![workerNodeTest](/static/images/fully-private-cluster/workNodeTest.png)
+- Try to connect to a public site like www.google.com using curl and it would timeout.
+- Try connecting to the API endpoint of the cluster using curl. You should receive a structured JSON response.
+  ![workerNodeTest](/static/images/fully-private-cluster/workNodeTest.png)
 
 This proves that EKS cluster is fully private with connectivity to the private API endpoint.
-
-
-

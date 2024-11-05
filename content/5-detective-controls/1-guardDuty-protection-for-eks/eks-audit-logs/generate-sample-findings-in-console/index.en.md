@@ -1,10 +1,9 @@
 ---
-title : "Generating sample findings through the GuardDuty console or API"
-weight : 21
+title: "Generating sample findings through the GuardDuty console or API"
+weight: 21
 ---
 
 Choose an access method to learn how to generate sample findings through that method.
-
 
 :::::tabs{variant="container"}
 
@@ -15,9 +14,9 @@ Use the following procedure to generate sample findings. This process generates 
 1. Open the [GuardDuty console](https://console.aws.amazon.com/guardduty/)
 2. In the navigation pane, choose **Settings**.
 3. On the **Settings** page, under **Sample findings**, choose **Generate sample findings**.
-![GD Generate Sample findings](/static/images/detective-controls/GDGenerateSamplefindings.png)
+   ![GD Generate Sample findings](/static/images/detective-controls/GDGenerateSamplefindings.png)
 4. In the navigation pane, choose **Findings**. The sample findings are displayed on the **Current findings** page with the prefix **[SAMPLE]**.
-![GD Sample Findings](/static/images/detective-controls/GDSampleFindings.png)
+   ![GD Sample Findings](/static/images/detective-controls/GDSampleFindings.png)
 
 ::alert[Note the above step generate Sample Findings for all the resource types. Let us apply some filters to see Findings for Amazon EKS]{header="Note"}
 
@@ -39,7 +38,6 @@ aws guardduty create-sample-findings --detector-id $GUARDDUTY_DETECTOR_ID --find
 ```
 
 You can use any of the Finding types as mentioned in the [documentation](https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_finding-types-kubernetes.html).
-
 
 ::::
 

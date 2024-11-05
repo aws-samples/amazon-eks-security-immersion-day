@@ -1,11 +1,11 @@
 ---
-title : "Building Amazon EKS CIS AL2 Hardened Custom AMI"
-weight : 22
+title: "Building Amazon EKS CIS AL2 Hardened Custom AMI"
+weight: 22
 ---
 
 In this section we will walk through the process of building custom ami hardened as per CIS specification benchmark using community provided script. We will be using Hashicorp [packer](https://www.packer.io/) to build the ami.
 
-Remove binary already installed which is name packer to avoid  conflict with Hashicorp packer installation.
+Remove binary already installed which is name packer to avoid conflict with Hashicorp packer installation.
 
 ```bash
 sudo rm /usr/sbin/packer
@@ -19,8 +19,9 @@ sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinu
 sudo yum -y install packer
 
 ```
+
 Clone the repo for building a custom Amazon EKS AMI with CIS hardening script. The code used in this solution is available in GitHub. Please clone the repository to prepare for the walkthrough. The hardening scripts by default applies both Level 1 and Level 2 [CIS benchmark for Amazon Linux 2](https://www.cisecurity.org/benchmark/amazon_linux).
-Customer can edit the file ~/environment/amazon-eks-custom-amis/scripts/cis-benchmark.sh prior to AMI build if they have a requirement to disable any specific control. 
+Customer can edit the file ~/environment/amazon-eks-custom-amis/scripts/cis-benchmark.sh prior to AMI build if they have a requirement to disable any specific control.
 The Iptables rules prescribed by CIS hardening can restrict some Pod communication. These rules may need to be reviewed and accordingly modified or disabled, depending on application requirements and security priorities, to allow Kubernetes' kube-proxy to fully manage Pod networking.
 
 ```bash
@@ -39,11 +40,14 @@ SUBNET_ID=`sed -e 's/^"//' -e 's/"$//' <<<"$SUBNET_ID"`
 echo $SUBNET_ID
 
 ```
+
 ::::expand{header="Check Output"}
+
 ```bash
 vpc-0d1c5a474503e75cf
 subnet-009649a8332d30b9e
 ```
+
 ::::
 
 Set the variables to AWS Regions and EKS version in packer variables file. The ami is built using the private ip address.
@@ -67,6 +71,7 @@ packer build  -var-file=al2_amd64.pkrvars.hcl  -var 'subnet_id='$SUBNET_ID'' .
 This will be the output after completion of the build (Output is truncated)
 
 ::::expand{header="Check Output"}
+
 ```bash
 ==> amazon-eks.amazon-ebs.this: Waiting for the instance to stop...
 ==> amazon-eks.amazon-ebs.this: Creating AMI amazon-eks-1.28-20240210201813 from instance i-04450a38165430927
@@ -98,14 +103,18 @@ Build 'amazon-eks.amazon-ebs.this' finished after 7 minutes 27 seconds.
 --> amazon-eks.amazon-ebs.this: AMIs were created:
 us-west-2: ami-072199f45f5ae588d
 ```
+
 ::::
 
 Set an environment variable with the above custom Amazon EKS AMI. This will be used to deploy managed node group
-```bash 
+
+```bash
 export EKS_AMI_ID=$(aws ec2 describe-images    --filters 'Name=tag:Name,Values="amazon-eks*"'  --owners $AWS_ACCOUNT_ID --query 'Images[*].[ImageId]'  --output text)
 echo $EKS_AMI_ID
 ```
+
 ::::expand{header="Check Output"}
+
 ```bash
 ami-072199f45f5ae588d
 ```

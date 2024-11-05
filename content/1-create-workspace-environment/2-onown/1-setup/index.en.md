@@ -17,14 +17,14 @@ This workshop is hosted in the following GitHub repository under the `aws-sample
 
 ## Cost
 
-Provisioning this workshop environment in your AWS account will create resources and there will be cost associated with them. The [cleanup](/090-cleanup) section provides a guide to remove them, preventing further charges.
+Provisioning this workshop environment in your AWS account will create resources and there will be cost associated with them. Each module have a **cleanup** section which provides a guide to remove them, preventing further charges.
 
 ## Bootstrapping the environment
 
 Use the AWS CloudFormation quick-create links below to launch the desired template in the appropriate AWS region. The CloudFormation output will have the IDE url and password to use for the workshop.
 
-| Region           | CloudFormation                                                                                                                                                                                                                                                                                                                                            |
-| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Region           | CloudFormation                                                                                                                                                                                                                                                                                                                                          |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `us-west-2`      | [Launch](https://us-west-2.console.aws.amazon.com/cloudformation/home#/stacks/quickcreate?templateUrl=https://ws-assets-prod-iad-r-pdx-f3b3f9f1a7d6a3d0.s3.us-west-2.amazonaws.com/165b0729-2791-4452-8920-53b734419050/eks-security-workshop-team-stack-self.json&stackName=eks-blueprints-workshop&param_RepositoryRef=VAR::MANIFESTS_REF)            |
 | `us-east-2`      | [Launch](https://us-east-2.console.aws.amazon.com/cloudformation/home#/stacks/quickcreate?templateUrl=https://ws-assets-prod-iad-r-cmh-8d6e9c21a4dec77d.s3.us-east-2.amazonaws.com/165b0729-2791-4452-8920-53b734419050/eks-security-workshop-team-stack-self.json&stackName=eks-blueprints-workshop&param_RepositoryRef=VAR::MANIFESTS_REF)            |
 | `eu-west-1`      | [Launch](https://eu-west-1.console.aws.amazon.com/cloudformation/home#/stacks/quickcreate?templateUrl=https://ws-assets-prod-iad-r-dub-85e3be25bd827406.s3.eu-west-1.amazonaws.com/165b0729-2791-4452-8920-53b734419050/eks-security-workshop-team-stack-self.json&stackName=eks-blueprints-workshop&param_RepositoryRef=VAR::MANIFESTS_REF)            |

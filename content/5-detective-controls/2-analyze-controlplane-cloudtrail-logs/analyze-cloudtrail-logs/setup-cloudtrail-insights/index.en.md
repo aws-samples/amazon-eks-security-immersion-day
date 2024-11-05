@@ -1,17 +1,13 @@
 ---
-title : "Enabling AWS CloudTrail Insights"
-weight : 22
+title: "Enabling AWS CloudTrail Insights"
+weight: 22
 ---
-
-
-
 
 :::::tabs{variant="container"}
 
 ::::tab{id="cli" label="Using AWS CLI"}
 
 You can also enable Insights on a trail from the AWS Command Line Interface (AWS CLI) by using the put-insight-selectors command:
-
 
 ```bash
 aws cloudtrail put-insight-selectors --trail-name eks-cloudtrail --insight-selectors '[{"InsightType": "ApiCallRateInsight"},{"InsightType": "ApiErrorRateInsight"}]'
@@ -21,30 +17,29 @@ aws cloudtrail put-insight-selectors --trail-name eks-cloudtrail --insight-selec
 
 ```json
 {
-    "TrailARN": "arn:aws:cloudtrail:us-east-2:XXXXXXXXXXX:trail/eks-cloudtrail",
-    "InsightSelectors": [
-        {
-            "InsightType": "ApiCallRateInsight"
-        },
-        {
-            "InsightType": "ApiErrorRateInsight"
-        }
-    ]
+  "TrailARN": "arn:aws:cloudtrail:us-east-2:XXXXXXXXXXX:trail/eks-cloudtrail",
+  "InsightSelectors": [
+    {
+      "InsightType": "ApiCallRateInsight"
+    },
+    {
+      "InsightType": "ApiErrorRateInsight"
+    }
+  ]
 }
 ```
+
 :::
 
-
 You can also verify the Insights status using describe-trails command:
+
 ```bash
 aws cloudtrail describe-trails --trail-name-list eks-cloudtrail
 ```
 
-
 :::expand{header="Check Output"}
 ![Describe CloudTrail](/static/images/detective-controls/log-insights/describe-cloudtrail-1.png)
 :::
-
 
 ::::
 
@@ -60,15 +55,9 @@ https://console.aws.amazon.com/cloudtrail/home?#create
 
 ![Create CloudTrail - Final](/static/images/detective-controls/log-insights/cloudtrail-create-3.png)
 
-
 ::::
 
 :::::
-
-
-
-
-
 
 ---
 

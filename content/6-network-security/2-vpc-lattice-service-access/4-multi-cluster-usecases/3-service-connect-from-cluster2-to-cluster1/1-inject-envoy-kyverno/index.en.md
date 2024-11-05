@@ -1,6 +1,6 @@
 ---
-title : "Use envoy proxy to sign requests"
-weight : 26
+title: "Use envoy proxy to sign requests"
+weight: 26
 ---
 
 Again in this module we are going to leverage kyverno to inject our envoy signing proxy:
@@ -12,6 +12,7 @@ eksdemo install policy kyverno -c $EKS_CLUSTER2_NAME
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 Downloading Chart: https://kyverno.github.io/kyverno/kyverno-v2.5.2.tgz
 Helm installing...
@@ -27,6 +28,7 @@ Thank you for installing kyverno! Your release is named policy-kyverno.
 
 💡 Note: There is a trade-off when deciding which approach to take regarding Namespace exclusions. Please see the documentation at https://kyverno.io/docs/installation/#security-vs-operability to understand the risks.
 ```
+
 ::::
 
 Let's apply the Kyverno ClusterPolicy we created in [previous module](/6-network-security/2-vpc-lattice-service-access/3-single-cluster-usecases/5-service-connect-https-custom-domain/1-inject-envoy-kyverno) and let's force restart of our app5
@@ -43,9 +45,11 @@ kubectl --context $EKS_CLUSTER2_CONTEXT exec -it deploy/app5-v1 -n app5 -c app5-
 ```
 
 ::::expand{header="Check Output" defaultExpanded=true}
+
 ```
 Requsting to Pod(app1-v1-96c54ccf7-4rxg8): Hello from app1-v1
 ```
+
 ::::
 
 You can see the logs of the envoy proxy computing the sigv4 signature by looking at the logs:
@@ -53,7 +57,6 @@ You can see the logs of the envoy proxy computing the sigv4 signature by looking
 ```bash
 kubectl stern --context $EKS_CLUSTER2_CONTEXT -n app5 app5 -c envoy-sigv4 --tail=10 | grep token
 ```
-
 
 ::::alert{type="info" header="Congratulation!!"}
 We have successfully established cross-EKS cluster service communication over HTTPS through AWS VPC lattice, with IAM authorization leveraging EKS Pod Identity. This allows us to control which applications from specific namespaces and clusters can access the targeted AWS VPC lattice services.

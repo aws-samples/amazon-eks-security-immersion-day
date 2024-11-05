@@ -1,6 +1,6 @@
 ---
-title : "Setup ECR Repositories"
-weight : 21
+title: "Setup ECR Repositories"
+weight: 21
 ---
 
 ::alert[Please ensure you are in the correct region within the AWS Console, for the tasks listed below. You can select the correct region from the region selection dropdown towards the top right of the AWS console.]{header="Note"}
@@ -30,16 +30,18 @@ docker pull alpine:latest
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 latest: Pulling from library/alpine
-7264a8db6415: Pull complete 
+7264a8db6415: Pull complete
 Digest: sha256:7144f7bab3d4c2648d7e59409f15ec52a18006a128c733fcff20d3a4a54ba44a
 Status: Downloaded newer image for alpine:latest
 docker.io/library/alpine:latest
 ```
+
 ::::
 
-3. Install and configure [Amazon ECR Credential Helper](https://github.com/awslabs/amazon-ecr-credential-helper) 
+3. Install and configure [Amazon ECR Credential Helper](https://github.com/awslabs/amazon-ecr-credential-helper)
 
 ```bash
 cat << EoF > ~/.docker/config.json
@@ -51,6 +53,7 @@ sudo yum install -y amazon-ecr-credential-helper
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 Loaded plugins: extras_suggestions, langpacks, priorities, update-motd
 244 packages excluded due to repository priority protections
@@ -73,19 +76,20 @@ Install  1 Package
 Total download size: 2.1 M
 Installed size: 6.5 M
 Downloading packages:
-amazon-ecr-credential-helper-0.6.0-1.amzn2.x86_64.rpm        | 2.1 MB  00:00:00     
+amazon-ecr-credential-helper-0.6.0-1.amzn2.x86_64.rpm        | 2.1 MB  00:00:00
 Running transaction check
 Running transaction test
 Transaction test succeeded
 Running transaction
-  Installing : amazon-ecr-credential-helper-0.6.0-1.amzn2.x86_64                1/1 
-  Verifying  : amazon-ecr-credential-helper-0.6.0-1.amzn2.x86_64                1/1 
+  Installing : amazon-ecr-credential-helper-0.6.0-1.amzn2.x86_64                1/1
+  Verifying  : amazon-ecr-credential-helper-0.6.0-1.amzn2.x86_64                1/1
 
 Installed:
-  amazon-ecr-credential-helper.x86_64 0:0.6.0-1.amzn2                               
+  amazon-ecr-credential-helper.x86_64 0:0.6.0-1.amzn2
 
 Complete!
 ```
+
 ::::
 
 4. Create an ECR repository with namespace (prefix) `team-a/`. First, check if it already exists.
@@ -110,11 +114,13 @@ fi
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/team-a/alpine does not exist. So creating it...
 
 ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/team-a/alpine repo created...
 ```
+
 ::::
 
 5. Create an ECR repository with namespace (prefix) `team-b/`. First, check if it already exists.
@@ -139,11 +145,13 @@ fi
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/team-b/alpine does not exist. So creating it...
 
 ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/team-b/alpine repo created...
 ```
+
 ::::
 
 After both repositories are created, [AWS Console](https://us-west-2.console.aws.amazon.com/ecr/repositories) will show the repositories as shown below:
@@ -180,17 +188,19 @@ docker push $ECR_REPO_URI_B:v1
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 WSParticipantRole:~/environment $ docker push $ECR_REPO_URI_A:v1
 The push refers to repository [ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/team-a/alpine]
-4693057ce236: Pushed 
+4693057ce236: Pushed
 v1: digest: sha256:c5c5fda71656f28e49ac9c5416b3643eaa6a108a8093151d6d1afc9463be8e33 size: 528
 WSParticipantRole:~/environment $ docker push $ECR_REPO_URI_B:v1
 The push refers to repository [ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/team-b/alpine]
-4693057ce236: Pushed 
+4693057ce236: Pushed
 v1: digest: sha256:c5c5fda71656f28e49ac9c5416b3643eaa6a108a8093151d6d1afc9463be8e33 size: 528
 WSParticipantRole:~/environment $
 ```
+
 ::::
 
 9. Check the role name and permissions assigned to the current IAM identity
@@ -205,7 +215,7 @@ The output will look like below:
 
 ```
 IAM Role eks-bootstrap-template-ws-Cloud9InstanceRole-1WXBJ4WGCUFN9 is assigned
-to the Cloud9 instance and IAM policy "AdministratorAccess" is attached to the 
+to the Cloud9 instance and IAM policy "AdministratorAccess" is attached to the
 eks-bootstrap-template-ws-Cloud9InstanceRole-1WXBJ4WGCUFN9 role
 ```
 

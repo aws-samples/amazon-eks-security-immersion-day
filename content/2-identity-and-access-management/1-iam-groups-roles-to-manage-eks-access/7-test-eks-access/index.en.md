@@ -1,10 +1,9 @@
 ---
-title : "Test Amazon EKS access"
-weight : 27
+title: "Test Amazon EKS access"
+weight: 27
 ---
 
 ## Automate assumerole with aws cli
-
 
 It is possible to automate the retrieval of temporary credentials for the assumed role by configuring the AWS CLI in the files `~/.aws/config` and `~/.aws/credentials`. As an example, we will define three profiles.
 
@@ -100,8 +99,7 @@ The output looks like below.
 
 ## Using AWS profiles with the Kubectl config file
 
-It is also possible to specify the AWS\_PROFILE to use with the aws-iam-authenticator in the `~/.kube/config` file, so that it will use the appropriate profile.
-
+It is also possible to specify the AWS_PROFILE to use with the aws-iam-authenticator in the `~/.kube/config` file, so that it will use the appropriate profile.
 
 ### With dev profile
 
@@ -115,9 +113,11 @@ cat $KUBECONFIG | yq e '.users.[].user.exec.args += ["--profile", "dev"]' - | se
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 2023-03-14 10:16:28 [✔]  saved kubeconfig as "/tmp/kubeconfig-dev"
 ```
+
 ::::
 
 We added the `--profile dev` parameter to our kubectl config file, so that this will ask kubectl to use our IAM role associated to our dev profile, and we rename the context using suffix **\-dev**.
@@ -131,9 +131,11 @@ kubectl run nginx-dev --image=nginx -n development
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 pod/nginx-dev created
 ```
+
 ::::
 
 We can list the pods:
@@ -154,11 +156,13 @@ nginx-dev   1/1     Running   0          28s
 ```bash
 kubectl get pods -n integration
 ```
+
 The output looks like below
 
 ```
 Error from server (Forbidden): pods is forbidden: User "dev-user" cannot list resource "pods" in API group "" in the namespace "integration"
 ```
+
 #### Test with integ profile
 
 ```bash
@@ -169,9 +173,11 @@ cat $KUBECONFIG | yq e '.users.[].user.exec.args += ["--profile", "integ"]' - | 
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 2023-03-14 10:24:31 [✔]  saved kubeconfig as "/tmp/kubeconfig-integ"
 ```
+
 ::::
 
 Let's create a pod:
@@ -181,9 +187,11 @@ kubectl run nginx-integ --image=nginx -n integration
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 pod/nginx-integ created
 ```
+
 ::::
 
 We can list the pods:
@@ -216,11 +224,12 @@ cat $KUBECONFIG | yq e '.users.[].user.exec.args += ["--profile", "admin"]' - | 
 
 ```
 
-
 ::::expand{header="Check Output"}
+
 ```
 2023-03-14 10:30:52 [✔]  saved kubeconfig as "/tmp/kubeconfig-admin"
 ```
+
 ::::
 
 Let's create a pod in the default namespace:
@@ -230,9 +239,11 @@ kubectl run nginx-admin --image=nginx
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 pod/nginx-admin created
 ```
+
 ::::
 
 We can list the pods:
@@ -253,6 +264,7 @@ We can list ALL pods in all namespaces:
 ```bash
 kubectl get pods -A
 ```
+
 The output looks like below.
 
 ```

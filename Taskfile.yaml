@@ -15,6 +15,10 @@ tasks:
     cmds:
       - pre-commit run --all-files
 
+  test:
+    cmds:
+      - source .envrc && yarn
+
   bootstrap:
     desc: "bootstrap CDK, needs to be only run the first time"
     cmds:
@@ -67,7 +71,7 @@ tasks:
       - generate-cfn
     cmds:
       - yarn generate-cfn-self
-      - yarn generate-cfn-studio      
+      - yarn generate-cfn-studio
 
   cfn-custom:
     desc: "Generate the Cloudformation template for Workshop Studio that uses custom Variables WORKSHOP_GIT_URL and WORKSHOP_GIT_BRANCH"

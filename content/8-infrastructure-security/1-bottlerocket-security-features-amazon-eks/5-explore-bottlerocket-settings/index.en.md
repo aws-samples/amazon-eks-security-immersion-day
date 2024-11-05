@@ -1,6 +1,6 @@
 ---
-title : "Exploring Bottlerocket Settings"
-weight : 25
+title: "Exploring Bottlerocket Settings"
+weight: 25
 ---
 
 In this section of the workshop, you will explore [Bottlerocket settings](https://bottlerocket.dev/en/os/latest/#/api/settings-index/) using the `apiclient` in the `control` container. Any settings you can modify with `apiclient`, you can configure using EC2 [user data](https://github.com/bottlerocket-os/bottlerocket#using-user-data) in TOML format.
@@ -12,6 +12,7 @@ apiclient get settings.kubernetes.authentication-mode
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 {
   "settings": {
@@ -21,6 +22,7 @@ apiclient get settings.kubernetes.authentication-mode
   }
 }
 ```
+
 ::::
 
 2. Kernel lockdown in integrity mode (recommended) limits an attacker’s ability to overwrite the kernel’s memory or modify its code. It also can prevent an attacker from loading unsigned kernel modules. Only kernel modules included in the Bottlerocket image can be loaded. In the k8s variants of Bottlerocket, kernel lockdown is set to `integrity` mode by default.
@@ -30,6 +32,7 @@ apiclient get settings.kernel.lockdown
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 {
   "settings": {
@@ -39,6 +42,7 @@ apiclient get settings.kernel.lockdown
   }
 }
 ```
+
 ::::
 
 3. You can review the `motd` message in the settings.
@@ -48,6 +52,7 @@ apiclient get settings.motd
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 {
   "settings": {
@@ -55,6 +60,7 @@ apiclient get settings.motd
   }
 }
 ```
+
 ::::
 
 4. You can review all the current settings with one command.
@@ -64,6 +70,7 @@ apiclient get settings | jq
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 {
   "settings": {
@@ -189,6 +196,7 @@ apiclient get settings | jq
   }
 }
 ```
+
 ::::
 
 5. Exit out of the `control` container.
@@ -204,6 +212,7 @@ aws ec2 describe-instance-attribute --attribute userData --instance-id $INSTANCE
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 [settings.kubernetes]
 "cluster-name" = "eksworkshop-eksctl"
@@ -216,6 +225,7 @@ aws ec2 describe-instance-attribute --attribute userData --instance-id $INSTANCE
 "eks.amazonaws.com/capacityType" = "ON_DEMAND"
 "eks.amazonaws.com/nodegroup" = "mng-br"
 ```
+
 ::::
 
 7. Scale-in Bottlerocket MNG to stop incurring EC2 costs for the instances.
@@ -225,11 +235,13 @@ eksctl scale nodegroup -c $EKS_CLUSTER -n $BR_MNG_NAME -r $AWS_REGION --nodes 0
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 2023-12-22 06:37:38 [ℹ]  scaling nodegroup "mng-br" in cluster eksworkshop-eksctl
 2023-12-22 06:37:38 [ℹ]  initiated scaling of nodegroup
 2023-12-22 06:37:38 [ℹ]  to see the status of the scaling run `eksctl get nodegroup --cluster eksworkshop-eksctl --region us-west-2 --name mng-br`
 ```
+
 ::::
 
 8. Remove bootstrap container images from the Cloud9 workspace and ECR repository.
@@ -246,9 +258,11 @@ aws ecr delete-repository \
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 Untagged: br-bootstrap:v1
 ```
+
 ```
 Untagged: ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/br-bootstrap:v1
 Untagged: ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/br-bootstrap@sha256:181647d18932ca46cc43d28f8370d5edd33310d36581b1238446aea1dd14c29f
@@ -258,6 +272,7 @@ Deleted: sha256:d0ed8a17adaedc901e99f37f51bdef642f49809b52f78c03839fab352925d68a
 Deleted: sha256:89442bfc5268678cfd01d045fa7bbb87c71ce48f436c301526390e972b651ba6
 Deleted: sha256:645b5b6df6018d94a33f62ecca02b581f3f0ec7c65e95e68b0ba3b33fa08a34e
 ```
+
 ```
 {
     "repository": {
@@ -270,4 +285,5 @@ Deleted: sha256:645b5b6df6018d94a33f62ecca02b581f3f0ec7c65e95e68b0ba3b33fa08a34e
     }
 }
 ```
+
 ::::

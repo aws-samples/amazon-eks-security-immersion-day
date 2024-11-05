@@ -1,6 +1,6 @@
 ---
-title : "Create Second EKS Cluster"
-weight : 10
+title: "Create Second EKS Cluster"
+weight: 10
 ---
 
 ## Create folder for the module
@@ -16,14 +16,15 @@ mkdir -p manifests
 **Open a new terminal and run all the below steps in this section.**
 
 <!-- EKS Pod-Identity is not supported on 1.29 on 02.2024 -->
+
 ```bash
 export EKS_CLUSTER2_NAME=eksworkshop-eksctl-2
 echo "export EKS_CLUSTER2_NAME=$EKS_CLUSTER2_NAME" >> ~/.bash_profile
-eksdemo create cluster $EKS_CLUSTER2_NAME --vpc-cidr 10.254.0.0/16 -N 3 --version 1.28 
+eksdemo create cluster $EKS_CLUSTER2_NAME --vpc-cidr 10.254.0.0/16 -N 3 --version 1.28
 ```
 
 <!--
-#### Create an AWS KMS Custom Managed Key (CMK) 
+#### Create an AWS KMS Custom Managed Key (CMK)
 
 Create a CMK for the EKS cluster to use when encrypting your Kubernetes secrets:
 
