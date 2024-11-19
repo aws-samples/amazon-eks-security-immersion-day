@@ -39,7 +39,7 @@ eksctl create iamidentitymapping \
 
 ::::expand{header="Check Output"}
 
-```json
+```bash
 2023-03-14 09:57:10 [ℹ]  checking arn arn:aws:iam::12345678900:role/k8sDev against entries in the auth ConfigMap
 2023-03-14 09:57:10 [ℹ]  adding identity "arn:aws:iam::12345678900:role/k8sDev" to auth ConfigMap
 
@@ -105,6 +105,7 @@ Here is what we have done so far:
 - created a RBAC role `dev-role` for IAM role `k8sDev` which maps to RBAC user  `dev-user` in `development` Namespace.
 - created a RBAC role `integ-role` for IAM role `k8sInteg` which maps to RBAC user  `integ-user` in `integration` Namespace.
 - mapped IAM role `k8sAdmin` to RBAC user  `admin` which is assigned to one of the default ClusterRoles `cluster-admin`. The ClusterRole `cluster-admin` maps to the **system\:masters** RBAC group that provides full Admininstrator permissions on the cluster.
+  
   ::alert[This is only for example purpose. It is highly recommended not to add any Kubernetes user to **system\:masters** group unless it is necessary]{header="Note"}
 
 

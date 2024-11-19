@@ -80,13 +80,13 @@ Run the below command to see the pod status
 kubectl get pod
 ```
 
-The output looks like below
-
-```
+::::expand{header="Check Output"}
+```bash
 NAME            READY   STATUS    RESTARTS   AGE
 eks-iam-test1   0/1     Error     0          96m
 eks-iam-test2   1/1     Running   0          81s
 ```
+::::
 
 Let us look at the Volumes and volumeMounts in the pod `eks-iam-test2` specification.
 

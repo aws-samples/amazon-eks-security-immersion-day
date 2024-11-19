@@ -1,5 +1,5 @@
 ---
-title: "IAM Roles for service accounts(IRSA)"
+title: "IAM roles for service accounts(IRSA)"
 weight: 34
 ---
 
@@ -9,7 +9,7 @@ Before we get into the details of what is IRSA and how does it work, let us firs
 
 A common challenge architects face when designing a Kubernetes solution on AWS is how to grant containerized workload permissions to access an AWS service or resource. AWS Identity and Access Management (IAM) provides fine-grained access control where you can specify who can access which AWS service or resources, ensuring the principle of least privilege. The challenge when your workload is running in Kubernetes, however, is providing an identity to that Kubernetes workload that IAM can use for authentication.
 
-Let's take an example to illustrate this challenge. Let's deploy a simple pod which needs to list all the AWS S3 buckets.
+Let's take an example to illustrate this challenge. Let's deploy a simple pod which needs to list all the Amazon S3 buckets.
 
 ```bash
 cat > eks-iam-test1.yaml <<EOF
@@ -44,12 +44,13 @@ Run the below command to see the pod status
 kubectl get pod
 ```
 
-The output looks like below
-
-```
+::::expand{header="Check Output"}
+```bash
 NAME            READY   STATUS   RESTARTS   AGE
 eks-iam-test1   0/1     Error    0          30s
 ```
+::::
+
 
 The pod status shows `Error`. Let us check logs for the exact reason.
 
@@ -57,23 +58,23 @@ The pod status shows `Error`. Let us check logs for the exact reason.
 kubectl logs  eks-iam-test1
 ```
 
-The output looks like below.
-
+::::expand{header="Check Output"}
+```bash
+An error occurred (AccessDenied) when calling the ListBuckets operation: User: arn:aws:sts::12345678900:assumed-role/eksctl-eksworkshop-eksctl-nodegrou-NodeInstanceRole-i7siYfkDyXRy/i-010709c2d48ac5f83 is not authorized to perform: s3:ListAllMyBuckets because no identity-based policy allows the s3:ListAllMyBuckets action
 ```
-An error occurred (AccessDenied) when calling the ListBuckets operation: Access Denied
-```
+::::
 
 As you see in the above output, the pod is not able to access the AWS S3 service due to `AccessDenied` permission error.
 
-The reason for this error is that the Kubernetes Pod is assuming an [IAM Role attached to the Amazon EC2 instance](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html) and leveraging this role to try and list the S3 buckets. This is because no other AWS credentials were found in the container, so the SDK fell back to the IAM metadata server, as mentioned in the [python boto3 sdk documentation](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html#id1).
+The reason for this error is that the Kubernetes Pod is assuming an [IAM role attached to the Amazon EC2 instance](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html) and leveraging this role to try and list the S3 buckets. This is because no other AWS credentials were found in the container, so the SDK fell back to the IAM metadata server, as mentioned in the [python boto3 sdk documentation](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html#id1).
 
 As the IAM role within the EC2 Instance Profile does not have necessary permissions to list the buckets, the command received an “Access Denied” error. One way to fix this could be to attach additional permissions to the EC2 instance profile. However, this violates a key security principle, the principle of least privilege. This additional permission would be at the EC2 Node level, not at the Kubernetes Pod level. Therefore, all Pods running on that node would gain access to our S3 buckets. We want to restrict this permission to the Pod level.
 
 This leads us on to the next question: how could we inject AWS credentials into a container so the container does not default to the EC2 instance profile? Injecting AWS credentials via Kubernetes Secrets or environment variables would not be secure, and the user would have to manage the lifecycle of these credentials. We would not recommend either of those approaches.
 
-#### Fine-Grained IAM Roles for service accounts
+#### Fine-Grained IAM roles for service accounts
 
-Applications in a Pod’s containers can use an AWS SDK or the AWS CLI to make API requests to AWS services using AWS Identity and Access Management (IAM) permissions. For example, applications may need to upload files to an S3 bucket or query a DynamoDB table. To do so applications must sign their AWS API requests with AWS credentials. [IAM Roles for service accounts (IRSA)](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) provide the ability to manage credentials for your applications, similar to the way that IAM Instance Profiles provide credentials to Amazon EC2 instances. Instead of creating and distributing your AWS credentials to the containers or relying on the Amazon EC2 Instance Profile for authorization, you associate an IAM Role with a Kubernetes Service Account and configure your Pods to use that Service Account.
+Applications in a Pod’s containers can use an AWS SDK or the AWS CLI to make API requests to AWS services using AWS Identity and Access Management (IAM) permissions. For example, applications may need to upload files to an S3 bucket or query a DynamoDB table. To do so applications must sign their AWS API requests with AWS credentials. [IAM roles for service accounts (IRSA)](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) provide the ability to manage credentials for your applications, similar to the way that IAM Instance Profiles provide credentials to Amazon EC2 instances. Instead of creating and distributing your AWS credentials to the containers or relying on the Amazon EC2 Instance Profile for authorization, you associate an IAM role with a Kubernetes Service Account and configure your Pods to use that Service Account.
 
 You can associate an IAM role with a Kubernetes Service Account. This Service Account can then provide AWS permissions to the containers in any pod that uses that Service Account. With this feature, you no longer need to provide extended permissions to the Amazon EKS node IAM role so that pods on that node can call AWS APIs.
 

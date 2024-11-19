@@ -38,7 +38,7 @@ If output is returned, then you already have an IAM OIDC provider for your clust
 eksctl utils associate-iam-oidc-provider --cluster eksworkshop-eksctl  --approve
 ```
 
-If you go to the [Identity Providers in IAM Console](https://console.aws.amazon.com/iam/home#/providers), and click on the OIDC provider link, you will see OIDC provider has created for your cluster.
+Go to the [Identity Providers in IAM Console](https://console.aws.amazon.com/iam/home#/providers) and see that the OIDC provider is created for Amazon EKS cluster.
 
 ![oidc](/static/images/iam/irsa/oidc.png)
 
@@ -55,14 +55,14 @@ aws iam list-policies --query 'Policies[?PolicyName==`AmazonS3ReadOnlyAccess`].A
 ```
 
 ::::expand{header="Check Output"}
-
 ```json
-["arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"]
+[
+    "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+]
 ```
-
 ::::
 
-Now you will create a IAM role bound to a service account with read-only access to S3
+Now we will create a IAM role bound to a service account with read-only access to Amazon S3.
 
 ```bash
 eksctl create iamserviceaccount \
@@ -74,52 +74,50 @@ eksctl create iamserviceaccount \
 ```
 
 ::::expand{header="Check Output"}
-
-```
-2023-03-05 07:36:33 [ℹ]  8 existing iamserviceaccount(s) (amazon-cloudwatch/cloudwatch-agent,amazon-cloudwatch/cwagent-prometheus,amazon-cloudwatch/fluent-bit,default/xray-daemon,karpenter/karpenter,kube-system/aws-node,kube-system/cluster-autoscaler,workshop/iam-test) will be excluded
-2023-03-05 07:36:33 [ℹ]  1 iamserviceaccount (default/iam-test) was included (based on the include/exclude rules)
-2023-03-05 07:36:33 [!]  metadata of serviceaccounts that exist in Kubernetes will be updated, as --override-existing-serviceaccounts was set
-2023-03-05 07:36:33 [ℹ]  1 task: {
-    2 sequential sub-tasks: {
+```bash
+2024-11-19 09:03:35 [ℹ]  4 existing iamserviceaccount(s) (awslb/aws-load-balancer-controller,external-dns/external-dns,karpenter/karpenter,kube-system/ebs-csi-controller-sa) will be excluded
+2024-11-19 09:03:35 [ℹ]  1 iamserviceaccount (default/iam-test) was included (based on the include/exclude rules)
+2024-11-19 09:03:35 [!]  metadata of serviceaccounts that exist in Kubernetes will be updated, as --override-existing-serviceaccounts was set
+2024-11-19 09:03:35 [ℹ]  1 task: { 
+    2 sequential sub-tasks: { 
         create IAM role for serviceaccount "default/iam-test",
         create serviceaccount "default/iam-test",
-    } }2023-03-05 07:36:33 [ℹ]  building iamserviceaccount stack "eksctl-eksworkshop-eksctl-addon-iamserviceaccount-default-iam-test"
-2023-03-05 07:36:33 [ℹ]  deploying stack "eksctl-eksworkshop-eksctl-addon-iamserviceaccount-default-iam-test"
-2023-03-05 07:36:33 [ℹ]  waiting for CloudFormation stack "eksctl-eksworkshop-eksctl-addon-iamserviceaccount-default-iam-test"
-2023-03-05 07:37:03 [ℹ]  waiting for CloudFormation stack "eksctl-eksworkshop-eksctl-addon-iamserviceaccount-default-iam-test"
-2023-03-05 07:37:03 [ℹ]  created serviceaccount "default/iam-test"
+    } }2024-11-19 09:03:35 [ℹ]  building iamserviceaccount stack "eksctl-eksworkshop-eksctl-addon-iamserviceaccount-default-iam-test"
+2024-11-19 09:03:36 [ℹ]  deploying stack "eksctl-eksworkshop-eksctl-addon-iamserviceaccount-default-iam-test"
+2024-11-19 09:03:36 [ℹ]  waiting for CloudFormation stack "eksctl-eksworkshop-eksctl-addon-iamserviceaccount-default-iam-test"
+2024-11-19 09:04:06 [ℹ]  waiting for CloudFormation stack "eksctl-eksworkshop-eksctl-addon-iamserviceaccount-default-iam-test"
+2024-11-19 09:04:06 [ℹ]  created serviceaccount "default/iam-test"
 ```
-
 ::::
 
-You can see that an IAM role (See the Annotations below) is associated to the service account iam-test in the cluster we just created.
+Run the below command to describe the Service Account `iam-test` and notice the IAM role in the Annotations.
 
 ```bash
 kubectl describe sa iam-test
 ```
 
-The output looks like below.
-
-```
+::::expand{header="Check Output"}
+```bash
 Name:                iam-test
 Namespace:           default
 Labels:              app.kubernetes.io/managed-by=eksctl
-Annotations:         eks.amazonaws.com/role-arn: arn:aws:iam::XXXXXXXXXXXX:role/eksctl-eksworkshop-eksctl-addon-iamserviceac-Role1-1CF1FE6ZXXRZF
+Annotations:         eks.amazonaws.com/role-arn: arn:aws:iam::12345678900:role/eksctl-eksworkshop-eksctl-addon-iamserviceacc-Role1-uCkKksRr2yIE
 Image pull secrets:  <none>
-Mountable secrets:   iam-test-token-v8flm
-Tokens:              iam-test-token-v8flm
+Mountable secrets:   <none>
+Tokens:              <none>
 Events:              <none>
 ```
+::::
 
 In the above input, note that the service account annotation contains the IAM Role.
 
-::alert[If you go to the [AWS CloudFormation in IAM Console](https://console.aws.amazon.com/cloudformation/), you will find that the stack `eksctl-eksworkshop-eksctl-addon-iamserviceaccount-default-iam-test` has created a role for your service account.]{header="Note"}
+::alert[If you go to the [AWS CloudFormation console](https://console.aws.amazon.com/cloudformation/), you will find that the stack `eksctl-eksworkshop-eksctl-addon-iamserviceaccount-default-iam-test` has created a role for your service account.]{header="Note"}
 
 Let’s see how this IAM role looks within the AWS Management Console. Navigate to IAM and then IAM Roles and search for the role. You will see the Annotations field when you describe your Service Account.
 
 ![iam-role-permissions](/static/images/iam/irsa/iam-role-permissions.png)
 
-Select the Trust relationships tab and select Edit trust relationship to view the policy document.
+Select the Trust relationships tab to view the Trusted entities.
 
 ![iam-role-trust-policy](/static/images/iam/irsa/iam-role-trust-policy.png)
 
@@ -137,11 +135,11 @@ First let's create an S3 bucket.
 aws s3 mb s3://eksworkshop-$ACCOUNT_ID-$AWS_REGION --region $AWS_REGION
 ```
 
-The output looks like below
-
+::::expand{header="Check Output"}
+```bash
+make_bucket: eksworkshop-12345678900-us-west-2
 ```
-make_bucket: eksworkshop-XXXXXXXX-us-west-2
-```
+::::
 
 Now let us use the above Service Account with our initial Pod example, which lists S3 objects.
 
@@ -181,15 +179,15 @@ Run the below command to see the pod status.
 kubectl get pod
 ```
 
-The output looks like below
-
-```
+::::expand{header="Check Output"}
+```bash
 NAME            READY   STATUS    RESTARTS   AGE
 NAME            READY   STATUS      RESTARTS   AGE
 eks-iam-test1   0/1     Error       0          115m
 eks-iam-test2   1/1     Running     0          19m
 eks-iam-test3   0/1     Completed   0          61s
 ```
+::::
 
 The pod status shows `Completed`. Let us check the logs to verify that the command ran successfully this time.
 
@@ -197,11 +195,12 @@ The pod status shows `Completed`. Let us check the logs to verify that the comma
 kubectl logs  eks-iam-test3
 ```
 
-The output should look like below.
-
+::::expand{header="Check Output"}
+```bash
+2024-11-19 00:43:16 eks-security-workshop-tea-tfstatebackendbucketf0fc-jsw7uc7rmqhr
+2024-11-19 09:29:57 eksworkshop-251017169135-us-west-2
 ```
-2023-03-14 12:32:02 eksworkshop-XXXXXXXXXX-us-west-2
-```
+::::
 
 The above output indicates that the container is now able to access the AWS S3 service and list the bucket names successfully.
 
@@ -228,11 +227,9 @@ kubectl apply -f eks-iam-test4.yaml
 ```
 
 ::::expand{header="Check Output"}
-
-```
+```bash
 pod/eks-iam-test4 created
 ```
-
 ::::
 
 Run the below command to see the pod status.
@@ -241,15 +238,15 @@ Run the below command to see the pod status.
 kubectl get pod
 ```
 
-The output looks like below
-
-```
+::::expand{header="Check Output"}
+```bash
 NAME            READY   STATUS      RESTARTS   AGE
-eks-iam-test1   0/1     Error       0          125m
-eks-iam-test2   1/1     Running     0          30m
-eks-iam-test3   0/1     Completed   0          11m
-eks-iam-test4   1/1     Running     0          6m12s
+eks-iam-test1   0/1     Error       0          47m
+eks-iam-test2   1/1     Running     0          43m
+eks-iam-test3   0/1     Completed   0          2m7s
+eks-iam-test4   1/1     Running     0          8s
 ```
+::::
 
 If we inspect the Pod using Kubectl and jq, we can see there are now two volumes mounted into our Pod. The second one has been mounted via that mutating webhook. The aws-iam-token is still being generated by the Kubernetes API Server, but with a new OIDC JWT audience.
 
@@ -259,7 +256,7 @@ Let us look at the Volumes and volumeMounts in the pod specification.
 kubectl get pod eks-iam-test4 -oyaml
 ```
 
-The output looks like below. Only relevant fields are shown below.
+The output looks like below (only relevant fields are shown).
 
 ```yaml
 ---
@@ -276,7 +273,7 @@ spec:
     - name: AWS_REGION
       value: us-west-2
     - name: AWS_ROLE_ARN
-      value: arn:aws:iam::XXXXXXXXX:role/eksctl-eksworkshop-eksctl-addon-iamserviceac-Role1-1CF1FE6ZXXRZF
+      value: arn:aws:iam::12345678900:role/eksctl-eksworkshop-eksctl-addon-iamserviceac-Role1-1CF1FE6ZXXRZF
     - name: AWS_WEB_IDENTITY_TOKEN_FILE
       value: /var/run/secrets/eks.amazonaws.com/serviceaccount/token
     image: amazon/aws-cli:latest
