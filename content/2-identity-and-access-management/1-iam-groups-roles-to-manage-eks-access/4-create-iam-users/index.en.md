@@ -1,9 +1,9 @@
 ---
-title: "Create AWS IAM Users"
+title: "Create AWS IAM users"
 weight: 24
 ---
 
-In order to test our scenarios, we will create 3 users, one for each groups we created :
+In order to test our scenarios, we will create 3 IAM users, one for each of the IAM user groups we created :
 
 ```bash
 IAM_USERS=("PaulAdmin" "JeanDev" "PierreInteg")
@@ -12,10 +12,10 @@ for IAM_USER in ${IAM_USERS[@]}; do
     if [ -z "$IAM_USER_ARN" ]
     then
         IAM_USER_ARN=$(aws iam create-user --user-name $IAM_USER | jq -r '.User.Arn')
-        echo "IAM User ${IAM_USER} created. IAM_USER_ARN=$IAM_USER_ARN"
+        echo "IAM user ${IAM_USER} created. IAM_USER_ARN=$IAM_USER_ARN"
 
     else
-        echo "IAM User ${IAM_USER} already exist..."
+        echo "IAM user ${IAM_USER} already exist..."
     fi
 done
 ```
@@ -23,9 +23,14 @@ done
 ::::expand{header="Check Output"}
 
 ```bash
-IAM User PaulAdmin created. IAM_USER_ARN=arn:aws:iam::ACCOUNT_ID:user/PaulAdmin
-IAM User JeanDev created. IAM_USER_ARN=arn:aws:iam::ACCOUNT_ID:user/JeanDev
-IAM User PierreInteg created. IAM_USER_ARN=arn:aws:iam::ACCOUNT_ID:user/PierreInteg
+An error occurred (NoSuchEntity) when calling the GetUser operation: The user with name PaulAdmin cannot be found.
+IAM user PaulAdmin created. IAM_USER_ARN=arn:aws:iam::12345678900:user/PaulAdmin
+
+An error occurred (NoSuchEntity) when calling the GetUser operation: The user with name JeanDev cannot be found.
+IAM user JeanDev created. IAM_USER_ARN=arn:aws:iam::12345678900:user/JeanDev
+
+An error occurred (NoSuchEntity) when calling the GetUser operation: The user with name PierreInteg cannot be found.
+IAM user PierreInteg created. IAM_USER_ARN=arn:aws:iam::12345678900:user/PierreInteg
 ```
 
 ::::
@@ -54,55 +59,55 @@ aws iam get-group --group-name k8sInteg
         {
             "Path": "/",
             "UserName": "PaulAdmin",
-            "UserId": "AIDAYGIGGNX6DQ3VBNWSP",
-            "Arn": "arn:aws:iam::ACCOUNT_ID:user/PaulAdmin",
-            "CreateDate": "2023-03-14T09:38:58+00:00"
+            "UserId": "AIDATU4OKBDXRPPLEHSZI",
+            "Arn": "arn:aws:iam::12345678900:user/PaulAdmin",
+            "CreateDate": "2024-11-19T03:50:16+00:00"
         }
     ],
     "Group": {
         "Path": "/",
         "GroupName": "k8sAdmin",
-        "GroupId": "AGPAYGIGGNX6INPRF5C7E",
-        "Arn": "arn:aws:iam::ACCOUNT_ID:group/k8sAdmin",
-        "CreateDate": "2023-03-14T09:33:25+00:00"
+        "GroupId": "AGPATU4OKBDX4PWJNK6YD",
+        "Arn": "arn:aws:iam::12345678900:group/k8sAdmin",
+        "CreateDate": "2024-11-19T02:38:25+00:00"
     }
 }
-
 {
     "Users": [
         {
             "Path": "/",
             "UserName": "JeanDev",
-            "UserId": "AIDAYGIGGNX6KG5ALPI65",
-            "Arn": "arn:aws:iam::ACCOUNT_ID:user/JeanDev",
-            "CreateDate": "2023-03-14T09:38:59+00:00"
+            "UserId": "AIDATU4OKBDXQYQKMCN4V",
+            "Arn": "arn:aws:iam::12345678900:user/JeanDev",
+            "CreateDate": "2024-11-19T03:50:18+00:00"
         }
     ],
     "Group": {
         "Path": "/",
         "GroupName": "k8sDev",
-        "GroupId": "AGPAYGIGGNX6GRTEAJQE3",
-        "Arn": "arn:aws:iam::ACCOUNT_ID:group/k8sDev",
-        "CreateDate": "2023-03-14T09:35:00+00:00"
+        "GroupId": "AGPATU4OKBDXTUV6BC4VG",
+        "Arn": "arn:aws:iam::12345678900:group/k8sDev",
+        "CreateDate": "2024-11-19T02:47:38+00:00"
     }
 }
+
 
 {
     "Users": [
         {
             "Path": "/",
             "UserName": "PierreInteg",
-            "UserId": "AIDAYGIGGNX6EF5ELOVZ4",
-            "Arn": "arn:aws:iam::ACCOUNT_ID:user/PierreInteg",
-            "CreateDate": "2023-03-14T09:39:00+00:00"
+            "UserId": "AIDATU4OKBDXYUXNWBNAV",
+            "Arn": "arn:aws:iam::12345678900:user/PierreInteg",
+            "CreateDate": "2024-11-19T03:50:19+00:00"
         }
     ],
     "Group": {
         "Path": "/",
         "GroupName": "k8sInteg",
-        "GroupId": "AGPAYGIGGNX6KBNORQ3GN",
-        "Arn": "arn:aws:iam::ACCOUNT_ID:group/k8sInteg",
-        "CreateDate": "2023-03-14T09:35:55+00:00"
+        "GroupId": "AGPATU4OKBDX5LTFS4JGM",
+        "Arn": "arn:aws:iam::12345678900:group/k8sInteg",
+        "CreateDate": "2024-11-19T02:50:04+00:00"
     }
 }
 ```
@@ -161,7 +166,7 @@ Recap:
 - **JeanDev** is in **k8sDev** Group and will be able to assume IAM role **k8sDev**
 - **PierreInteg** is in **k8sInteg** group and will be able to assume IAM role **k8sInteg**
 
-Let's go to the [AWS IAM Console](https://console.aws.amazon.com/iamv2/home#/home) and check one of the above IAM Groups and see that there are IAM users part of the group.
+Go to the [AWS IAM console](https://console.aws.amazon.com/iamv2/home?#/groups/details/k8sAdmin?section=users) and see that the IAM user `PaulAdmin` is part of the IAM user group `k8sAdmin`.
 
 ![IAM-group-users](/static/images/iam/iam-role-rbac/IAM-group-users.png)
 

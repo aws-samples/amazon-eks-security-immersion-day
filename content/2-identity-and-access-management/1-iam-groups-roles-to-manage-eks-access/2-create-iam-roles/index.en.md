@@ -1,17 +1,17 @@
 ---
-title: "Create AWS IAM Roles"
+title: "Create AWS IAM roles"
 weight: 22
 ---
 
-Let us create 3 least privileged IAM Roles
+Let us create 3 least privileged IAM roles
 
-We are going to create 3 roles:
+We are going to create 3 IAM roles:
 
 - a **k8sAdmin** role which will have **admin** rights in our Amazon EKS cluster
 - a **k8sDev** role which will give access to the **developers** namespace in our Amazon EKS cluster
 - a **k8sInteg** role which will give access to the **integration** namespace in our Amazon EKS cluster
 
-Create the IAM Roles:
+Create the IAM roles:
 
 ```bash
 POLICY=$(echo -n '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"AWS":"arn:aws:iam::'; echo -n "$ACCOUNT_ID"; echo -n ':root"},"Action":"sts:AssumeRole","Condition":{}}]}')
@@ -28,10 +28,10 @@ then
         --assume-role-policy-document "$POLICY" \
         --output text \
         --query 'Role.Arn')
-      echo "IAM Role ${IAM_ROLE} created. IAM_ROLE_ARN=$IAM_ROLE_ARN"
+      echo "IAM role ${IAM_ROLE} created. IAM_ROLE_ARN=$IAM_ROLE_ARN"
 
 else
-      echo "IAM Role ${IAM_ROLE} already exist..."
+      echo "IAM role ${IAM_ROLE} already exist..."
 fi
 
 
@@ -47,10 +47,10 @@ then
         --assume-role-policy-document "$POLICY" \
         --output text \
         --query 'Role.Arn')
-      echo "IAM Role ${IAM_ROLE} created. IAM_ROLE_ARN=$IAM_ROLE_ARN"
+      echo "IAM role ${IAM_ROLE} created. IAM_ROLE_ARN=$IAM_ROLE_ARN"
 
 else
-      echo "IAM Role ${IAM_ROLE} already exist..."
+      echo "IAM role ${IAM_ROLE} already exist..."
 fi
 
 export IAM_ROLE="k8sInteg"
@@ -65,10 +65,10 @@ then
         --assume-role-policy-document "$POLICY" \
         --output text \
         --query 'Role.Arn')
-      echo "IAM Role ${IAM_ROLE} created. IAM_ROLE_ARN=$IAM_ROLE_ARN"
+      echo "IAM role ${IAM_ROLE} created. IAM_ROLE_ARN=$IAM_ROLE_ARN"
 
 else
-      echo "IAM Role ${IAM_ROLE} already exist..."
+      echo "IAM role ${IAM_ROLE} already exist..."
 fi
 
 ```
@@ -76,9 +76,14 @@ fi
 ::::expand{header="Check Output"}
 
 ```bash
-IAM Role k8sAdmin created. IAM_ROLE_ARN=arn:aws:iam::ACCOUNT_ID:role/k8sAdmin
-IAM Role k8sDev created. IAM_ROLE_ARN=arn:aws:iam::ACCOUNT_ID:role/k8sDev
-IAM Role k8sInteg created. IAM_ROLE_ARN=arn:aws:iam::ACCOUNT_ID:role/k8sInteg
+An error occurred (NoSuchEntity) when calling the GetRole operation: The role with name k8sAdmin cannot be found.
+IAM Role k8sAdmin created. IAM_ROLE_ARN=arn:aws:iam::12345678900:role/k8sAdmin
+
+An error occurred (NoSuchEntity) when calling the GetRole operation: The role with name k8sDev cannot be found.
+IAM Role k8sDev created. IAM_ROLE_ARN=arn:aws:iam::12345678900:role/k8sDev
+
+An error occurred (NoSuchEntity) when calling the GetRole operation: The role with name k8sInteg cannot be found.
+IAM Role k8sInteg created. IAM_ROLE_ARN=arn:aws:iam::12345678900:role/k8sInteg
 ```
 
 ::::
@@ -87,11 +92,11 @@ IAM Role k8sInteg created. IAM_ROLE_ARN=arn:aws:iam::ACCOUNT_ID:role/k8sInteg
 
 Because the above roles are only used to authenticate within our Amazon EKS cluster, they don't need to have AWS permissions. We will only use them to allow some IAM groups to assume this role in order to have access to our EKS cluster.
 
-Let's go to the AWS IAM Console and check one of the above IAM Role and see that there are no IAM permissions attached to the Role.
+Go to the AWS [IAM console](https://console.aws.amazon.com/iam/home#/roles/details/k8sAdmin?section=permissions) and view `k8sAdmin` IAM role. Notice that there are no IAM permissions attached to the IAM role.
 
 ![k8s Admin role](/static/images/iam/iam-role-rbac/k8sAdmin-role.png)
 
-And also let's see trust policy of the IAM Role that allows the root account to assume the role, which means
+And also let's see trust policy of the IAM role that allows the root account to assume the role, which means
 any IAM principal (user or role) can now assume the role.
 
 ![k8sAdmin-trust-policy](/static/images/iam/iam-role-rbac/k8sAdmin-trust-policy.png)

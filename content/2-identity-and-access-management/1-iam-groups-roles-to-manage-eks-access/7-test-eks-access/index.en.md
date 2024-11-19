@@ -72,8 +72,8 @@ The output looks like below.
 ```
 {
     "UserId": "AROAUD5VMKW75WJEHFU4X:botocore-session-1581687024",
-    "Account": "ACCOUNT_ID",
-    "Arn": "arn:aws:sts::ACCOUNT_ID:assumed-role/k8sDev/botocore-session-1581687024"
+    "Account": "12345678900",
+    "Arn": "arn:aws:sts::12345678900:assumed-role/k8sDev/botocore-session-1581687024"
 }
 ```
 
@@ -90,12 +90,23 @@ The output looks like below.
 ```
 {
     "UserId": "AROAUD5VMKW77KXQAL7ZX:botocore-session-1582022121",
-    "Account": "ACCOUNT_ID",
-    "Arn": "arn:aws:sts::ACCOUNT_ID:assumed-role/k8sAdmin/botocore-session-1582022121"
+    "Account": "12345678900",
+    "Arn": "arn:aws:sts::12345678900:assumed-role/k8sAdmin/botocore-session-1582022121"
 }
 ```
 
 > When specifying the **\--profile admin** parameter we automatically ask for temporary credentials for the role k8sAdmin
+
+
+## Install `yq` tool
+
+
+Run the following commands to install `yq` [tool](https://github.com/mikefarah/yq)
+
+```bash
+sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
+sudo chmod +x /usr/bin/yq
+```
 
 ## Using AWS profiles with the Kubectl config file
 
