@@ -80,7 +80,7 @@ Based on `version-lock` setting, the `update check` command will show `chosen_up
 
 ::::
 
-3. Check the `update check` command's output in your `control container` (Cloud9 workspace). If `chosen_update` value is **null** and `update_state` is **Idle**, you can skip the commands until `step #5`, however please read through the steps and expected outputs. If `chosen_update` shows a version and `update_state` is **Available**, `apply` the chosen update.
+3. Check the `update check` command's output in your `control container` (CloudIDE terminal). If `chosen_update` value is **null** and `update_state` is **Idle**, you can skip the commands until `step #5`, however please read through the steps and expected outputs. If `chosen_update` shows a version and `update_state` is **Available**, `apply` the chosen update.
 
 ```bash
 apiclient update apply

@@ -5,7 +5,7 @@ weight: 24
 
 You can improve the security posture of your VPC by configuring Amazon ECR to use [VPC endpoints](https://docs.aws.amazon.com/AmazonECR/latest/userguide/vpc-endpoints.html).
 
-In this section, you will create **3** [VPC endpoints](https://docs.aws.amazon.com/AmazonECR/latest/userguide/vpc-endpoints.html#ecr-setting-up-vpc-create) - two VPC interface endpoints for ECR and one VPC gateway endpoint for S3. You will control access to VPC interface endpoints using [endpoint policies](https://docs.aws.amazon.com/vpc/latest/privatelink/vpc-endpoints-access.html). You will no longer use the **ecrTester** profile for AWS CLI and will operate with the original _AdministratorAccess_ IAM permissions attached to the Cloud9 EC2 Instance IAM Role.
+In this section, you will create **3** [VPC endpoints](https://docs.aws.amazon.com/AmazonECR/latest/userguide/vpc-endpoints.html#ecr-setting-up-vpc-create) - two VPC interface endpoints for ECR and one VPC gateway endpoint for S3. You will control access to VPC interface endpoints using [endpoint policies](https://docs.aws.amazon.com/vpc/latest/privatelink/vpc-endpoints-access.html). You will no longer use the **ecrTester** profile for AWS CLI and will operate with the original _AdministratorAccess_ IAM permissions attached to the CloudIDE's IAM Role.
 
 - **com.amazonaws._region_.ecr.dkr** - client commands such as `docker push` and `docker pull` use this endpoint. This endpoint must have [private DNS enabled](https://docs.aws.amazon.com/AmazonECR/latest/userguide/vpc-endpoints.html#ecr-setting-up-vpc-create) and it might take [few minutes](https://docs.aws.amazon.com/vpc/latest/privatelink/interface-endpoints.html#enable-private-dns-names) for the private IP addresses to become available.
 
@@ -15,32 +15,44 @@ In this section, you will create **3** [VPC endpoints](https://docs.aws.amazon.c
 
 ::alert[When your IDE workspace downloads images from Amazon ECR, it must access Amazon ECR to get the image manifest and then Amazon S3 to download the actual image layers. S3 bucket containing the layers of container images is arn:aws:s3:::prod-_**region**_-start-layer-bucket]{header=""}
 
-1. Find the Security Group, Subnet, Route Table and VPC IDs of the Cloud9 workspace
+1. Find the Security Group, Subnet, Route Table and VPC IDs of the CloudIDE
 
 ```bash
-INTERFACE_ID=$(curl --silent http://169.254.169.254/latest/meta-data/network/interfaces/macs/ | head -n 1)
-echo $INTERFACE_ID
-WORKSPACE_SG_ID=$(curl --silent http://169.254.169.254/latest/meta-data/network/interfaces/macs/${INTERFACE_ID}/security-group-ids | head -n 1)
-echo $WORKSPACE_SG_ID
-SUBNET_ID=$(curl --silent http://169.254.169.254/latest/meta-data/network/interfaces/macs/${INTERFACE_ID}/subnet-id)
-echo $SUBNET_ID
-ROUTE_TABLE_ID=$(aws ec2 describe-route-tables \
-        --query "RouteTables[*].Associations[?SubnetId=='$SUBNET_ID'].RouteTableId" \
+INTERFACE_ID=$(aws ec2 describe-network-interfaces \
+        --filters Name=private-ip-address,Values=$EC2_PRIVATE_IP \
         --region $AWS_REGION \
-        --output text)
-echo $ROUTE_TABLE_ID
-VPC_ID=$(curl --silent http://169.254.169.254/latest/meta-data/network/interfaces/macs/${INTERFACE_ID}/vpc-id)
+        | jq -r '.NetworkInterfaces[0].NetworkInterfaceId')
+echo $INTERFACE_ID
+WORKSPACE_SG_ID=$(aws ec2 describe-network-interfaces \
+        --filters Name=private-ip-address,Values=$EC2_PRIVATE_IP \
+        --region $AWS_REGION \
+        | jq -r '.NetworkInterfaces[0].Groups[0].GroupId')
+echo $WORKSPACE_SG_ID
+SUBNET_ID=$(aws ec2 describe-network-interfaces \
+        --filters Name=private-ip-address,Values=$EC2_PRIVATE_IP \
+        --region $AWS_REGION \
+        | jq -r '.NetworkInterfaces[0].SubnetId')
+echo $SUBNET_ID
+VPC_ID=$(aws ec2 describe-network-interfaces \
+        --filters Name=private-ip-address,Values=$EC2_PRIVATE_IP \
+        --region $AWS_REGION \
+        | jq -r '.NetworkInterfaces[0].VpcId')
 echo $VPC_ID
+ROUTE_TABLE_ID=$(aws ec2 describe-route-tables \
+        --filters Name=association.subnet-id,Values=$SUBNET_ID \
+        --region $AWS_REGION \
+        | jq -r '.RouteTables[0].RouteTableId')
+echo $ROUTE_TABLE_ID
 ```
 
 ::::expand{header="Check Output"}
 
 ```
-02:c6:d3:01:ed:85/
-sg-0aa27bb31fbb9c11f
-subnet-07a8def3897add985
-rtb-0960716696daed2f0
-vpc-067fe2e1e7856cbc2
+eni-045f4180e6864cab1
+sg-06ab7b737f40b2ada
+subnet-078d0da1aafb1becd
+vpc-08ea4db300a00f55d
+rtb-0eef8a142901f1a84
 ```
 
 ::::
@@ -52,7 +64,7 @@ VPCE_SG_ID=$(aws ec2 create-security-group \
 	--group-name ECR_VPCE_SG \
 	--description "Security group for ECR VPC Endpoints" \
 	--vpc-id $VPC_ID \
-	--region $AWS_REGION | jq -r .GroupId)
+	--region $AWS_REGION | jq -r '.GroupId')
 echo "export VPCE_SG_ID=$VPCE_SG_ID" >> ~/.ecr_security
 echo -e "\nSecurity group ID for VPC Endpoints is $VPCE_SG_ID"
 ```
@@ -65,7 +77,7 @@ Security group ID for VPC Endpoints is sg-0ca620c0e890a7bce
 
 ::::
 
-3. Add port 443 ingress rule to the new security group, with Cloud9 workspace's security group as source.
+3. Add port 443 ingress rule to the new security group, with CloudIDE's security group as source.
 
 ```bash
 SG_RULE_ID=$(aws ec2 authorize-security-group-ingress \
@@ -74,7 +86,7 @@ SG_RULE_ID=$(aws ec2 authorize-security-group-ingress \
     --port 443 \
     --source-group $WORKSPACE_SG_ID \
     --region $AWS_REGION \
-    | jq -r .SecurityGroupRules[0].SecurityGroupRuleId)
+    | jq -r '.SecurityGroupRules[0].SecurityGroupRuleId')
 echo "export SG_RULE_ID=$SG_RULE_ID" >> ~/.ecr_security
 echo -e "\nSecurity group rule ID for VPC Endpoints is $SG_RULE_ID"
 ```
@@ -104,7 +116,7 @@ DKR_VPCE_ID=$(aws ec2 create-vpc-endpoint \
     --subnet-ids $SUBNET_ID \
     --security-group-id $VPCE_SG_ID \
     --region $AWS_REGION \
-    | jq -r .VpcEndpoint.VpcEndpointId)
+    | jq -r '.VpcEndpoint.VpcEndpointId')
 echo "export DKR_VPCE_ID=$DKR_VPCE_ID" >> ~/.ecr_security
 echo -e "\nVPC Endpoint ID for com.amazonaws.$AWS_REGION.ecr.dkr is $DKR_VPCE_ID"
 ```
@@ -128,7 +140,7 @@ API_VPCE_ID=$(aws ec2 create-vpc-endpoint \
     --subnet-ids $SUBNET_ID \
     --security-group-id $VPCE_SG_ID \
     --region $AWS_REGION \
-    | jq -r .VpcEndpoint.VpcEndpointId)
+    | jq -r '.VpcEndpoint.VpcEndpointId')
 echo "export API_VPCE_ID=$API_VPCE_ID" >> ~/.ecr_security
 echo -e "\nVPC Endpoint ID for com.amazonaws.$AWS_REGION.ecr.api is $API_VPCE_ID"
 ```
@@ -150,7 +162,7 @@ S3_VPCE_ID=$(aws ec2 create-vpc-endpoint \
     --service-name com.amazonaws.$AWS_REGION.s3 \
     --route-table-ids $ROUTE_TABLE_ID \
     --region $AWS_REGION \
-    | jq -r .VpcEndpoint.VpcEndpointId)
+    | jq -r '.VpcEndpoint.VpcEndpointId')
 echo "export S3_VPCE_ID=$S3_VPCE_ID" >> ~/.ecr_security
 echo -e "\nVPC Endpoint ID for com.amazonaws.$AWS_REGION.s3 is $S3_VPCE_ID"
 ```

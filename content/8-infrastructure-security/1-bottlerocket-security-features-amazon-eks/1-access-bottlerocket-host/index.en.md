@@ -18,7 +18,6 @@ echo "export BR_MNG_NAME=$BR_MNG_NAME" | tee -a ~/.bash_profile
 ```bash
 eksctl get cluster -n $EKS_CLUSTER -r $AWS_REGION -o json | jq -M ".[] | {Name,Version,Status,CreatedAt}"
 eksctl get nodegroups -c $EKS_CLUSTER -r $AWS_REGION -o json | jq -M ".[] | {Cluster,Name,Status,ImageID,Type}"
-eksctl get nodegroup -c $EKS_CLUSTER -n $BR_MNG_NAME -r $AWS_REGION -o json | jq -M ".[] | {Cluster,Name,Status,MaxSize,MinSize,DesiredCapacity,InstanceType,ImageID}"
 ```
 
 ::::expand{header="Check Output"}
@@ -35,59 +34,49 @@ eksctl get nodegroup -c $EKS_CLUSTER -n $BR_MNG_NAME -r $AWS_REGION -o json | jq
 ```
 {
   "Cluster": "eksworkshop-eksctl",
-  "Name": "mng-al2",
+  "Name": "main",
   "Status": "ACTIVE",
-  "ImageID": "AL2_x86_64",
+  "ImageID": "ami-xxxxxxx",
   "Type": "managed"
-}
-{
-  "Cluster": "eksworkshop-eksctl",
-  "Name": "mng-br",
-  "Status": "ACTIVE",
-  "ImageID": "BOTTLEROCKET_x86_64",
-  "Type": "managed"
-}
-```
-
-```
-{
-  "Cluster": "eksworkshop-eksctl",
-  "Name": "mng-br",
-  "Status": "ACTIVE",
-  "MaxSize": 5,
-  "MinSize": 0,
-  "DesiredCapacity": 0,
-  "InstanceType": "t3a.small",
-  "ImageID": "BOTTLEROCKET_x86_64"
 }
 ```
 
 ::::
 
-3. Scale the EKS Bottlerocket MNG `mng-br`. First, check if the MNG has nodes.
+3. Create the EKS Bottlerocket MNG `mng-br`.
 
 ```bash
-if [ `kubectl get nodes -l eks.amazonaws.com/nodegroup=$BR_MNG_NAME -o json | jq -r '.items | length'` -gt 0 ]; then
-  echo -e "\nBottlerocket Managed Node Group has nodes. No need to scale.\n\n"
-else
-  echo -e "\nBottlerocket Managed Node Group has no nodes. Scaling to one node.\n\n"
-  eksctl scale nodegroup -c $EKS_CLUSTER -n $BR_MNG_NAME -r $AWS_REGION --nodes 1
-fi
+eksctl create nodegroup --cluster $EKS_CLUSTER \
+  --region $AWS_REGION --name $BR_MNG_NAME \
+  --nodes-min 0 --nodes 1 --nodes-max 2 \
+  --node-ami-family Bottlerocket --managed
 ```
 
 ::::expand{header="Check Output"}
 
 ```
-Bottlerocket Managed Node Group has nodes. No need to scale.
-```
-
-_or_
-
-```
-Bottlerocket Managed Node Group has no nodes. Scaling to one node.
-2023-10-10 18:05:34 [i]  scaling nodegroup "mng-br" in cluster eksworkshop-eksctl
-2023-10-10 18:05:34 [i]  initiated scaling of nodegroup
-2023-10-10 18:05:34 [i]  to see the status of the scaling run `eksctl get nodegroup --cluster eksworkshop-eksctl --region us-west-2 --name mng-br
+2024-12-05 08:19:39 [ℹ]  will use version 1.30 for new nodegroup(s) based on control plane version
+2024-12-05 08:19:40 [ℹ]  nodegroup "mng-br" will use "" [Bottlerocket/1.30]
+2024-12-05 08:19:40 [ℹ]  1 existing nodegroup(s) (main) will be excluded
+2024-12-05 08:19:40 [ℹ]  1 nodegroup (mng-br) was included (based on the include/exclude rules)
+2024-12-05 08:19:40 [ℹ]  will create a CloudFormation stack for each of 1 managed nodegroups in cluster "eksworkshop-eksctl"
+2024-12-05 08:19:41 [ℹ]  
+2 sequential tasks: { fix cluster compatibility, 1 task: { 1 task: { create managed nodegroup "mng-br" } } 
+}
+2024-12-05 08:19:41 [ℹ]  checking cluster stack for missing resources
+2024-12-05 08:19:41 [ℹ]  cluster stack has all required resources
+2024-12-05 08:19:41 [ℹ]  building managed nodegroup stack "eksctl-eksworkshop-eksctl-nodegroup-mng-br"
+2024-12-05 08:19:41 [ℹ]  deploying stack "eksctl-eksworkshop-eksctl-nodegroup-mng-br"
+2024-12-05 08:19:41 [ℹ]  waiting for CloudFormation stack "eksctl-eksworkshop-eksctl-nodegroup-mng-br"
+2024-12-05 08:20:11 [ℹ]  waiting for CloudFormation stack "eksctl-eksworkshop-eksctl-nodegroup-mng-br"
+2024-12-05 08:21:10 [ℹ]  waiting for CloudFormation stack "eksctl-eksworkshop-eksctl-nodegroup-mng-br"
+2024-12-05 08:21:44 [ℹ]  waiting for CloudFormation stack "eksctl-eksworkshop-eksctl-nodegroup-mng-br"
+2024-12-05 08:22:40 [ℹ]  waiting for CloudFormation stack "eksctl-eksworkshop-eksctl-nodegroup-mng-br"
+2024-12-05 08:22:40 [ℹ]  no tasks
+2024-12-05 08:22:40 [✔]  created 0 nodegroup(s) in cluster "eksworkshop-eksctl"
+2024-12-05 08:22:40 [✔]  created 1 managed nodegroup(s) in cluster "eksworkshop-eksctl"
+2024-12-05 08:22:40 [ℹ]  checking security group configuration for all nodegroups
+2024-12-05 08:22:40 [ℹ]  all nodegroups have up-to-date cloudformation templates
 ```
 
 ::::
@@ -109,20 +98,6 @@ echo -e "\nBottlerocket Node is ready. Please proceed with the next steps.\n"
 No resources found
 Fri Dec 11 06:50:08 UTC 2023 - Waiting for the Bottlerocket Node to be ready. Please wait...
 
-No resources found
-Fri Dec 11 06:50:24 UTC 2023 - Waiting for the Bottlerocket Node to be ready. Please wait...
-
-No resources found
-Fri Dec 11 06:50:39 UTC 2023 - Waiting for the Bottlerocket Node to be ready. Please wait...
-
-No resources found
-Fri Dec 11 06:50:55 UTC 2023 - Waiting for the Bottlerocket Node to be ready. Please wait...
-
-No resources found
-Fri Dec 11 06:51:11 UTC 2023 - Waiting for the Bottlerocket Node to be ready. Please wait...
-
-Fri Dec 11 06:51:26 UTC 2023 - Waiting for the Bottlerocket Node to be ready. Please wait...
-
 Bottlerocket Node is ready. Please proceed with the next steps.
 
 ```
@@ -134,7 +109,7 @@ Bottlerocket Node is ready. Please proceed with the next steps.
 ```bash
 export INSTANCE_IP=$(kubectl get nodes -l eks.amazonaws.com/nodegroup=$BR_MNG_NAME -o json | jq -r '.items[0].metadata.annotations."alpha.kubernetes.io/provided-node-ip"')
 
-export INSTANCE_ID=$(aws ec2 describe-instances --filters Name=private-ip-address,Values=$INSTANCE_IP | jq -r .[][].Instances[].InstanceId)
+export INSTANCE_ID=$(aws ec2 describe-instances --filters Name=private-ip-address,Values=$INSTANCE_IP | jq -r '.[][].Instances[].InstanceId')
 
 echo "export INSTANCE_ID=$INSTANCE_ID" | tee -a ~/.bash_profile
 ```

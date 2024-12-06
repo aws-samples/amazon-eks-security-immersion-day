@@ -74,11 +74,12 @@ aws iam attach-role-policy \
 7. Create AWS CLI profile for the **ecr_access_teama_role** role
 
 ```bash
-cat << EoF > ~/.aws/config
+cat << EoF >> ~/.aws/config
 
 [profile ecrTester]
-role_arn = arn:aws:iam::$ACCOUNT_ID:role/$ECR_ACCESS_ROLE
+role_arn = arn:aws:iam::${ACCOUNT_ID}:role/${ECR_ACCESS_ROLE}
 credential_source = Ec2InstanceMetadata
+cli_pager =
 
 EoF
 ```
@@ -93,10 +94,12 @@ echo -e "\nAWS CLI requests with 'ecrTester' profile use the identity of $TEST_R
 ::::expand{header="Check Output"}
 
 ```
-AWS CLI requests with 'ecrTester' profile use the identity of ecr_access_teama_role role
+AWS CLI requests with 'ecrTester' profile use the identity of IAM role ecr_access_teama_role
 ```
 
-:::: 9. List images in the ECR repository `team-a/alpine` using **ecr_access_teama_role** role permissions. This action is explicitly allowed by the IAM policy attached to the role.
+:::: 
+
+9. List images in the ECR repository `team-a/alpine` using **ecr_access_teama_role** role permissions. This action is explicitly allowed by the IAM policy attached to the role.
 
 ```bash
 aws ecr list-images \
@@ -118,7 +121,7 @@ The output will look like below:
 }
 ```
 
-10. List images in the ECR repository `team-b/alpine` using **ecr_access_teama_role** role permissions. The role doesn't give any permissions on the ECR repo, the request is implicitly denied.
+10. List images in the ECR repository `team-b/alpine` using IAM role **ecr_access_teama_role** permissions. The role doesn't give any permissions on the ECR repo, the request is implicitly denied.
 
 ```bash
 aws ecr list-images \

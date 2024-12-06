@@ -156,7 +156,7 @@ echo -e "\nBottlerocket Node is ready."
 
 export INSTANCE_IP=$(kubectl get nodes -l eks.amazonaws.com/nodegroup=$BR_MNG_NAME -o json | jq -r '.items[0].metadata.annotations."alpha.kubernetes.io/provided-node-ip"')
 
-export INSTANCE_ID=$(aws ec2 describe-instances --filters Name=private-ip-address,Values=$INSTANCE_IP | jq -r .[][].Instances[].InstanceId)
+export INSTANCE_ID=$(aws ec2 describe-instances --filters Name=private-ip-address,Values=$INSTANCE_IP | jq -r '.[][].Instances[].InstanceId')
 
 echo "export INSTANCE_ID=$INSTANCE_ID" | tee -a ~/.bash_profile
 
@@ -272,6 +272,8 @@ Max kernel policy version:      33
 
 ```bash
 cat /etc/motd
+
+echo -e "\n\n"
 
 echo "Attempting local modifications to /etc/motd" > /etc/motd
 

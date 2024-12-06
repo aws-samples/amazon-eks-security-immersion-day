@@ -9,7 +9,7 @@ Bootstrap containers allow you to run a container that performs a task as the sy
 
 Bootstrap containers have access to the host filesystem at /.bottlerocket/, which contains the root filesystem (/.bottlerocket/rootfs). Moreover, bootstrap containers execute with the CAP_SYS_ADMIN capability, enabling the creation of files, directories, and mounts accessible to the host, while the root filesystem remains immutable. Both bootstrap and superpowered host containers are configured with the /.bottlerocket/rootfs/mnt bind mount.
 
-1. Exit out of the `control` container, back to the Cloud9 workspace to create a container image for the bootstrap container.
+1. Exit out of the `control` container, back to the CloudIDE terminal, to create a container image for the bootstrap container.
 
 ```bash
 exit
@@ -82,6 +82,8 @@ EoF
 docker build -t $ECR_REPO:v1 .
 docker tag $ECR_REPO:v1 $ECR_REPO_URI:v1
 docker push $ECR_REPO_URI:v1
+
+echo -e "\n\n\033[1mIMPORTANT:\033[0m Save the container image URI value \033[3m\033[4m$ECR_REPO_URI:v1\033[0m, to use in step #5 for bootstrap container setup."
 ```
 
 ::::expand{header="Check Output"}
@@ -117,20 +119,36 @@ v1: digest: sha256:75989751ae2f651987ddab689b879b911aa35374ab6a90b370251bcc7487d
 
 ::::
 
+::alert[Save the container image URI value from the above command output in your CloudIDE terminal, to use in step #5 for bootstrap container setup.]{header="Important"}
+
 4. Login to the `control` container of the Bottlerocket host
 
 ```bash
 aws ssm start-session --target $INSTANCE_ID
 ```
 
-5. Use `apiclient` to configure the bootstrap container in the host and verify the bootstrap container settings.
+5. Set the ECR_REPO_URI environment variable.
+
+::alert[Use the container image URI value saved from command output in step #3 and enter it at the prompt "Enter the container image URI:" in below command.]{header="Important"}
 
 ```bash
-ACCOUNT_ID=`curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | jq -r .accountId`
-AWS_REGION=`curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | jq -r .region`
+echo "Enter the container image URI value: "; read IMAGE_URI
+```
 
+::::expand{header="Check Output"}
+
+```
+Enter the container image URI value: 
+ACCOUNT_ID.dkr.ecr.REGION.amazonaws.com/br-bootstrap:v1
+```
+
+::::
+
+6. Use `apiclient` to configure the bootstrap container in the host and verify the bootstrap container settings.
+
+```bash
 apiclient set \
-  bootstrap-containers.bootstrap.source=$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/br-bootstrap:v1 \
+  bootstrap-containers.bootstrap.source=$IMAGE_URI \
   bootstrap-containers.bootstrap.mode=always \
   bootstrap-containers.bootstrap.essential=false
 
@@ -155,13 +173,13 @@ apiclient get settings.bootstrap-containers
 
 ::::
 
-6. Login to the `admin` container
+7. Login to the `admin` container
 
 ```bash
 enter-admin-container
 ```
 
-7. Check if `eks-workshop` directory exists and exit out of the `admin` container. Bootstrap container starts at boot time and the directory should not exist on the host before the first reboot, after configuring the bootstrap container.
+8. Check if `eks-workshop` directory exists and exit out of the `admin` container. Bootstrap container starts at boot time and the directory should not exist on the host before the first reboot, after configuring the bootstrap container.
 
 ```bash
 df -h /.bottlerocket/rootfs/mnt/
@@ -190,25 +208,25 @@ Directory /.bottlerocket/rootfs/mnt/eks-workshop does not exist
 
 ::::
 
-8. Reboot the Bottlerocket host using `apiclient` and then exit out of `control` container.
+9. Reboot the Bottlerocket host using `apiclient` and then exit out of `control` container.
 
 ```bash
 apiclient reboot; exit
 ```
 
-9. Reboot from previous step will take about a minute. Login to the `control` container.
+10. Reboot from previous step will take about a minute. Login to the `control` container.
 
 ```bash
 aws ssm start-session --target $INSTANCE_ID
 ```
 
-10. Login to the `admin` container. `Note:` the exit command will automatically logout of `control` container after we logout of the `admin` container.
+11. Login to the `admin` container. `Note:` the exit command will automatically logout of `control` container after we logout of the `admin` container.
 
 ```bash
 enter-admin-container;exit
 ```
 
-11. Check if `eks-workshop` directory exists. Bootstrap container should have started at boot time and the directory should exist on the host.
+12. Check if `eks-workshop` directory exists. Bootstrap container should have started at boot time and the directory should exist on the host.
 
 ```bash
 if [ -d "/.bottlerocket/rootfs/mnt/eks-workshop" ]; then

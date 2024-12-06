@@ -205,30 +205,7 @@ apiclient get settings | jq
 exit
 ```
 
-6. You can check the Bottlerocket settings explicitly added through the EC2 user data in TOML format.
-
-```bash
-aws ec2 describe-instance-attribute --attribute userData --instance-id $INSTANCE_ID | jq -r .UserData.Value | base64 --decode
-```
-
-::::expand{header="Check Output"}
-
-```
-[settings.kubernetes]
-"cluster-name" = "eksworkshop-eksctl"
-"api-server" = "https://8F356254E58C9.gr7.us-west-2.eks.amazonaws.com"
-"cluster-certificate" = "LS0tLS1CRUdJRUJBUVVBQTRJQkR3QXdnZ0VLCkFvSUJBUURUVUxLVWFTYnpjb1NzQ1pzVDV3R3QzeHdXWkRQRFNlcmtKZUhPR1N3RXpjL0pmM2ZSbm4xNDRiTjAKVW84bXZxY2t5RUtNbytsRkdLMDd0U3Z0VVFUOGpLaWR3MzlFVWNyRFN2eE9mYmJkTUh1cjFSeXdxS3RBd3FYVwpEVDlDNmVoUnFvdDd3YURJRkUraUZCNGZjVDZkdlV0SzgyMnlCNis0NHdIazFQR2xjbTh0ZkdYbjdXaXEwQ2hDClZPVFlCYnkrWlZxNWUrelI2NFg4bGZxdW8wSEpvMGp4UDc4NzVKWVBEY2N2TklYYUV0UzdMRjN2WEYrZ29yRVYKZGo3YzUxdGh0Rk1hblB1cEplL0FOaXdJSUx5MmRqYVJpY3BhSi9DWU9wUTNOWWZMSSt3blFScTQzZ2VXQWZYaApkbWxXcU13alBLWC9pWUlLNHVEQytNdWM0VWFOQWdNQkFBR2pXVEJYTUE0R0ExVWREd0VCL3dRRUF3SUNwREFQCkJnTlZIUk1CQWY4RUJUQURBUUgvTUIwR0ExVWREZ1FXQkJUZlp5bHBGTTlPR1NZbWRmZTE3ZTZ0V3Bwc1pUQVYKQmdOVkhSRUVEakFNZ2dwcmRXSmxjbTVsZEdWek1BMEdDU3FHU0liM0RRRUJDd1VBQTRJQkFRQ3FYVFM3ckIxTgpxa1ZUK1BaWWtET1FpY1dhclNXSzY3TFpvSU1aeGkzVGNoTFVEdGFydmlxUjkvNXpqdzEvWHR2Qm1jZmZnSlYyCnVYSGZQcGlnUXdoSEYxQXorYXpveHpqR0xtbnkxa2V3akZ4aTBJMXo3eTl5ZkxtYlFiYkZuQk81Y1N0M05WZmUKSTM1a3V0NmtVSzJRYXk2WVNsbEpZMTRRbFg3VExpNkNmY0czRW1PQU4vZHpCMjNQVjFTemJUazNzQ1BQZUZsZApJZEFLV2xFZGVPenJDWGcvTDlZalFWUXdiTHpHaU8wcXV1L0JldFJheThhSlRrb3h4RjMyZ20zYjFubjRDeHdCCmNuZlZ2OUxKM3FYaERsSm5vQk1ucS85RXNQeExjTHZoUmpRYzlOUWY1THNMM2hGaVJHY3QvN0Y1YnN2akg0VXIKbWZSYURiT0E1OHVRCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K"
-"cluster-dns-ip" = "172.20.0.10"
-"max-pods" = 8
-[settings.kubernetes.node-labels]
-"eks.amazonaws.com/nodegroup-image" = "ami-01053be6b7b982aac"
-"eks.amazonaws.com/capacityType" = "ON_DEMAND"
-"eks.amazonaws.com/nodegroup" = "mng-br"
-```
-
-::::
-
-7. Scale-in Bottlerocket MNG to stop incurring EC2 costs for the instances.
+6. Scale-in Bottlerocket MNG to stop incurring EC2 costs for the instances.
 
 ```bash
 eksctl scale nodegroup -c $EKS_CLUSTER -n $BR_MNG_NAME -r $AWS_REGION --nodes 0
@@ -244,7 +221,7 @@ eksctl scale nodegroup -c $EKS_CLUSTER -n $BR_MNG_NAME -r $AWS_REGION --nodes 0
 
 ::::
 
-8. Remove bootstrap container images from the Cloud9 workspace and ECR repository.
+7. Remove bootstrap container images from the Cloud9 workspace and ECR repository.
 
 ```bash
 docker rmi $ECR_REPO:v1
