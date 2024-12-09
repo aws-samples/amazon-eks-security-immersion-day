@@ -104,12 +104,6 @@ aws ecr start-lifecycle-policy-preview \
 
 ::::
 
-Amazon ECR lifecycle policy test rules can be reviewed through [AWS Console](https://us-west-2.console.aws.amazon.com/ecr/repositories) as shown below:
-
-![ecr lifecycle policy](/static/images/image-security/ecr-security-controls/ecr-lifecycle-policy.png)
-![ecr lifecycle policy2](/static/images/image-security/ecr-security-controls/ecr-lifecycle-policy2.png)
-![ecr lifecycle policy3](/static/images/image-security/ecr-security-controls/ecr-lifecycle-policy3.png)
-
 5. Check the preview output of the test rule with lifecycle policy (expire older images if image count is more than 1)
 
 ```bash
@@ -140,10 +134,6 @@ aws ecr get-lifecycle-policy-preview \
 
 ::::
 
-Amazon ECR lifecycle policy test rule's preview output can be reviewed as shown below:
-
-![ecr lifecycle policy4](/static/images/image-security/ecr-security-controls/ecr-lifecycle-policy4.png)
-
 6. Apply the test rule as a lifecycle policy to the `team-b/alpine` repository. Test rule preview showed the image with v1 tag will expire and you should expect the v1 image will expire within 24 hours.
 
 ```bash
@@ -166,6 +156,7 @@ aws ecr put-lifecycle-policy \
 
 ::::
 
-Amazon ECR lifecycle policy can be reviewed as shown below. Test rule's preview from the previous step is also shown in events history as DryRunEvent:
+Amazon ECR lifecycle policy test rules can be reviewed through [AWS Console](https://us-west-2.console.aws.amazon.com/ecr/repositories) as shown below:
 
-![ecr lifecycle policy5](/static/images/image-security/ecr-security-controls/ecr-lifecycle-policy5.png)
+![ecr lifecycle policy](/static/images/image-security/ecr-security-controls/ecr-lifecycle-policy.png)
+![ecr lifecycle policy2](/static/images/image-security/ecr-security-controls/ecr-lifecycle-policy2.png)
