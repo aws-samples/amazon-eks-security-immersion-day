@@ -185,11 +185,11 @@ docker push $ECR_REPO_URI_B:v1
 ::::expand{header="Check Output"}
 
 ```
-The push refers to repository [302084075030.dkr.ecr.us-west-2.amazonaws.com/team-a/alpine]
+The push refers to repository [ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/team-a/alpine]
 75654b8eeebd: Pushed 
 v1: digest: sha256:3e21c52835bab96cbecb471e3c3eb0e8a012b91ba2f0b934bd0b5394cd570b9f size: 527
 
-The push refers to repository [302084075030.dkr.ecr.us-west-2.amazonaws.com/team-b/alpine]
+The push refers to repository [ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/team-b/alpine]
 75654b8eeebd: Pushed 
 v1: digest: sha256:3e21c52835bab96cbecb471e3c3eb0e8a012b91ba2f0b934bd0b5394cd570b9f size: 527
 ```
