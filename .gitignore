@@ -1,5 +1,6 @@
-assets
 work
 .idea
 .vscode
 .DS_Store
+node_modules
+.envrc

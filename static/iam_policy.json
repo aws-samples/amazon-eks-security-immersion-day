@@ -1,0 +1,46 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "EksWorkshopParticipant",
+      "Effect": "Allow",
+      "Action": [
+            "ecr:*",
+            "eks:*",
+            "elasticloadbalancing:*",
+            "cloudwatch:*",
+            "logs:*",
+            "cloud9:*",
+            "secretsmanager:*",
+            "dynamodb:*",
+            "kms:*",
+            "guardduty:*",
+            "codebuild:*",
+            "s3:*",
+            "codecommit:*",
+            "glue:*",
+            "quicksight:*",
+            "ds:*",
+            "iam:CreateRole",
+            "iam:CreatePolicy",
+            "iam:AttachRolePolicy",
+            "iam:CreatePolicyVersion",
+            "iam:DeletePolicyVersion",
+            "iam:ListAttachedRolePolicies",
+            "iam:GetRole",
+            "iam:GetPolicy",
+            "iam:DetachRolePolicy",
+            "iam:GetPolicyVersion",
+            "fis:*",
+            "iam:ListPolicyVersions"
+      ],
+      "Resource": ["*"]
+    },
+    {
+      "Sid": "AllowIamPassRole",
+      "Effect": "Allow",
+      "Action": ["iam:PassRole", "iam:CreateRole", "iam:AttachRolePolicy"],
+      "Resource": ["arn:aws:iam::*:role/service-role/SPOTAWSFISIAMRole*"]
+    }
+  ]
+}
