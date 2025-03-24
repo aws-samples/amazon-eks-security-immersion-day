@@ -345,48 +345,6 @@ aws ec2 create-vpc-endpoint \
     --tag-specifications 'ResourceType=vpc-endpoint,Tags=[{Key=service,Value=ELB}]'
 ```
 
-Check sample output. This will is the JSON representation of the resource created.
-
-::::expand{header="Check Output"}
-
-```bash
-{
-    "VpcEndpoint": {
-        "VpcEndpointId": "vpce-094bc15d9e29372c0",
-        "VpcEndpointType": "Interface",
-        "VpcId": "vpc-02cc579cdd679aa3c",
-        "ServiceName": "com.amazonaws.us-west-2.elasticloadbalancing",
-        "State": "pending",
-        "RouteTableIds": [],
-        "SubnetIds": [],
-        "Groups": [
-            {
-                "GroupId": "sg-0c5e7d3c211270caa",
-                "GroupName": "default"
-            }
-        ],
-        "IpAddressType": "ipv4",
-        "DnsOptions": {
-            "DnsRecordIpType": "ipv4"
-        },
-        "PrivateDnsEnabled": true,
-        "RequesterManaged": false,
-        "NetworkInterfaceIds": [],
-        "DnsEntries": [],
-        "CreationTimestamp": "2024-03-03T16:20:14.343000+00:00",
-        "Tags": [
-            {
-                "Key": "service",
-                "Value": "ELB"
-            }
-        ],
-        "OwnerId": "728428212153"
-    }
-}
-```
-
-::::
-
 VPC endpoint for EKS
 
 ```bash
@@ -448,6 +406,10 @@ This will display the API endpoint of the cluster.
 ::::
 
 Confirm that the API endpoint is private using the nslookup command. You can see the private IP addresses returned for the control plane endpoint is assigned from the New Private EKS cluster VPC CIDR range.
+
+```bash
+nslookup AFB4045AF25413FF766AD8CA1FF0CAEA.yl4.us-west-2.eks.amazonaws.com
+```
 
 ::::expand{header="Check Output"}
 
