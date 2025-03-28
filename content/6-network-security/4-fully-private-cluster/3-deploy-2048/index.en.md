@@ -32,7 +32,8 @@ docker pull public.ecr.aws/l6m2t8p7/docker-2048:latest
 
 
 ::::expand{header="Check Output"}
-```
+
+```bash
 latest: Pulling from l6m2t8p7/docker-2048
 23d07b917726: Pull complete 
 75b73619860e: Pull complete 
@@ -40,10 +41,10 @@ Digest: sha256:afc96bdad819bfac184a6e9a90096b68583cf5977e66fa985143bde37e847a50
 Status: Downloaded newer image for public.ecr.aws/l6m2t8p7/docker-2048:latest
 public.ecr.aws/l6m2t8p7/docker-2048:latest
 ```
+
 ::::
 
 Get the image id for the pulled image
-
 
 ```bash
 IMAGE_ID=$(docker image ls public.ecr.aws/l6m2t8p7/docker-2048:latest -q)
@@ -52,7 +53,8 @@ echo $IMAGE_ID
 
 
 ::::expand{header="Check Output"}
-```
+
+```bash
 eb0a3a80a5dd
 ```
 ::::
@@ -66,19 +68,15 @@ docker tag $IMAGE_ID $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/docker-2048
 
 Authenticate to your Private ECR registry.
 
-
 ```bash
 aws ecr get-login-password —-region $AWS_REGION | sudo docker login —-username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 ```
 
-
 Push the image to the Private ECR repository
-
 
 ```bash
 docker push $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/docker-2048
 ```
-
 
 - The following commands would edit the file and find/replace the line that says alb.ingress.kubernetes.io/scheme: internet-facing.
 - It would also change the public image repository url to the private image repository url
@@ -89,17 +87,13 @@ sed -i 's/internet-facing/internal/' 2048_full.yaml
 sed -i 's/public.ecr.aws\/l6m2t8p7/$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/' 2048_full.yaml
 ```
 
-
 ```bash
 kubectl apply -f 2048_full.yaml
 ```
 
-
-
 ```bash
 kubectl get ingress/ingress-2048 -n game-2048
 ```
-
 
 An example output is as follows.
 
