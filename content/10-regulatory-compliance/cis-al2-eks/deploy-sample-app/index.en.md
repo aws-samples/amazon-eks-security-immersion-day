@@ -1,9 +1,9 @@
 ---
-title : "Deploy a sample nginx pod on the custom ami Amazon Linux  nodes"
-weight : 23
+title: "Deploy a sample nginx pod on the custom ami Amazon Linux  nodes"
+weight: 23
 ---
 
-With a working cluster and managed node group, we can deploy a sample application to make sure everything is running properly. For this example, we’ll use a simple nginx deployment to deploy pods to the cluster into the custom ami  nodegroup using Kubernetes pod scheduling property [nodeSelector](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#nodeselector). We can then verify the pods are running, and the nginx webserver started correctly:
+With a working cluster and managed node group, we can deploy a sample application to make sure everything is running properly. For this example, we’ll use a simple nginx deployment to deploy pods to the cluster into the custom ami nodegroup using Kubernetes pod scheduling property [nodeSelector](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#nodeselector). We can then verify the pods are running, and the nginx webserver started correctly:
 
 ```bash
 cd ~/environment/amazon-eks-custom-amis
@@ -35,7 +35,7 @@ spec:
             memory: 200Mi
           requests:
             cpu: 100m
-            memory: 200Mi        
+            memory: 200Mi
         ports:
         - name: http
           containerPort: 80
@@ -46,9 +46,11 @@ kubectl apply -f nginx-deploy.yaml
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 deployment.apps/nginx created
 ```
+
 ::::
 
 Run below command to check pod status.
@@ -88,7 +90,7 @@ exit
 Run the below command to access the logs from the pod and then Ctrl + C to exit from the container log output:
 
 ```bash
- kubectl logs -f  $POD_NAME  
+ kubectl logs -f  $POD_NAME
 ```
 
 The output looks like the following:
@@ -105,7 +107,7 @@ The output looks like the following:
 /docker-entrypoint.sh: Configuration complete; ready for start up
 2024/02/10 20:39:16 [notice] 1#1: using the "epoll" event method
 2024/02/10 20:39:16 [notice] 1#1: nginx/1.25.3
-2024/02/10 20:39:16 [notice] 1#1: built by gcc 12.2.0 (Debian 12.2.0-14) 
+2024/02/10 20:39:16 [notice] 1#1: built by gcc 12.2.0 (Debian 12.2.0-14)
 2024/02/10 20:39:16 [notice] 1#1: OS: Linux 5.10.205-195.807.amzn2.x86_64
 2024/02/10 20:39:16 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
 2024/02/10 20:39:16 [notice] 1#1: start worker processes
@@ -114,5 +116,3 @@ The output looks like the following:
 127.0.0.1 - - [10/Feb/2024:20:40:51 +0000] "GET / HTTP/1.1" 200 615 "-" "curl/7.88.1" "-"
 ^C
 ```
-
-

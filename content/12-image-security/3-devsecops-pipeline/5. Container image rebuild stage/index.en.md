@@ -1,6 +1,6 @@
 ---
-title : "Verify container image approval and deployment"
-weight : 22
+title: "Verify container image approval and deployment"
+weight: 22
 ---
 
 With a new pipeline initiated through the push of the updated `Dockerfile`, you can now review the overall pipeline to see that the container image was approved and deployed
@@ -14,15 +14,18 @@ With a new pipeline initiated through the push of the updated `Dockerfile`, you 
 2. To confirm that the final image was deployed to the EKS cluster, goto cloud9 terminal.
 
 Execute the following command
+
 ```bash
 kubectl get deployments
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 NAME                 READY   UP-TO-DATE   AVAILABLE   AGE
 inspector-workshop   1/1     1            1           4m35s
 ```
+
 ::::
 
-3. You should see container deployed  
+3. You should see container deployed

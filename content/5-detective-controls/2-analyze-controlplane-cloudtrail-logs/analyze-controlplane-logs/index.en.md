@@ -1,8 +1,7 @@
 ---
-title : "Analyze Amazon EKS Control Plane logs with CloudWatch Log Insights"
-weight : 36
+title: "Analyze Amazon EKS Control Plane logs with CloudWatch Log Insights"
+weight: 36
 ---
-
 
 Amazon EKS control plane logging provides audit and diagnostic logs directly from the Amazon EKS control plane to CloudWatch Logs in your account. These logs make it easy for you to secure and run your clusters. You can select the exact log types you need, and logs are sent as log streams to a group for each Amazon EKS cluster in CloudWatch.
 

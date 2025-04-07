@@ -1,9 +1,9 @@
 ---
-title : "Cleanup"
-weight : 25
+title: "Cleanup"
+weight: 25
 ---
 
-To cleanup, follow these steps. 
+To cleanup, follow these steps.
 
 ```bash
 kubectl delete -f app1.txt

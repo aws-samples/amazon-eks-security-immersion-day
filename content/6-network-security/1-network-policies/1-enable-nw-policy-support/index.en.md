@@ -1,20 +1,19 @@
 ---
-title : "Configure EKS Cluster for Kubernetes network policies"
-weight : 20
+title: "Configure EKS Cluster for Kubernetes network policies"
+weight: 20
 ---
 
 ## Prerequisites
 
 Network policies in the Amazon VPC CNI plugin for Kubernetes are supported in the following configurations.
 
-*  **New Amazon EKS clusters of version 1.25 and later.**
-
+- **New Amazon EKS clusters of version 1.25 and later.**
 
 You can check your current Kubernetes version with following command.
 
 ```bash
 aws eks describe-cluster --name eksworkshop-eksctl --query cluster.version --output text
-``` 
+```
 
 The output shows 1.28, which is the supported version.
 
@@ -22,7 +21,7 @@ The output shows 1.28, which is the supported version.
 1.28
 ```
 
-* **Version 1.14 or later of the Amazon VPC CNI plugin for Kubernetes on your cluster.**
+- **Version 1.14 or later of the Amazon VPC CNI plugin for Kubernetes on your cluster.**
 
 You can see which version that you currently have with the following command.
 
@@ -38,7 +37,7 @@ v1.14.0-eksbuild.3
 
 This means we need to upgrade Amazon VPC CNI plugin to Version 1.14 or later. We will do that shortly in this section.
 
-* **Your nodes must have Linux kernel version 5.10 or later**
+- **Your nodes must have Linux kernel version 5.10 or later**
 
 Run the following command to check kernel version on the EKS worker nodes.
 
@@ -76,34 +75,35 @@ aws-node-s4pr4             1/1     Running   0          12h
 
 ::::tab{id="cli" label="Using AWS CLI"}
 
-Run below command to create Amazon EKS VPC CNI Managed add-on with additional configuratin to enable Network Policy Agent and also enable ClodWatch logs.
+Run below command to create Amazon EKS VPC CNI Managed add-on with additional configuration to enable Network Policy Agent and also enable ClodWatch logs.
 
 ```bash
 aws eks create-addon --cluster-name eksworkshop-eksctl --addon-name vpc-cni --addon-version v1.14.0-eksbuild.3 \
-    --resolve-conflicts OVERWRITE --configuration-values '{"enableNetworkPolicy": "true", "nodeAgent": {"enableCloudWatchLogs": "true"}}'     
+    --resolve-conflicts OVERWRITE --configuration-values '{"enableNetworkPolicy": "true", "nodeAgent": {"enableCloudWatchLogs": "true"}}'
 ```
 
 ::::expand{header="Check Output"}
+
 ```json
 {
-    "addon": {
-        "addonName": "vpc-cni",
-        "clusterName": "eksworkshop-eksctl",
-        "status": "CREATING",
-        "addonVersion": "v1.14.0-eksbuild.3",
-        "health": {
-            "issues": []
-        },
-        "addonArn": "arn:aws:eks:us-west-2:ACCOUNT_ID:addon/eksworkshop-eksctl/vpc-cni/eac53eda-2b8b-8fb6-5972-33b33c43a7f6",
-        "createdAt": "2023-09-10T06:08:05.709000+00:00",
-        "modifiedAt": "2023-09-10T06:08:05.724000+00:00",
-        "tags": {},
-        "configurationValues": "{\"enableNetworkPolicy\": \"true\", \"nodeAgent\": {\"enableCloudWatchLogs\": \"true\"}}"
-    }
+  "addon": {
+    "addonName": "vpc-cni",
+    "clusterName": "eksworkshop-eksctl",
+    "status": "CREATING",
+    "addonVersion": "v1.14.0-eksbuild.3",
+    "health": {
+      "issues": []
+    },
+    "addonArn": "arn:aws:eks:us-west-2:ACCOUNT_ID:addon/eksworkshop-eksctl/vpc-cni/eac53eda-2b8b-8fb6-5972-33b33c43a7f6",
+    "createdAt": "2023-09-10T06:08:05.709000+00:00",
+    "modifiedAt": "2023-09-10T06:08:05.724000+00:00",
+    "tags": {},
+    "configurationValues": "{\"enableNetworkPolicy\": \"true\", \"nodeAgent\": {\"enableCloudWatchLogs\": \"true\"}}"
+  }
 }
 ```
-::::
 
+::::
 
 ::::
 
@@ -117,29 +117,25 @@ aws eks create-addon --cluster-name eksworkshop-eksctl --addon-name vpc-cni --ad
 6. Click on **Next** to go next page
 7. Expand the **Optional configuration settings**.
 8. Enter the following in the json text box
-    ```json
-         {
-            "enableNetworkPolicy": "true",
-            "nodeAgent": {
-                "enableCloudWatchLogs": "true"
-            }
-         } 
-    ```
+   ```json
+   {
+     "enableNetworkPolicy": "true",
+     "nodeAgent": {
+       "enableCloudWatchLogs": "true"
+     }
+   }
+   ```
 9. Click on **Next**
 10. Click on **Create**
 
 The following screenshot shows an example of this scenario.
 ![console-cni-config-network-policy-logs](/static/images/6-network-security/1-network-policies/console-cni-config-network-policy-logs.png)
 
-
 ::::
 
 :::::
 
-
-
 Wait for few minutes and Ensure that the pods are in running state.
-
 
 ```bash
 kubectl get pods -n kube-system | grep 'aws-node\|amazon'
@@ -154,7 +150,7 @@ aws-node-mqtx7             2/2     Running   0          31s
 
 If network policy is enabled, there are 2 containers in the `aws-node` pods. In previous versions and if network policy is disabled, there is only a single container in the `aws-node` pods.
 
-Run the below command to check the container names in the  Amazon VPC CNI node agent.
+Run the below command to check the container names in the Amazon VPC CNI node agent.
 
 ```bash
 kubectl get ds -n kube-system aws-node -o jsonpath='{.spec.template.spec.containers[*].name}{"\n"}'
@@ -166,7 +162,7 @@ The output will look like below.
 aws-node aws-eks-nodeagent
 ```
 
-Let us see how the configuration for the Network Polocy Agent container inside the `aws-node` DaemonSet looks like. The output is truncated to highlight only relevant Info.
+Let us see how the configuration for the Network Policy Agent container inside the `aws-node` DaemonSet looks like. The output is truncated to highlight only relevant Info.
 
 ```bash
 kubectl get ds -n kube-system aws-node -oyaml
@@ -278,5 +274,5 @@ kubectl get netpol -A
 ```bash
 No resources found
 ```
-::::
 
+::::

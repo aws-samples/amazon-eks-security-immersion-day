@@ -1,11 +1,11 @@
 ---
-title : "Secret Rotation and Retrieving Latest Secret Data"
-weight : 29
+title: "Secret Rotation and Retrieving Latest Secret Data"
+weight: 29
 ---
 
 If you use Secrets Manager automatic rotation for your secrets, you can also use the Secrets Store CSI Driver rotation reconciler feature to ensure you are retrieving the latest secret from Secrets Manager.
 
-When the secret/key is updated in AWS Secrets manager after the initial pod deployment, the updated secret will be periodically updated in the pod mount (**without restarting the pod**) and the Kubernetes Secret. 
+When the secret/key is updated in AWS Secrets manager after the initial pod deployment, the updated secret will be periodically updated in the pod mount (**without restarting the pod**) and the Kubernetes Secret.
 
 <!---
 Based on how your application is consuming secret data, you have to consider following:
@@ -27,14 +27,13 @@ aws secretsmanager put-secret-value \
 
 ```json
 {
-    "ARN": "arn:aws:secretsmanager:us-west-2:111122223333:secret:dbsecret_eksid-aOZejK",
-    "Name": "dbsecret_eksid",
-    "VersionId": "e54968a1-584f-4852-95f6-70b5de883120",
-    "VersionStages": [
-        "AWSCURRENT"
-    ]
+  "ARN": "arn:aws:secretsmanager:us-west-2:111122223333:secret:dbsecret_eksid-aOZejK",
+  "Name": "dbsecret_eksid",
+  "VersionId": "e54968a1-584f-4852-95f6-70b5de883120",
+  "VersionStages": ["AWSCURRENT"]
 }
 ```
+
 ::::
 
 **Important**
@@ -56,7 +55,7 @@ export PS1='# '
 cd /mnt/secrets
 ls -l   #--- List mounted secrets
 
-cat dbusername; echo  
+cat dbusername; echo
 cat dbpassword; echo
 cat dbsecret_eksid; echo
 
@@ -75,14 +74,14 @@ total 12
 -rw-r--r-- 1 root root 13 Aug 20 16:20 dbpassword
 -rw-r--r-- 1 root root 52 Aug 20 16:20 dbsecret_eksid
 -rw-r--r-- 1 root root 10 Aug 20 16:20 dbusername
-# 
-# cat dbusername; echo  
+#
+# cat dbusername; echo
 newdb_user
 # cat dbpassword; echo
-newdb-sekret 
+newdb-sekret
 # cat dbsecret_eksid; echo
 {"username":"newdb_user","password":"newdb-sekret "}
-# 
+#
 # env | grep DB    #-- Display two ENV variables set from the secret values
 DB_USERNAME_01=testdb_user
 DB_PASSWORD_01=super-sekret
@@ -94,9 +93,9 @@ DB_PASSWORD_01=super-sekret
 
 Observe the following:
 
-- Files *"dbusername"* and *"dbpassword"* contains new secret data from the JSON formatted secret *dbsecret_eksid*.
-- *"/mnt/secrets"* key-values pairs extracted in separate files based on jmesPath specification.
-- Environment variables *"DB_USERNAME_01"* and *"DB_PASSWORD_01"* are mapped from Kubernetes secrets object *"my-secret-01"* 
+- Files `dbusername` and `dbpassword` contains new secret data from the JSON formatted secret `dbsecret_eksid`.
+- `/mnt/secrets` key-values pairs extracted in separate files based on jmesPath specification.
+- Environment variables `DB_USERNAME_01` and `DB_PASSWORD_01` are mapped from Kubernetes secrets object `my-secret-01`
   which was created automatically by the CSI driver during POD deployment and **still returning old secret data**.
 
 When using Kubernetes secret as environment variable, the POD needs to be restarted to get the latest secret as environment variable. Let's restart POD using following command,
@@ -106,12 +105,14 @@ kubectl rollout restart deployment/nginx-deployment-k8s-secrets
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 deployment.apps/nginx-deployment-k8s-secrets restarted
 ```
+
 ::::
 
-We can verify the updated value of environment variables *DB_USERNAME_01* and *DB_PASSWORD_01* using following command,
+We can verify the updated value of environment variables _DB_USERNAME_01_ and _DB_PASSWORD_01_ using following command,
 
 ```bash
 export POD_NAME=$(kubectl get pods -l app=nginx-k8s-secrets -o jsonpath='{.items[].metadata.name}')
@@ -133,7 +134,7 @@ exit
 export PS1='# '
 # env | grep DB    #-- Display two ENV variables set from the secret values
 DB_USERNAME_01=newdb_user
-DB_PASSWORD_01=newdb-sekret 
+DB_PASSWORD_01=newdb-sekret
 # sleep 2
 # exit
 ```

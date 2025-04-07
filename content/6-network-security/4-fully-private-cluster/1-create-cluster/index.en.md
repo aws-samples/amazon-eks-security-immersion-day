@@ -1,10 +1,9 @@
 ---
-title : "Create Fully Private EKS Cluster"
-weight : 151
+title: "Create Fully Private EKS Cluster"
+weight: 151
 ---
 
 Once you have logged into the AWS Management Console from your Workshop Studio, you will already have an AWS Cloud9 environment. Your AWS Cloud9 workspace will also have all the required tools installed in it.
-
 
 #### Create a VPC with Private Subnets with Internet Egress
 
@@ -17,11 +16,13 @@ aws cloudformation deploy --template-file eks-private-vpc.yaml --stack-name eks-
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 Waiting for changeset to be created..
 Waiting for stack create/update to complete
 Successfully created/updated stack - eks-private-vpc
 ```
+
 ::::
 
 ```bash

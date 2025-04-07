@@ -1,6 +1,6 @@
 ---
-title : "Enabling mTLS with ALB in Amazon EKS"
-weight : 60
+title: "Enabling mTLS with ALB in Amazon EKS"
+weight: 60
 ---
 
 In Amazon EKS cluster, you can use [Application Load Balancer](https://aws.amazon.com/elasticloadbalancing/application-load-balancer) to expose your in-cluster workload. When you create a Kubernetes `ingress`, an AWS Application Load Balancer (ALB) is provisioned that load balances application traffic. You can deploy an ALB to public or private subnets and mutually authenticate clients that present X509 certificates.
@@ -11,10 +11,10 @@ Mutual TLS authentication (mTLS) is a variation of transport layer security (TLS
 
 Mutual TLS for Application Load Balancers provides the following two options for validating your X.509v3 client certificates:
 
-* **Mutual TLS passthrough:** When you use mutual TLS passthrough mode, Application Load Balancer sends the whole client certificate chain to the target using HTTP headers. Then, by using the client certificate chain, you can implement corresponding authentication and authorization logic in your application.
-* **Mutual TLS verify:** When you use mutual TLS verify mode, Application Load Balancer performs X.509 client certificate authentication for clients when a load balancer negotiates TLS connections.
+- **Mutual TLS passthrough:** When you use mutual TLS passthrough mode, Application Load Balancer sends the whole client certificate chain to the target using HTTP headers. Then, by using the client certificate chain, you can implement corresponding authentication and authorization logic in your application.
+- **Mutual TLS verify:** When you use mutual TLS verify mode, Application Load Balancer performs X.509 client certificate authentication for clients when a load balancer negotiates TLS connections.
 
-This module walks you through how to set up mTLS for an application running on Amazon Elastic Kubernetes Service (Amazon EKS) using [AWS Load Balancer Controller](https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html) and [AAWS Private CA](https://docs.aws.amazon.com/privateca/latest/userguide/PcaWelcome.html). It can be used for business-to-business applications or standards such as [Open Banking](https://docs.aws.amazon.com/wellarchitected/latest/financial-services-industry-lens/open-banking.html) and other use cases.
+This module walks you through how to set up mTLS for an application running on Amazon Elastic Kubernetes Service (Amazon EKS) using [AWS Load Balancer Controller](https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html) and [AWS Private CA](https://docs.aws.amazon.com/privateca/latest/userguide/PcaWelcome.html). It can be used for business-to-business applications or standards such as [Open Banking](https://docs.aws.amazon.com/wellarchitected/latest/financial-services-industry-lens/open-banking.html) and other use cases.
 
 ## How mTLS Works
 
@@ -24,5 +24,5 @@ In TLS, the server has a TLS certificate and a public/private key pair, while th
 
 **AWS Blogs on mTLS:**
 
-* [Enabling mTLS with ALB in Amazon EKS](https://aws.amazon.com/blogs/containers/enabling-mtls-with-alb-in-amazon-eks/)
-* [Mutual authentication for Application Load Balancer reliably verifies certificate-based client identities](https://aws.amazon.com/blogs/aws/mutual-authentication-for-application-load-balancer-to-reliably-verify-certificate-based-client-identities/)
+- [Enabling mTLS with ALB in Amazon EKS](https://aws.amazon.com/blogs/containers/enabling-mtls-with-alb-in-amazon-eks/)
+- [Mutual authentication for Application Load Balancer reliably verifies certificate-based client identities](https://aws.amazon.com/blogs/aws/mutual-authentication-for-application-load-balancer-to-reliably-verify-certificate-based-client-identities/)

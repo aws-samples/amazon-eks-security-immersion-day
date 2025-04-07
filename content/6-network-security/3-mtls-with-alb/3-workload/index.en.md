@@ -1,6 +1,6 @@
 ---
-title : "Deploy a Sample Workload"
-weight : 12
+title: "Deploy a Sample Workload"
+weight: 12
 ---
 
 ## Deploy a Sample Workload
@@ -43,11 +43,11 @@ spec:
   selector:
     app: mtls
   ports:
-    - port: 80 
+    - port: 80
       targetPort: 5678
       protocol: TCP
   type: NodePort
-    
+
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -62,7 +62,7 @@ metadata:
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 80}, {"HTTPS": 443}, {"HTTPS": 8080}, {"HTTPS": 8443}]'
     ## TLS Settings
     alb.ingress.kubernetes.io/certificate-arn: ${CERTIFICATE_ARN}  # the ARN we imported to AWS Certificate Manager in previous lab
-    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS13-1-2-2021-06 
+    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS13-1-2-2021-06
 spec:
   ingressClassName: alb
   rules:
@@ -75,14 +75,14 @@ spec:
             service:
               name: mtls-service
               port:
-                number: 80 
+                number: 80
 EOF
 ```
 
 Create the workload
 
 ```bash
-kubectl create -f workload.yaml 
+kubectl create -f workload.yaml
 ```
 
 Verify the workload
@@ -92,6 +92,7 @@ kubectl get all,ingress -n mtls
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 NAME                            READY   STATUS    RESTARTS   AGE
 pod/mtls-app-6459cb6456-6tp7s   1/1     Running   0          2m49s
@@ -108,6 +109,7 @@ replicaset.apps/mtls-app-6459cb6456   1         1         1       2m49s
 NAME                                     CLASS   HOSTS                               ADDRESS                                                    PORTS   AGE
 ingress.networking.k8s.io/mtls-ingress   alb     mtls.vpc-lattice-custom-domain.io   internal-mtls-eks-1944096030.us-west-2.elb.amazonaws.com   80      2m49s
 ```
+
 ::::
 
 You can also check Application Loadbalancer in [AWS EC2 console](https://console.aws.amazon.com/ec2/home?#LoadBalancers:). Wait till you confirm that the Internal loadbalancer created is in an active state"
@@ -127,14 +129,16 @@ curl -k https://mtls.vpc-lattice-custom-domain.io
 or
 
 ```bash
-curl https://mtls.vpc-lattice-custom-domain.io --cacert manifests/root_cert.pem 
+curl https://mtls.vpc-lattice-custom-domain.io --cacert manifests/root_cert.pem
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 WSParticipantRole:~/environment $ curl -k https://mtls.vpc-lattice-custom-domain.io
 Amazon EKS Security Immersion Workshop - mTLS with ALB in Amazon EKS
-WSParticipantRole:~/environment $ curl https://mtls.vpc-lattice-custom-domain.io --cacert manifests/root_cert.pem 
+WSParticipantRole:~/environment $ curl https://mtls.vpc-lattice-custom-domain.io --cacert manifests/root_cert.pem
 Amazon EKS Security Immersion Workshop - mTLS with ALB in Amazon EKS
 ```
+
 ::::

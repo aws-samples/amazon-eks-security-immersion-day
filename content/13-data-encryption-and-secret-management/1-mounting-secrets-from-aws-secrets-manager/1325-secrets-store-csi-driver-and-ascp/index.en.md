@@ -1,9 +1,9 @@
 ---
-title : "Secrets Store CSI Driver and ASCP"
-weight : 25
+title: "Secrets Store CSI Driver and ASCP"
+weight: 25
 ---
 
-Let's prepare your cluster by installing Secrets Store CSI Secret driver and AWS Secrets and Configuration Provider (ASCP). 
+Let's prepare your cluster by installing Secrets Store CSI Secret driver and AWS Secrets and Configuration Provider (ASCP).
 
 We will install Secret Store CSI Driver first using helm,
 
@@ -16,6 +16,7 @@ helm install -n kube-system csi-secrets-store \
   --set enableSecretRotation=true \
   secrets-store-csi-driver/secrets-store-csi-driver
 ```
+
 ::::expand{header="Check Output"}
 
 ```bash
@@ -39,7 +40,7 @@ to create a SecretProviderClass resource, and a deployment using the SecretProvi
 
 ::::
 
-Let's verify that daemonset deployed for *csi-secrets-store-secrets-store-csi-driver* for standard Secrets Store CSI Driver.
+Let's verify that daemonset deployed for _csi-secrets-store-secrets-store-csi-driver_ for standard Secrets Store CSI Driver.
 
 ```bash
 kubectl --namespace=kube-system get daemonset -l "app=secrets-store-csi-driver"
@@ -66,6 +67,7 @@ To install the csi-secrets-store-provider-aws for the ASCP use the YAML file fro
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/aws/secrets-store-csi-driver-provider-aws/main/deployment/aws-provider-installer.yaml
 ```
+
 ::::expand{header="Check Output"}
 
 ```bash
@@ -75,9 +77,10 @@ clusterrole.rbac.authorization.k8s.io/csi-secrets-store-provider-aws-cluster-rol
 clusterrolebinding.rbac.authorization.k8s.io/csi-secrets-store-provider-aws-cluster-rolebinding created
 daemonset.apps/csi-secrets-store-provider-aws created
 ```
+
 ::::
 
-Let's verify that daemonset deployed for *csi-secrets-store-provider-aws* for the ASCP that supports provider (AWS) specific options.
+Let's verify that daemonset deployed for _csi-secrets-store-provider-aws_ for the ASCP that supports provider (AWS) specific options.
 
 ```bash
 kubectl get daemonsets -n kube-system -l app=csi-secrets-store-provider-aws
@@ -85,6 +88,7 @@ kubectl get pods -n kube-system -l app=csi-secrets-store-provider-aws
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 NAME                             DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
 csi-secrets-store-provider-aws   2         2         2       2            2           kubernetes.io/os=linux   29s
@@ -93,4 +97,5 @@ NAME                                   READY   STATUS    RESTARTS   AGE
 csi-secrets-store-provider-aws-jdxm2   1/1     Running   0          33s
 csi-secrets-store-provider-aws-jjjmr   1/1     Running   0          33s
 ```
+
 ::::

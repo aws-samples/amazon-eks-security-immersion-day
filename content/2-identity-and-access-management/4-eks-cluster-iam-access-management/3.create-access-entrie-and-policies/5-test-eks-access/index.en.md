@@ -1,8 +1,7 @@
 ---
-title : "Test Amazon EKS access"
-weight : 26
+title: "Test Amazon EKS access"
+weight: 26
 ---
-
 
 ## Install kubectl whoami plugin
 
@@ -19,20 +18,20 @@ sudo cp kubectl-whoami /usr/local/bin/
 Run the command to see who is currently authenticating to EKS cluster.
 
 ```bash
-kubectl whoami  
+kubectl whoami
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 arn:aws:sts::ACCOUNT_ID:assumed-role/eks-security-workshop/EKSGetTokenAuth
 ```
+
 ::::
 
 As expected we are currently using the IAM Role `eks-security-workshop` which is used to create the EKS cluster.
 
-
 ## Automate Assume Role with AWS CLI
-
 
 It is possible to automate the retrieval of temporary credentials for the assumed role by configuring the AWS CLI in the files `~/.aws/config` and `~/.aws/credentials`. As an example, we will define three profiles.
 
@@ -127,9 +126,9 @@ The output looks like below.
 
 ```json
 {
-    "UserId": "AROA26YVAA7XXGCMO6D5W:botocore-session-1706617342",
-    "Account": "ACCOUNT_ID",
-    "Arn": "arn:aws:sts::ACCOUNT_ID:assumed-role/k8sClusterAdmin/botocore-session-1706617342"
+  "UserId": "AROA26YVAA7XXGCMO6D5W:botocore-session-1706617342",
+  "Account": "ACCOUNT_ID",
+  "Arn": "arn:aws:sts::ACCOUNT_ID:assumed-role/k8sClusterAdmin/botocore-session-1706617342"
 }
 ```
 
@@ -145,9 +144,9 @@ The output looks like below.
 
 ```json
 {
-    "UserId": "AROA26YVAA7X4JDJXGLQX:botocore-session-1706617378",
-    "Account": "ACCOUNT_ID",
-    "Arn": "arn:aws:sts::ACCOUNT_ID:assumed-role/k8sTeamADev/botocore-session-1706617378"
+  "UserId": "AROA26YVAA7X4JDJXGLQX:botocore-session-1706617378",
+  "Account": "ACCOUNT_ID",
+  "Arn": "arn:aws:sts::ACCOUNT_ID:assumed-role/k8sTeamADev/botocore-session-1706617378"
 }
 ```
 
@@ -156,13 +155,14 @@ The output looks like below.
 ## Using AWS profiles with the Kubectl config file
 
 ### Install yq for yaml processing
+
 ```bash
 echo 'yq() {
   docker run --rm -i -v "${PWD}":/workdir mikefarah/yq "$@"
 }' | tee -a ~/.bashrc && source ~/.bashrc
 ```
 
-It is also possible to specify the AWS\_PROFILE to use with the aws-iam-authenticator in the `~/.kube/config` file, so that it will use the appropriate profile.
+It is also possible to specify the AWS_PROFILE to use with the aws-iam-authenticator in the `~/.kube/config` file, so that it will use the appropriate profile.
 
 ### With admin profile
 
@@ -173,8 +173,7 @@ export KUBECONFIG=/tmp/kubeconfig-admin && eksctl utils write-kubeconfig -c eksw
 cat $KUBECONFIG | yq e '.users.[].user.exec.args += ["--profile", "admin"]' - -- | sed 's/eksworkshop-eksctl./eksworkshop-eksctl-admin./g' | sponge $KUBECONFIG
 ```
 
-
-> Note: this assume you uses yq >= version 4. you can reference to [this page](https://mikefarah.gitbook.io/yq/upgrading-from-v3)  to adapt this command for another version.
+> Note: this assume you uses yq >= version 4. you can reference to [this page](https://mikefarah.gitbook.io/yq/upgrading-from-v3) to adapt this command for another version.
 
 We added the `--profile admin` parameter to our kubectl config file, so that this will ask kubectl to use our IAM role associated to our admin profile, and we rename the context using suffix **\-admin**.
 
@@ -185,6 +184,7 @@ cat $KUBECONFIG
 ```
 
 ::::expand{header="Check Output"}
+
 ```yaml
 apiVersion: v1
 clusters:
@@ -222,6 +222,7 @@ users:
             value: regional
         provideClusterInfo: false
 ```
+
 ::::
 
 Run the command again to see who is now authenticating to the EKS cluster.
@@ -231,9 +232,11 @@ kubectl whoami
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 arn:aws:sts::ACCOUNT_ID:assumed-role/k8sClusterAdmin/botocore-session-1703478796
 ```
+
 ::::
 
 This shows that we are now authenticating to the cluster using IAM Role `k8sClusterAdmin` using the profile `admin`
@@ -255,10 +258,12 @@ kubectl run nginx-admin --image=nginx -n team-a
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 namespace/team-a created
 pod/nginx-admin created
 ```
+
 ::::
 
 We can list the pods:
@@ -284,6 +289,7 @@ cat $KUBECONFIG | yq e '.users.[].user.exec.args += ["--profile", "dev"]' - -- |
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 
 2023-03-14 10:16:28 [✔]  saved kubeconfig as "/tmp/kubeconfig-dev"
@@ -315,10 +321,10 @@ latest: Pulling from mikefarah/yq
 Digest: sha256:29ebb32f7d89a6b8e102a9cf1fb1c073d7154c17e5eda8a584f60f036b11f655
 Status: Downloaded newer image for mikefarah/yq:latest
 ```
+
 ::::
 
-
-> Note: this assume you uses yq >= version 4. you can reference to [this page](https://mikefarah.gitbook.io/yq/upgrading-from-v3)  to adapt this command for another version.
+> Note: this assume you uses yq >= version 4. you can reference to [this page](https://mikefarah.gitbook.io/yq/upgrading-from-v3) to adapt this command for another version.
 
 We added the `--profile dev` parameter to our kubectl config file, so that this will ask kubectl to use our IAM role associated to our `dev` profile, and we rename the context using suffix **\-dev**.
 
@@ -329,9 +335,11 @@ kubectl whoami
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 arn:aws:sts::ACCOUNT_ID:assumed-role/k8sTeamADev/botocore-session-1703482786
 ```
+
 ::::
 
 This shows that we are now authenticating to the cluster using IAM Role `k8sTeamADev` using the profile `dev`
@@ -345,9 +353,11 @@ kubectl run nginx-dev --image=nginx -n team-a
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 pod/nginx-dev created
 ```
+
 ::::
 
 We can list the pods:
@@ -369,6 +379,7 @@ nginx-dev     1/1     Running   0          13s
 ```bash
 kubectl get pods -n default
 ```
+
 The output looks like below
 
 ```bash
@@ -383,13 +394,14 @@ cat $KUBECONFIG | yq e '.users.[].user.exec.args += ["--profile", "test"]' - -- 
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 2023-03-14 10:24:31 [✔]  saved kubeconfig as "/tmp/kubeconfig-test"
 ```
+
 ::::
 
-> Note: this assume you uses yq >= version 4. you can reference to [this page](https://mikefarah.gitbook.io/yq/upgrading-from-v3)  to adapt this command for another version.
-
+> Note: this assume you uses yq >= version 4. you can reference to [this page](https://mikefarah.gitbook.io/yq/upgrading-from-v3) to adapt this command for another version.
 
 We added the `--profile test` parameter to our kubectl config file, so that this will ask kubectl to use our IAM role associated to our `test` profile, and we rename the context using suffix **\-test**.
 
@@ -400,9 +412,11 @@ kubectl whoami
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 arn:aws:sts::ACCOUNT_ID:assumed-role/k8sTeamATest/botocore-session-1703484518
 ```
+
 ::::
 
 This shows that we are now authenticating to the cluster using IAM Role `k8sTeamATest` using the profile `test`
@@ -413,12 +427,14 @@ Let's create a pod:
 
 ```bash
 kubectl run nginx-test --image=nginx -n team-a
-``` 
+```
 
 ::::expand{header="Check Output"}
+
 ```bash
 Error from server (Forbidden): pods is forbidden: User "arn:aws:sts::ACCOUNT_ID:assumed-role/k8sTeamATest/botocore-session-1703484518" cannot create resource "pods" in API group "" in the namespace "team-a"
 ```
+
 ::::
 
 The error is expected since it is a read-only access.
@@ -442,6 +458,7 @@ nginx-dev     1/1     Running   0          13s
 ```bash
 kubectl get pods -n default
 ```
+
 The output looks like below
 
 ```bash

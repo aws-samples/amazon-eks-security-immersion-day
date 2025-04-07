@@ -1,8 +1,7 @@
 ---
-title : "Create Access entries and associate access policies"
-weight : 25
+title: "Create Access entries and associate access policies"
+weight: 25
 ---
-
 
 ## Create Access entries
 
@@ -23,6 +22,7 @@ aws eks   create-access-entry --cluster-name $EKS_CLUSTER_NAME --principal-arn $
 ```
 
 ::::expand{header="Expand for Output"}
+
 ```json
 {
     "accessEntry": {
@@ -64,13 +64,12 @@ aws eks   create-access-entry --cluster-name $EKS_CLUSTER_NAME --principal-arn $
     }
 }
 ```
-::::
 
+::::
 
 ## Associate Access policies
 
-Let us assoicate the required access policy to each of the access entries created above.
-
+Let us associate the required access policy to each of the access entries created above.
 
 ```bash
 
@@ -104,8 +103,8 @@ aws eks associate-access-policy --cluster-name $EKS_CLUSTER_NAME \
   --access-scope type=$ACCESS_SCOPE,namespaces=$NAMESPACES
 ```
 
-
 ::::expand{header="Expand for Output"}
+
 ```json
 {
     "clusterName": "eksworkshop-eksctl",
@@ -151,4 +150,5 @@ aws eks associate-access-policy --cluster-name $EKS_CLUSTER_NAME \
     }
 }
 ```
+
 ::::

@@ -1,8 +1,7 @@
 ---
-title : "Deploy AWS Gateway API Controller and Gateway Resource"
-weight : 10
+title: "Deploy AWS Gateway API Controller and Gateway Resource"
+weight: 10
 ---
-
 
 ## Deploy AWS Gateway API Controller in Second EKS Cluster `eksworkshop-eksctl-2`
 
@@ -14,7 +13,7 @@ Follow these instructions deploy the AWS Gateway API Controller in the second cl
 
 ```bash
 eksdemo install vpc-lattice-controller -c $EKS_CLUSTER2_NAME \
-  --set log.level=debug \ 
+  --set log.level=debug \
   --set "defaultServiceNetwork=$GATEWAY_NAME"
 ```
 
@@ -33,6 +32,7 @@ aws vpc-lattice list-service-network-vpc-associations --vpc-id $EKS_CLUSTER2_VPC
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 {
     "items": [
@@ -51,6 +51,7 @@ aws vpc-lattice list-service-network-vpc-associations --vpc-id $EKS_CLUSTER2_VPC
     ]
 }
 ```
+
 ::::
 
 ### 3. Ensure the WS Gateway API Controller Pod is running fine.
@@ -60,6 +61,7 @@ kubectl --context $EKS_CLUSTER2_CONTEXT get all -n vpc-lattice
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 NAME                                         READY   STATUS    RESTARTS   AGE
 pod/gateway-api-controller-965646b47-st8bm   2/2     Running   0          39h
@@ -73,8 +75,8 @@ deployment.apps/gateway-api-controller   1/1     1            1           39h
 NAME                                               DESIRED   CURRENT   READY   AGE
 replicaset.apps/gateway-api-controller-965646b47   1         1         1       39h
 ```
-::::
 
+::::
 
 ## Deploy `Gateway` Resource in Second EKS Cluster `eksworkshop-eksctl-2`
 
@@ -86,26 +88,29 @@ kubectl  --context $EKS_CLUSTER2_CONTEXT apply -f manifests/$GATEWAY_NAME.yaml
 
 ::alert[The above configuration creates Kubernetes `Gateway` object `app-services-gw` in namespace `app-services-gw` in the second EKS Cluster]{header="Note"}
 
-
 ::::expand{header="Check Output"}
+
 ```
 namespace/app-services-gw created
 gateway.gateway.networking.k8s.io/app-services-gw created
 ```
+
 ::::
 
-2. Verify that `app-services-gw` Gateway is created: 
+2. Verify that `app-services-gw` Gateway is created:
 
 ```bash
 kubectl  --context $EKS_CLUSTER2_CONTEXT get gateway -n $GATEWAY_NAMESPACE
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 _NAMESPACE
 NAME              CLASS                ADDRESS   PROGRAMMED   AGE
 app-services-gw   amazon-vpc-lattice                          97s
 ```
+
 ::::
 
 3. Once the Gateway is created, find the VPC Lattice Service Network.
@@ -115,6 +120,8 @@ kubectl  --context $EKS_CLUSTER2_CONTEXT get gateway $GATEWAY_NAME -n $GATEWAY_N
 ```
 
 ::::expand{header="Check Output"}
+
+<!-- prettier-ignore-start -->
 :::code{language=yaml showCopyAction=false showLineNumbers=true highlightLines='68'}
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: Gateway
@@ -230,6 +237,7 @@ status:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
 :::
+<!-- prettier-ignore-end -->
 ::::
 
 
@@ -242,7 +250,9 @@ echo "gatewayARN=$gatewayARN"
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 gatewayARN=arn:aws:vpc-lattice:us-west-2:ACCOUNT_ID:servicenetwork/sn-0cc73287505ac121a
 ```
+
 ::::

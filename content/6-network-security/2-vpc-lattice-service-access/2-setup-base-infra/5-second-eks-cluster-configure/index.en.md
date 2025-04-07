@@ -1,6 +1,6 @@
 ---
-title : "Configure Kube Context for Second EKS Cluster"
-weight : 14
+title: "Configure Kube Context for Second EKS Cluster"
+weight: 14
 ---
 
 ## Setup the Kube Context for Second EKS Cluster `eksworkshop-eksctl-2`
@@ -8,6 +8,7 @@ weight : 14
 By this time, the Second EKS Cluster creation would have been completed. Go to the other terminal, where you run `eksctl` command earlier and check the status.
 
 ::::expand{header="Check Output"}
+
 ```
 2023-10-25 07:02:07 [ℹ]  eksctl version 0.163.0
 2023-10-25 07:02:07 [ℹ]  using region us-west-2
@@ -24,12 +25,12 @@ By this time, the Second EKS Cluster creation would have been completed. Go to t
 2023-10-25 07:02:07 [ℹ]  Kubernetes API endpoint access will use default of {publicAccess=true, privateAccess=false} for cluster "eksworkshop-eksctl-2" in "us-west-2"
 2023-10-25 07:02:07 [ℹ]  CloudWatch logging will not be enabled for cluster "eksworkshop-eksctl-2" in "us-west-2"
 2023-10-25 07:02:07 [ℹ]  you can enable it with 'eksctl utils update-cluster-logging --enable-types={SPECIFY-YOUR-LOG-TYPES-HERE (e.g. all)} --region=us-west-2 --cluster=eksworkshop-eksctl-2'
-2023-10-25 07:02:07 [ℹ]  
-2 sequential tasks: { create cluster control plane "eksworkshop-eksctl-2", 
-    2 sequential sub-tasks: { 
+2023-10-25 07:02:07 [ℹ]
+2 sequential tasks: { create cluster control plane "eksworkshop-eksctl-2",
+    2 sequential sub-tasks: {
         wait for control plane to become ready,
         create managed nodegroup "mng-al2",
-    } 
+    }
 }
 2023-10-25 07:02:07 [ℹ]  building cluster stack "eksctl-eksworkshop-eksctl-2-cluster"
 2023-10-25 07:02:08 [ℹ]  deploying stack "eksctl-eksworkshop-eksctl-2-cluster"
@@ -67,18 +68,19 @@ By this time, the Second EKS Cluster creation would have been completed. Go to t
 2023-10-25 07:18:03 [ℹ]  kubectl command should work with "/home/ec2-user/.kube/config", try 'kubectl get nodes'
 2023-10-25 07:18:03 [✔]  EKS cluster "eksworkshop-eksctl-2" in "us-west-2" region is ready
 ```
+
 ::::
 
 Update the Kube config with the new cluster
 
 ```bash
-aws eks update-kubeconfig --name $EKS_CLUSTER2_NAME --alias $EKS_CLUSTER2_NAME 
+aws eks update-kubeconfig --name $EKS_CLUSTER2_NAME --alias $EKS_CLUSTER2_NAME
 ```
 
 set also an alias from primary cluster so it will be easier to change
 
 ```bash
-aws eks update-kubeconfig --name $EKS_CLUSTER1_NAME --alias $EKS_CLUSTER1_NAME 
+aws eks update-kubeconfig --name $EKS_CLUSTER1_NAME --alias $EKS_CLUSTER1_NAME
 ```
 
 Run below command to check the current kube context. Ensure that it will show the second EKS cluster context.
@@ -105,10 +107,12 @@ kubectl  --context $EKS_CLUSTER2_CONTEXT get node
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 NAME                                          STATUS   ROLES    AGE    VERSION
 ip-10-254-2-86.us-west-2.compute.internal     Ready    <none>   119m   v1.28.1-eks-43840fb
 ip-10-254-62-120.us-west-2.compute.internal   Ready    <none>   119m   v1.28.1-eks-43840fb
 ip-10-254-73-123.us-west-2.compute.internal   Ready    <none>   119m   v1.28.1-eks-43840fb
 ```
+
 ::::

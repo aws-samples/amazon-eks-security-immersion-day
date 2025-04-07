@@ -1,6 +1,6 @@
 ---
-title : "Use case #3: Enforce labels for objects"
-weight : 22
+title: "Use case #3: Enforce labels for objects"
+weight: 22
 ---
 
 In this section, we will define a new constraint template as well as a constraint that enforces the inclusion of labels for namespaces and pods.
@@ -9,6 +9,7 @@ In this section, we will define a new constraint template as well as a constrain
 
 The template below defines a general constraint that checks for the presence of labels. Once created, the template can be used to create constraints that require the definition of a specific label or set of labels on an object.
 
+<!-- prettier-ignore-start -->
 :::code{showCopyAction=true showLineNumbers=false language=bash}
 cd ~/environment
 cat > constrainttemplate-3.yaml <<EOF
@@ -87,7 +88,7 @@ spec:
 EOF
 
 :::
-
+<!-- prettier-ignore-end -->
 
 Create the ConstraintTemplate using the following command
 
@@ -96,28 +97,33 @@ kubectl create -f constrainttemplate-3.yaml
 :::
 
 ::::expand{header="Check Output"}
+
 ```bash
 constrainttemplate.templates.gatekeeper.sh/k8srequiredlabels created
 ```
+
 ::::
 
-Ensure that the CRD constrainttemplate is created.
+Ensure that the CRD constraint template is created.
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
 kubectl get constrainttemplate
 :::
 
 ::::expand{header="Check Output"}
+
 ```bash
 NAME                        AGE
 k8srequiredlabels           2m18s
 ```
+
 ::::
 
 ### Build Constraint
 
-Below example contraint defines that any `namespace` objects that are created must have a value set for the `owner` label. 
+Below example constraint defines that any `namespace` objects that are created must have a value set for the `owner` label.
 
+<!-- prettier-ignore-start -->
 :::code{showCopyAction=true showLineNumbers=false language=bash}
 cd ~/environment
 cat > constraint-3.yaml <<EOF
@@ -136,6 +142,7 @@ spec:
       - key: owner
 EOF
 :::
+<!-- prettier-ignore-end -->
 
 Create the Constraint using the following command
 
@@ -144,9 +151,11 @@ kubectl create -f constraint-3.yaml
 :::
 
 ::::expand{header="Check Output"}
-```bash
+
+```
 k8srequiredlabels.constraints.gatekeeper.sh/all-ns-must-have-owner-label created
 ```
+
 ::::
 
 Ensure that the CRD for constraint is created.
@@ -156,18 +165,20 @@ kubectl get constraint
 :::
 
 ::::expand{header="Check Output"}
-```bash
+
+```
 NAME                       ENFORCEMENT-ACTION   TOTAL-VIOLATIONS
 k8srequiredlabels.constraints.gatekeeper.sh/all-ns-must-have-owner-label
 ```
+
 ::::
 
 ### Test the policy
 
 Let us create namespace without `owner` label.
 
+<!-- prettier-ignore-start -->
 :::code{showCopyAction=true showLineNumbers=false language=bash}
-
 cd ~/environment
 cat > example-3.yaml <<EOF
 apiVersion: v1
@@ -178,6 +189,7 @@ spec: {}
 EOF
 kubectl create -f example-3.yaml
 :::
+<!-- prettier-ignore-end -->
 
 You should now see an error message similar to below:
 ::::expand{header="Check Output"}
@@ -204,9 +216,6 @@ Additionally, check the Controller manager logs to see the webhook requests sent
 
 The request was denied by the Kubernetes API because it did not comply with the constraint imposed by OPA Gatekeeper that all namespace objects created must have a value set for the owner label.
 
-
 **Summary**
 
 Congratulations !!! We learnt how to leverage OPA Gatekeeper to implement fine-grained policies in Kubernetes clusters, enhancing overall security while also simplifying compliance and audit requirements.
-
-

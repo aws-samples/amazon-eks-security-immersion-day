@@ -1,9 +1,9 @@
 ---
-title : "Mounting Secrets from AWS Secrets Manager"
-weight : 50
+title: "Mounting Secrets from AWS Secrets Manager"
+weight: 50
 ---
 
-AWS offers two services to manage secrets and parameters conveniently in your code. [AWS Secrets Manager (Secrets Manager)](https://aws.amazon.com/secrets-manager/) allows you to easily rotate, manage, and retrieve database credentials, API keys, certificates, and other secrets throughout their lifecycle. [AWS Systems Manager Parameter Store (Parameter Store)](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html) provides hierarchical storage for configuration data. 
+AWS offers two services to manage secrets and parameters conveniently in your code. [AWS Secrets Manager (Secrets Manager)](https://aws.amazon.com/secrets-manager/) allows you to easily rotate, manage, and retrieve database credentials, API keys, certificates, and other secrets throughout their lifecycle. [AWS Systems Manager Parameter Store (Parameter Store)](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html) provides hierarchical storage for configuration data.
 
 You can use [AWS Secrets and Configuration Provider (ASCP)](https://github.com/aws/secrets-store-csi-driver-provider-aws) for [Kubernetes Secrets Store CSI Driver](https://secrets-store-csi-driver.sigs.k8s.io/) to make secrets stored in Secrets Manager and parameters stored in parameter store appear as mounted volumes in Kubernetes PODs.
 

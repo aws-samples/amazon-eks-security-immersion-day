@@ -1,9 +1,9 @@
 ---
-title : "Using the Bottlerocket Report API"
-weight : 25
+title: "Using the Bottlerocket Report API"
+weight: 25
 ---
 
-Bottlerocket uses a built-in administrative API to perform common admin functions. This admin API can be accessed via the `apiclient` CLI from Admin or Control host containers by default. The `report` endpoint of this API can also be used to verify the security posture of the workload against CIS benchmarks. 
+Bottlerocket uses a built-in administrative API to perform common admin functions. This admin API can be accessed via the `apiclient` CLI from Admin or Control host containers by default. The `report` endpoint of this API can also be used to verify the security posture of the workload against CIS benchmarks.
 
 First, start a session with Session Manager to connect to the node:
 
@@ -149,6 +149,6 @@ Total checks:    28
 Compliance check result: FAIL
 ```
 
-**Please note** - For Kubernetes Bottlerocket variants, [the iptables -P FORWARD DROP command will be unconditionally overwritten when the kubelet starts](https://github.com/bottlerocket-os/bottlerocket/blob/52ea5b5c8d788f3e9d7a76e329cd2c766150cf59/packages/kubernetes-1.24/kubelet.service#L13). This is because Kubernetes relies on iptables rules to forward connections to any node in the cluster to the correct set of nodes where a nodePort service is running. Hence the check sees the **ACCEPT** instead of **DROP** for the ForwardChain and therefore the check fails. This is automatically accounted for in the previous bootstrap container example. 
+**Please note** - For Kubernetes Bottlerocket variants, [the iptables -P FORWARD DROP command will be unconditionally overwritten when the kubelet starts](https://github.com/bottlerocket-os/bottlerocket/blob/52ea5b5c8d788f3e9d7a76e329cd2c766150cf59/packages/kubernetes-1.24/kubelet.service#L13). This is because Kubernetes relies on iptables rules to forward connections to any node in the cluster to the correct set of nodes where a nodePort service is running. Hence the check sees the **ACCEPT** instead of **DROP** for the ForwardChain and therefore the check fails. This is automatically accounted for in the previous bootstrap container example.
 
-To view more details about the CIS benchmarks, you can follow the `Reference` links in the above output. 
+To view more details about the CIS benchmarks, you can follow the `Reference` links in the above output.

@@ -1,6 +1,6 @@
 ---
-title : "Clean up"
-weight : 22
+title: "Clean up"
+weight: 22
 ---
 
 Run the following command to clean up the resources.

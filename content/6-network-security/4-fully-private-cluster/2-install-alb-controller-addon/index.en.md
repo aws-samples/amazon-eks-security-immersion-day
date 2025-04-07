@@ -1,6 +1,6 @@
 ---
-title : "Installing the AWS Load Balancer Controller add-on"
-weight : 152
+title: "Installing the AWS Load Balancer Controller add-on"
+weight: 152
 ---
 
 
@@ -9,6 +9,7 @@ The AWS Load Balancer Controller manages AWS Elastic Load Balancers for a Kubern
 Kubernetes Ingress
 
     The AWS Load Balancer Controller creates an AWS Application Load Balancer (ALB) when you create a Kubernetes Ingress.
+
 Kubernetes service of the LoadBalancer type
 
     The AWS Load Balancer Controller creates an AWS Network Load Balancer (NLB) when you create a Kubernetes service of type LoadBalancer. In the past, the Kubernetes network load balancer was used for instance targets, but the AWS Load balancer Controller was used for IP targets. With the AWS Load Balancer Controller version 2.3.0 or later, you can create NLBs using either target type. For more information about NLB target types, see Target type in the User Guide for Network Load Balancers.
@@ -19,7 +20,6 @@ managed on GitHub.
 # Create an IAM policy
 
 Create an IAM OIDC identity provider for your cluster with the following command
-
 
 ```bash
 eksctl utils associate-iam-oidc-provider --region=$AWS_REGION --cluster=eksworkshop-eksctl-private --approve
@@ -33,9 +33,7 @@ Download an IAM policy for the AWS Load Balancer Controller that allows it to ma
 curl -O https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.6.2/docs/install/iam_policy.json
 ```
 
-
 Create an IAM policy using the policy downloaded in the previous step.
-
 
 ```bash
 aws iam create-policy \
@@ -46,7 +44,6 @@ aws iam create-policy \
 
 Create an IAM role. Create a Kubernetes service account named aws-load-balancer-controller in the kube-system namespace for the AWS Load Balancer Controller and annotate the Kubernetes service account with the name of the IAM role.
 
-
 ```bash
 eksctl create iamserviceaccount \
 --cluster=eksworkshop-eksctl-private \
@@ -56,6 +53,7 @@ eksctl create iamserviceaccount \
 --attach-policy-arn=arn:aws:iam::$ACCOUNT_ID:policy/AWSLoadBalancerControllerIAMPolicy \
 --approve
 ```
+
 # Install Helm
 
 ```bash
@@ -64,32 +62,25 @@ chmod 700 get_helm.sh
 ./get_helm.sh
 ```
 
-
 # Install the AWS Load Balancer Controller using Helm V3 or later 
 
 Add the eks-charts repository.
-
 
 ```bash
 helm repo add eks https://aws.github.io/eks-charts
 ```
 
-
 Update your local repo to make sure that you have the most recent charts.
-
 
 ```bash
 helm repo update eks
 ```
 
-
 Since your nodes don't have access to the Amazon ECR Public image repository, then you need to pull the following container image and push it to a repository that your nodes have access to.
-
 
 ```bash
 aws ecr create-repository --region $AWS_REGION --repository-name aws-load-balancer-controller
 ```
-
 
 Please notice the "repositoryUri" from the output. It would look like the following
 
@@ -97,36 +88,36 @@ Please notice the "repositoryUri" from the output. It would look like the follow
 
 Pull image from Public registry
 
-
 ```bash
 docker pull public.ecr.aws/eks/aws-load-balancer-controller:v2.8.3
 ```
 
-
 ::::expand{header="Check Output"}
+
 ```
 v2.8.3: Pulling from eks/aws-load-balancer-controller
-23d07b917726: Pull complete 
-75b73619860e: Pull complete 
+23d07b917726: Pull complete
+75b73619860e: Pull complete
 Digest: sha256:afc96bdad819bfac184a6e9a90096b68583cf5977e66fa985143bde37e847a50
 Status: Downloaded newer image for public.ecr.aws/eks/aws-load-balancer-controller:v2.8.3
 public.ecr.aws/eks/aws-load-balancer-controller:v2.8.3
 ```
+
 ::::
 
 Get the image id for the pulled image
-
 
 ```bash
 LBC_IMAGE_ID=$(docker image ls public.ecr.aws/eks/aws-load-balancer-controller:v2.8.3 -q)
 echo $LBC_IMAGE_ID
 ```
 
-
 ::::expand{header="Check Output"}
+
 ```
 355e20eeb0df
 ```
+
 ::::
 
 Tag the image that you pulled with your registry, repository, and tag. Use the 355e20eeb0df image id from the previous command
@@ -135,25 +126,19 @@ Tag the image that you pulled with your registry, repository, and tag. Use the 3
 docker tag $LBC_IMAGE_ID $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/aws-load-balancer-controller:v2.8.3
 ```
 
-
 Authenticate to your Private ECR registry.
-
 
 ```bash
 aws ecr get-login-password --region $AWS_REGION | sudo docker login —-username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 ```
 
-
 Push the image to the Private ECR repository
-
 
 ```bash
 docker push $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/aws-load-balancer-controller:v2.8.3
 ```
 
-
 Installed the ALB controller. When deploying it, we should use command line flags to set enable-shield, enable-waf, and enable-wafv2 to false.
-
 
 ```bash
 helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
@@ -170,11 +155,9 @@ helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
 
 Verify If the controller is installed
 
-
 ```bash
 kubectl get deployment -n kube-system aws-load-balancer-controller
 ```
-
 
 An example output is as follows.
 

@@ -1,27 +1,28 @@
 ---
-title : "Deep Dive into EKS Pod Identity"
-weight : 23
+title: "Deep Dive into EKS Pod Identity"
+weight: 23
 ---
 
 ## Deep Dive into EKS Pod Identity
 
 In this section, let's deep dive into EKS Pod Identity and understand what is happening under the hood.
 
-### Stage 1: During the Pod Creation 
+### Stage 1: During the Pod Creation
 
 In the previous section, we created an IAM Role `eks-pod-s3-read-access-role` and called an API `create-pod-identity-association` to create an association between the IAM role and kubernetes service account `sa1` in the Namespace `ns-a`.
 
 When Amazon EKS starts a new pod that uses a service account with an EKS Pod Identity association, the [EKS Pod Identity webhook](https://github.com/aws/amazon-eks-pod-identity-webhook) mutates the pod spec by adding two environment variables `AWS_CONTAINER_CREDENTIALS_FULL_URI` and `AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE`.
 
- This is because EKS Pod Identities have been added to the [`Container credential provider`](https://docs.aws.amazon.com/sdkref/latest/guide/feature-container-credentials.html) which is searched by AWS SDKs in a step in the default credential chain.
- 
- Let us see the Pod spec and look for these variables.
+This is because EKS Pod Identities have been added to the [`Container credential provider`](https://docs.aws.amazon.com/sdkref/latest/guide/feature-container-credentials.html) which is searched by AWS SDKs in a step in the default credential chain.
 
- ```bash
- kubectl -n $NS get pod $APP -oyaml
- ```
+Let us see the Pod spec and look for these variables.
+
+```bash
+kubectl -n $NS get pod $APP -o yaml
+```
 
 ::::expand{header="Check Output"}
+
 ```yaml
 ---
     - name: AWS_CONTAINER_CREDENTIALS_FULL_URI
@@ -66,6 +67,7 @@ When Amazon EKS starts a new pod that uses a service account with an EKS Pod Ide
             path: namespace
 ---
 ```
+
 ::::
 
 Notice there are two Projected Service Account Tokens in the output. One of them is `kube-api-access-mcz7j` which is the default Service token created and injected by the API Server. The second one is `eks-pod-identity-token` is created and injected by the EKS Pod Identity webhook as explained above.
@@ -76,8 +78,7 @@ Let us exec into the Pod and see what does it contains.
 kubectl -n $NS exec -it $APP -- bash
 ```
 
-Run below commands `from inside the Pod` to view the EKS Pod Identity Token. 
-
+Run below commands `from inside the Pod` to view the EKS Pod Identity Token.
 
 ```bash
 export EKS_POD_IDENTITY_TOKEN=$(cat $AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE)
@@ -99,9 +100,7 @@ The Payload in the Token looks like below.
 
 ```json
 {
-  "aud": [
-    "pods.eks.amazonaws.com"
-  ],
+  "aud": ["pods.eks.amazonaws.com"],
   "exp": 1702445428,
   "iat": 1702359028,
   "iss": "https://oidc.eks.us-west-2.amazonaws.com/id/8BA4A70AA33A68D27898EB4903D8A6E7",
@@ -121,20 +120,18 @@ The Payload in the Token looks like below.
 }
 ```
 
-
 Let us understand few important fields in the above output.
 
 **iss** : It represents the issuer of the token which is an OIDC Provider `https://oidc.eks.us-west-2.amazonaws.com/id/8BA4A70AA33A68D27898EB4903D8A6E7`. This OIDC provider URL will be used during the verification process of the token.
 
-**aud**: It represents the audience of the token which is `pods.eks.amazonaws.com`. This is the EKS Pod Identity Service i.e. EKS Auth.  This means the token will be accepted only by the EKS Auth Service and will be rejected by any other service.
+**aud**: It represents the audience of the token which is `pods.eks.amazonaws.com`. This is the EKS Pod Identity Service i.e. EKS Auth. This means the token will be accepted only by the EKS Auth Service and will be rejected by any other service.
 
-**exp** and **iat** :  These represents the expiry time for the token which basically enables the time bound tokens.
+**exp** and **iat** : These represents the expiry time for the token which basically enables the time bound tokens.
 
 **kubernetes.io**: It represents that this token is bound to a very specific pod `app1`
 with a Service account `sa1` in the Namespace `ns-a`. This means, this token cannot be used by any other pod even with the same Service token and same Namespace.
 
-
-### Stage 2: During the call to S3 API to list Buckets 
+### Stage 2: During the call to S3 API to list Buckets
 
 To list the S3 buckets, we used this command `aws s3 ls` in the previous section.
 
@@ -150,8 +147,8 @@ The output will like look below.
 
 ```json
 {
-  "AccessKeyId": "ASIAQAHCJ2QPOKXPLCQ4",
-  "SecretAccessKey": "UYEyaLMLoa0y6lx1FvpSzSwHJzZml7b9qiSRU2ry",
+  "AccessKeyId": "AKIAIOSFODNN7EXAMPLE",
+  "SecretAccessKey": "UYEyaLMLoa0y6lx1FvpSzSwHJzZml7b9qiSRU2ryExample",
   "Token": "IQoJb3JpZ2luX2VjEK///////////wEaCXVzLWVhc3QtMSJIMEYCIQD26IOY4R6nkjzmSZBsya2g3lFNBEmsMUJ/WanZ7S9I6wIhANLXXajMfkaS2VaMjpMsTfCAJ0wqsXoguAJXtKbwV1MeKrIECCgQBBoMMDAwNDc0NjAwNDc4IgxBoWc4XimzrdkzqaAqjwQ7FZNzbWKi7Em4oEvEi9mvXmDd4fNf6ex5T++TZ2DNq+UTr7my46evteWjRmtX/NfK+JwIf5An87r47HMC6HifYexbL9oOixfPoAYihk75rA24WF2Xpiqrv6KqlFDeKNe4GIMevc9J4KjxaUGly0BGfEfarSG4z49nDdZfkrphj7GbAxNwZsIrKOnR9NkSg0f2MyKnWZFnKKtTWW8Kx70irDUmDghTXvAPVWljOaDW+V5STEx2AUHb6XMmQo8tc7MUWTSZglh2EcRfplKClJjXkwsPdCp8/5LFrZPYiOgK5pSV4thNxwhxPmvbLLvXNVnqAM80xRB/05qC0ww5J94t1qyvUsmignuF9R8NoFJr8VcQA0mIDp0lGnL5AvB1L4BNF96CQgBG2gbqpejB1cAcANbnRs9tWvjLr6uDtJyL+IhQGfXdCpSd12rqy4Ex2qMAP9dcaoX0ShlPYwQdP4k5tSeH5HIW9k0XADa0I41+hc32R0iHd8/vD+5Hf0k8l+jGUHgNQ5QCRuEl0BAm50rV+IRSFafTwcDXYNbQUXlHM6Z7sp58ksqzwX7qQfE5j4eruQF/MrYqcnxHYSySO0Y9WvpDfm1YgEX/IZCdJWQPxCVnGAY8cluiGBw2PdLu8We3cyC/Vnc+2nhg7I5R7gmyCuI10fepv99y71UpPCJacYfn++cuAzdX95b2v5k5UTDEheCrBjqOASSNOnzg8FcFw0zabrb/ryinPDWpKAJE2p/I5KlVQcJlXacEl3jD4qd/fVRRCm7ckrbngNWQTMxm6WEQLXNYKWk52+e/kxxgYdygOju3pzYSdEYcM/50O4h89amgwfZQfPK/8R9mCEqngUKOEbAty4ibwen0HyeNI4ILWf3rmVK0tCIfzLO3+lGCA9DQpqg=",
   "AccountId": "ACCOUNT_ID",
   "Expiration": "2023-12-12T12:50:44Z"
@@ -162,22 +159,23 @@ Run the command `exit` to `exit from the pod`
 
 ### Stage 3: At the Amazon EKS Pod Identity Agent
 
-
-The EKS Pod Identity Agent runs as a Kubernetes `DaemonSet` and only provides credentials to pods on the node that it runs on.  The EKS Pod Identity Agent uses the `hostNetwork` and uses `port 80` and `port 2703` on a `link-local address` on the node. This address is `169.254.170.23` for IPv4 and `[fd00:ec2::23]` for IPv6 clusters.
+The EKS Pod Identity Agent runs as a Kubernetes `DaemonSet` and only provides credentials to pods on the node that it runs on. The EKS Pod Identity Agent uses the `hostNetwork` and uses `port 80` and `port 2703` on a `link-local address` on the node. This address is `169.254.170.23` for IPv4 and `[fd00:ec2::23]` for IPv6 clusters.
 
 #### EKS Pod Identity agent
 
 Let us see the EKS Pod Identity Agent pods running in the cluster.
 
 ```bash
-kubectl -n kube-system get ds -lapp.kubernetes.io/name=eks-pod-identity-agent 
+kubectl -n kube-system get ds -lapp.kubernetes.io/name=eks-pod-identity-agent
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 NAME                     DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR   AGE
 eks-pod-identity-agent   3         3         3       3            3           <none>          3d1h
 ```
+
 ::::
 
 Let us also see the EKS Pod Identity Agent specification. Notice the `hostNetwork: true` in the specification.
@@ -187,6 +185,7 @@ kubectl -n kube-system get ds -lapp.kubernetes.io/name=eks-pod-identity-agent -o
 ```
 
 ::::expand{header="Check Output"}
+<!-- prettier-ignore-start -->
 :::code{language=yaml showCopyAction=false showLineNumbers=true highlightLines='106'}
 apiVersion: v1
 items:
@@ -329,6 +328,7 @@ kind: List
 metadata:
   resourceVersion: ""
 :::
+<!-- prettier-ignore-end -->
 ::::
 
 #### EKS Pod Identity calling EKS Auth API
@@ -362,6 +362,7 @@ The EKS worker node role need to have IAM permissions for the Pod Identity Agent
 
 An example output from the above call `aws eks-auth assume-role-for-pod-identity` is mentioned below just for reference. We can see the namespace and service account, the associationArn, and the AssumeRoleArn, with the IAM credentials for this session.
 
+<!-- prettier-ignore-start -->
 :::code{language=json showCopyAction=false showLineNumbers=false highlightLines='3,4,6,8,12,15'}
 {
     "subject": {
@@ -385,6 +386,7 @@ An example output from the above call `aws eks-auth assume-role-for-pod-identity
     }
 }
 :::
+<!-- prettier-ignore-end -->
 
 You can also lookup for the CloudTrail event for the above call.
 
@@ -394,6 +396,8 @@ aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,Attribut
 ```
 
 ::::expand{header="Check Output"}
+
+<!-- prettier-ignore-start -->
 :::code{language=json showCopyAction=false showLineNumbers=false highlightLines='9,13,14'}
 {
   "Events": [
@@ -416,7 +420,9 @@ aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,Attribut
   ],
   "NextToken": "eyJOZXh0VG9rZW4iOiBudWxsLCAiYm90b190cnVuY2F0ZV9hbW91bnQiOiAxfQ=="
 }
-```
+:::
+<!-- prettier-ignore-end -->
+
 ::::
 
 Few things to observe from above output:
@@ -429,13 +435,15 @@ Few things to observe from above output:
 
 **eventSource** at which this event occurred is EKS Auth API Service i.e. `eks-auth.amazonaws.com`
 
-In the **CloudTrailEvent**, there are other informations, and you can tweak the previous command to have a prettier print of this part: 
+In the **CloudTrailEvent**, there are other pieces of information, and you can modify the previous command to have a more readable print of this part.
 
 ```bash
-aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,AttributeValue=$EVENT_NAME --max-items=1 | jq '.Events[] | (.CloudTrailEvent | fromjson)' 
+aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,AttributeValue=$EVENT_NAME --max-items=1 | jq '.Events[] | (.CloudTrailEvent | fromjson)'
 ```
 
 ::::expand{header="Check Output"}
+
+<!-- prettier-ignore-start -->
 :::code{language=json showCopyAction=false showLineNumbers=true highlightLines='30,31,32'}
 {
   "eventVersion": "1.09",
@@ -485,6 +493,8 @@ aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,Attribut
   }
 }
 :::
+<!-- prettier-ignore-end -->
+
 ::::
 
 the **requestParameters** in the above call includes **clusterName** i.e. `eksworkshop-eksctl` and EKS Pod Identity Service Account **token** which is `HIDDEN_DUE_TO_SECURITY_REASONS`
@@ -500,17 +510,28 @@ Once verified, the EKS Auth API also extracts the IAM Role `eks-pod-s3-read-acce
 You can also lookup for the CloudTrail event for the call to AWS STS Service to get the temporary credentials. We filter on the `CloudTrailEvent` parameter of the API call containing a tag with name 'eks-cluster-arn' so that it is one from the EKS Pod Identity:
 
 ```bash
-events=$(aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=sts.amazonaws.com --max-items 100) 
+events=$(aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=sts.amazonaws.com --max-items 100)
 
 echo $events | jq '.Events[] | (.CloudTrailEvent | fromjson | select(.requestParameters.tags[]?.key=="eks-cluster-arn"))'
+
+aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventSource,AttributeValue=sts.amazonaws.com --max-items 100 | \
+jq -r '.Events[].CloudTrailEvent |
+  fromjson? |
+  select(.requestParameters.tags != null) |
+  select(.requestParameters.tags[] | .key == "eks-cluster-arn") |
+  {eventName: .eventName, clusterArn: (.requestParameters.tags[] | select(.key == "eks-cluster-arn").value)}'
+
 ```
 
 > If there is no result, that means that the call was not in the last 100 events, you can ask the pod-identity daemonset to restart, so that it will make this call again
-> ```
+>
+> ```bash
 > kubectl rollout restart daemonset eks-pod-identity-agent -n kube-system
 > ```
 
 ::::expand{header="AWS STS event" defaultExpanded=true}
+
+<!-- prettier-ignore-start -->
 :::code{language=json showCopyAction=false showLineNumbers=true highlightLines='11,14,17,23,27,53,71'}
 {
   "eventVersion": "1.08",
@@ -592,10 +613,10 @@ echo $events | jq '.Events[] | (.CloudTrailEvent | fromjson | select(.requestPar
   "eventCategory": "Management"
 }
 :::
+<!-- prettier-ignore-end -->
+
 ::::
 
-We can see from the output, the source of this call if from AWSService pods.eks.amazonaws.com. That means that EKS Pod Identity retrieve the temporary credentials (l53) for our IAM Role (l71) and that it has attached some Session Tags (l17)  that can be use to filter access to AWS resources.
+We can see from the output, the source of this call if from AWSService pods.eks.amazonaws.com. That means that EKS Pod Identity retrieve the temporary credentials (l53) for our IAM Role (l71) and that it has attached some Session Tags (l17) that can be use to filter access to AWS resources.
 
-This means, we can further configure our S3 read access IAM Role for fine grained IAM permissions to restrict the access to this Role for any specifc EKS Cluster, Namespace, Service Account, Pod Name or Pod UID. We will explore on how this works in the next module.
-
-
+This means, we can further configure our S3 read access IAM Role for fine grained IAM permissions to restrict the access to this Role for any specific EKS Cluster, Namespace, Service Account, Pod Name or Pod UID. We will explore on how this works in the next module.

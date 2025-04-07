@@ -1,14 +1,15 @@
 ---
-title : "Use case #2: Whitelist only known registry"
-weight : 22
+title: "Use case #2: Whitelist only known registry"
+weight: 22
 ---
 
 This section will define a new constraint template and constraint that will verify that every pod's image comes from a known registry on a whitelist.
 
 ### Build Constraint Templates
 
-In the example below, the cluster administrator will mandate that only known image repositories be used in the cluster. 
+In the example below, the cluster administrator will mandate that only known image repositories be used in the cluster.
 
+<!-- prettier-ignore-start -->
 :::code{showCopyAction=true showLineNumbers=false language=bash}
 cd ~/environment
 cat > constrainttemplate-2.yaml <<EOF
@@ -53,6 +54,7 @@ spec:
 EOF
 
 :::
+<!-- prettier-ignore-end -->
 
 
 Create the ConstraintTemplate using the following command
@@ -62,29 +64,33 @@ kubectl create -f constrainttemplate-2.yaml
 :::
 
 ::::expand{header="Check Output"}
-```bash
+
+```
 constrainttemplate.templates.gatekeeper.sh/k8swhitelistedimages created
 ```
+
 ::::
 
-Ensure that the CRD for constrainttemplate is created.
+Ensure that the CRD for constraint template is created.
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
 kubectl get constrainttemplate
 :::
 
 ::::expand{header="Check Output"}
-```bash
+
+```
 NAME                        AGE
 k8swhitelistedimages   4m15s
 ```
-::::
 
+::::
 
 ### Build Constraint
 
 To enforce the policy, we will use the constraint below, which will ensure that all newly created pods image comes from a known registry on a whitelist
 
+<!-- prettier-ignore-start -->
 :::code{showCopyAction=true showLineNumbers=false language=bash}
 cd ~/environment
 cat > constraint-2.yaml <<EOF
@@ -129,6 +135,7 @@ spec:
       - busybox
 EOF
 :::
+<!-- prettier-ignore-end -->
 
 Create the Constraint using the following command
 
@@ -137,9 +144,11 @@ kubectl create -f constraint-2.yaml
 :::
 
 ::::expand{header="Check Output"}
-```bash
+
+```
 k8swhitelistedimages.constraints.gatekeeper.sh/k8senforcewhitelistedimages created
 ```
+
 ::::
 
 Ensure that the CRD for constraint is created.
@@ -149,19 +158,20 @@ kubectl get constraint
 :::
 
 ::::expand{header="Check Output"}
-```bash
+
+```
 NAME                       ENFORCEMENT-ACTION   TOTAL-VIOLATIONS
 k8swhitelistedimages.constraints.gatekeeper.sh/k8senforcewhitelistedimages
 ```
+
 ::::
 
-
-### Test the policy 
+### Test the policy
 
 Let’s deploy a nginx pod from unknown registry.
 
+<!-- prettier-ignore-start -->
 :::code{showCopyAction=true showLineNumbers=false language=bash}
-
 cd ~/environment
 cat > example-2.yaml <<EOF
 apiVersion: v1
@@ -177,6 +187,7 @@ spec:
 EOF
 kubectl create -f example-2.yaml
 :::
+<!-- prettier-ignore-end -->
 
 You should now see an error message similar to below:
 ::::expand{header="Check Output"}
@@ -202,4 +213,3 @@ Additionally, check the Controller manager logs to see the webhook requests sent
 ::::
 
 The request was denied by Kubernetes API, because it didn’t meet the requirement of known registries on whitelist imposed by OPA Gatekeeper constraint.
-

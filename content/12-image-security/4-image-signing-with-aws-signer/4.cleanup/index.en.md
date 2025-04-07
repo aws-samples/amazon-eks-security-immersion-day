@@ -1,6 +1,6 @@
 ---
-title : "Cleanup"
-weight : 29
+title: "Cleanup"
+weight: 29
 ---
 
 You created a few resources for this workshop. If you are participating in an AWS hosted event, then you don't need to clean up anything. The temporary accounts will get deleted after the workshop.
@@ -13,8 +13,8 @@ cd ~/environment
 kubectl delete  -f signed-pod.yaml -n test-notation
 kubectl delete ns test-notation
 kubectl delete -f kyverno-policy.yaml
-kubectl delete -f trustpolicy.yaml 
-kubectl delete -f truststore.yaml 
+kubectl delete -f trustpolicy.yaml
+kubectl delete -f truststore.yaml
 
 cd kyverno-notation-aws/
 kubectl delete -f configs/crds/
@@ -35,6 +35,7 @@ aws iam delete-policy --policy-arn $SIGNER_POLICY
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 pod "signed-pod" deleted
 namespace "test-notation" deleted
@@ -186,4 +187,5 @@ validatingwebhookconfiguration.admissionregistration.k8s.io "cert-manager-webhoo
 
 
 ```
+
 ::::
