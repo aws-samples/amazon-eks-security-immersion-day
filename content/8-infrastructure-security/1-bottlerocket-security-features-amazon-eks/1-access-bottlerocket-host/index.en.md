@@ -1,6 +1,6 @@
 ---
-title : "Accessing Bottlerocket host"
-weight : 21
+title: "Accessing Bottlerocket host"
+weight: 21
 ---
 
 In this section of the workshop, you will scale the pre-existing EKS Bottlerocket Managed Node Group (MNG) and access the node. Bottlerocket improves security posture by removing all shells from the Bottlerocket image. Bottlerocket’s API-first/container-centric approach also helps simplify fleet management. For example, Bottlerocket integrates with AWS Systems Manager, which is collection of services that you can use to view and control your infrastructure on AWS, including Bottlerocket instances.
@@ -10,7 +10,7 @@ In this section of the workshop, you will scale the pre-existing EKS Bottlerocke
 ```bash
 export BR_MNG_NAME="mng-br"
 
-echo "export BR_MNG_NAME=$BR_MNG_NAME" | tee -a ~/.bash_profile 
+echo "export BR_MNG_NAME=$BR_MNG_NAME" | tee -a ~/.bash_profile
 ```
 
 2. Verify the EKS cluster and node groups
@@ -22,6 +22,7 @@ eksctl get nodegroup -c $EKS_CLUSTER -n $BR_MNG_NAME -r $AWS_REGION -o json | jq
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 {
   "Name": "eksworkshop-eksctl",
@@ -30,6 +31,7 @@ eksctl get nodegroup -c $EKS_CLUSTER -n $BR_MNG_NAME -r $AWS_REGION -o json | jq
   "CreatedAt": "2024-02-01T23:03:24.669Z"
 }
 ```
+
 ```
 {
   "Cluster": "eksworkshop-eksctl",
@@ -46,6 +48,7 @@ eksctl get nodegroup -c $EKS_CLUSTER -n $BR_MNG_NAME -r $AWS_REGION -o json | jq
   "Type": "managed"
 }
 ```
+
 ```
 {
   "Cluster": "eksworkshop-eksctl",
@@ -58,12 +61,13 @@ eksctl get nodegroup -c $EKS_CLUSTER -n $BR_MNG_NAME -r $AWS_REGION -o json | jq
   "ImageID": "BOTTLEROCKET_x86_64"
 }
 ```
+
 ::::
 
 3. Scale the EKS Bottlerocket MNG `mng-br`. First, check if the MNG has nodes.
 
 ```bash
-if [ `kubectl get nodes -l eks.amazonaws.com/nodegroup=$BR_MNG_NAME -o json | jq -r '.items | length'` -gt 0 ]; then 
+if [ `kubectl get nodes -l eks.amazonaws.com/nodegroup=$BR_MNG_NAME -o json | jq -r '.items | length'` -gt 0 ]; then
   echo -e "\nBottlerocket Managed Node Group has nodes. No need to scale.\n\n"
 else
   echo -e "\nBottlerocket Managed Node Group has no nodes. Scaling to one node.\n\n"
@@ -72,23 +76,27 @@ fi
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 Bottlerocket Managed Node Group has nodes. No need to scale.
 ```
-*or* 
+
+_or_
+
 ```
 Bottlerocket Managed Node Group has no nodes. Scaling to one node.
 2023-10-10 18:05:34 [i]  scaling nodegroup "mng-br" in cluster eksworkshop-eksctl
 2023-10-10 18:05:34 [i]  initiated scaling of nodegroup
 2023-10-10 18:05:34 [i]  to see the status of the scaling run `eksctl get nodegroup --cluster eksworkshop-eksctl --region us-west-2 --name mng-br
 ```
+
 ::::
 
-4. Check the node status of `mng-br` MNG  and wait for `Ready` status.
+4. Check the node status of `mng-br` MNG and wait for `Ready` status.
 
 ```bash
 while [ "`kubectl get nodes -l eks.amazonaws.com/nodegroup=$BR_MNG_NAME | grep -v STATUS | awk '{print $2}'`" != "Ready" ]
-do 
+do
   echo -e "`date` - Waiting for the Bottlerocket Node to be ready. Please wait...\n"
   sleep 15
 done
@@ -96,6 +104,7 @@ echo -e "\nBottlerocket Node is ready. Please proceed with the next steps.\n"
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 No resources found
 Fri Dec 11 06:50:08 UTC 2023 - Waiting for the Bottlerocket Node to be ready. Please wait...
@@ -117,6 +126,7 @@ Fri Dec 11 06:51:26 UTC 2023 - Waiting for the Bottlerocket Node to be ready. Pl
 Bottlerocket Node is ready. Please proceed with the next steps.
 
 ```
+
 ::::
 
 5. Find the Instance ID of the node in `mng-br` MNG.
@@ -131,7 +141,7 @@ echo "export INSTANCE_ID=$INSTANCE_ID" | tee -a ~/.bash_profile
 
 6. Bottlerocket images do not have an SSH server nor even a shell. Bottlerocket does, however, give you out-of-band access that allows you to launch a shell from a container to explore, debug, manually update, and change settings on the host.
 
-*Bottlerocket image has several [variants](https://bottlerocket.dev/en/os/latest/#/concepts/variants/). Bottlerocket runs [two instances](https://bottlerocket.dev/en/os/latest/#/concepts/components/) of the container runtime, containerd, in order to isolate orchestrator-driven workloads (i.e., customer workloads managed through EKS) from system workloads ( the `admin` and `control` containers). This helps reduce the blast radius of possible problems with the orchestrated workloads and keep the underlying system functional.* On Kubernetes variants, Bottlerocket runs Kubelet to communicate with the Kubernetes control plane and orchestrate container lifecycles.
+_Bottlerocket image has several [variants](https://bottlerocket.dev/en/os/latest/#/concepts/variants/). Bottlerocket runs [two instances](https://bottlerocket.dev/en/os/latest/#/concepts/components/) of the container runtime, containerd, in order to isolate orchestrator-driven workloads (i.e., customer workloads managed through EKS) from system workloads ( the `admin` and `control` containers). This helps reduce the blast radius of possible problems with the orchestrated workloads and keep the underlying system functional._ On Kubernetes variants, Bottlerocket runs Kubelet to communicate with the Kubernetes control plane and orchestrate container lifecycles.
 
 ![bottlerocket_intro](/static/images/infrastructure-security/bottlerocket/bottlerocket_intro.png)
 
@@ -142,10 +152,11 @@ aws ssm start-session --target $INSTANCE_ID
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 Starting session with SessionId: i-04f194f1c2a94affe-0bb0cee34f8ec35d7
           Welcome to Bottlerocket's control container!
-    ╱╲    
+    ╱╲
    ╱┄┄╲   This container gives you access to the Bottlerocket API,
    │▗▖│   which in turn lets you inspect and configure the system.
   ╱│  │╲  You'll probably want to use the `apiclient` tool for that;
@@ -173,15 +184,17 @@ You can disable the admin container like this:
 
    disable-admin-container
 ```
+
 ::::
 
-8. Bottlerocket ships with a tool called `apiclient` which provides a command line interface for interacting with the API. List the [host containers](https://github.com/bottlerocket-os/bottlerocket/blob/develop/README.md#custom-host-containers) enabled in the Bottlerocket image variant. 
+8. Bottlerocket ships with a tool called `apiclient` which provides a command line interface for interacting with the API. List the [host containers](https://github.com/bottlerocket-os/bottlerocket/blob/develop/README.md#custom-host-containers) enabled in the Bottlerocket image variant.
 
 ```bash
 apiclient get settings.host-containers
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 {
   "settings": {
@@ -201,6 +214,7 @@ apiclient get settings.host-containers
   }
 }
 ```
+
 ::::
 
 9. Above command returns two host-containers `admin` and `control`. Admin container is designed to provide out-of-band access with elevated privileges. For Kubernetes variants of Bottlerocket images, the `admin` container is not enabled by default, but can be turned on or entered through the `control` container. The best security practice is to disable the `admin` container and only enable it as-needed. For this workshop, you can enable the admin container for testing purposes.
@@ -210,20 +224,23 @@ enable-admin-container
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 Enabling admin container
 The admin container is now enabled - it should pull and start soon, and then you can SSH in or use 'apiclient exec admin bash'.
 You can also use 'enter-admin-container' to enable, wait, and connect in one step.
 ```
+
 ::::
 
-10. Access the `admin` container from the control container. We will explore use cases for `admin` container in the remaining labs of this module. `Note:` *As mentioned in the previous command output, you can also use 'enter-admin-container' to enable, wait, and connect in one step.*
+10. Access the `admin` container from the control container. We will explore use cases for `admin` container in the remaining labs of this module. `Note:` _As mentioned in the previous command output, you can also use 'enter-admin-container' to enable, wait, and connect in one step._
 
 ```bash
 enter-admin-container
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 Confirming admin container is enabled...
 Waiting for admin container to start...
@@ -241,6 +258,7 @@ running state of the Bottlerocket host, we provide a tool called "sheltie"
 (`sudo sheltie`).  When run, this tool drops you into a root shell in the
 Bottlerocket host's root filesystem.
 ```
+
 ::::
 
 11. Exit the `admin` container.
@@ -250,9 +268,11 @@ exit
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 [root@admin]# exit
 exit
-[ssm-user@control]$ 
+[ssm-user@control]$
 ```
+
 ::::

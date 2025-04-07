@@ -1,6 +1,6 @@
 ---
-title : "Create Enclave Node"
-weight : 22
+title: "Create Enclave Node"
+weight: 22
 ---
 
 To begin with, check the existing node group(s) and nodes in the existing cluster
@@ -50,6 +50,7 @@ echo "NE user data script has finished successfully."
 Edit the file `eks-enclave-user-data.txt` content. For the `CPU_COUNT` and `MEMORY_MIB` variables in the user data, specify the number of vCPUs and amount of memory (in MiB) respectively. For the purpose of this module, set the `<CPU_COUNT>` to `4` vCPUs and the `<MEMORY_MIB>` to `768` MiB of memory.
 
 ::::expand{header="Expected file output"}
+
 ```bash
 MIME-Version: 1.0
 Content-Type: multipart/mixed; boundary="==MYBOUNDARY=="
@@ -77,6 +78,7 @@ echo "NE user data script has finished successfully."
 
 --==MYBOUNDARY==--
 ```
+
 ::::
 
 Convert the user data to base64.
@@ -97,6 +99,7 @@ GF0ZSBlbmNsYXZlJ3MgYWxsb2NhdG9yIHNwZWNpZmljYXRpb246IGFsbG9jYXRvci55YW1sCnNlZCAta
 y9tZW1vcnlfbWliOi4qL21lbW9yeV9taWI6IC9nIiAKIyBSZXN0YXJ0IHRoZSBuaXRyby1lbmNsYXZlcy1hbGxvY2F0b3Igc2VydmljZSB0byB0YWtlIGNoYW5nZXMgZWZmZWN0L
 y1lbmNsYXZlcy1hbGxvY2F0b3Iuc2VydmljZQplY2hvICJORSB1c2VyIGRhdGEgc2NyaXB0IGhhcyBmaW5pc2hlZCBzdWNjZXNzZnVsbHkuIgotLT09TVlCT1VOREFSWT09Cgy==
 ```
+
 ::::
 
 Create the launch template
@@ -130,7 +133,7 @@ SUBNET3=${SUBNETS[2]}
 NODE_ROLE=$(aws eks describe-nodegroup --nodegroup-name mng-al2 --cluster-name ${EKS_CLUSTER} --query 'nodegroup.nodeRole' --output text)
 ```
 
-Create the node group in the existing Amazon EKS cluster using AWS CLI.  The node group will use `amazon-linux-2023/x86_64/standard` for Amazon Linux 2023 (AL2023) `x86` based instance.
+Create the node group in the existing Amazon EKS cluster using AWS CLI. The node group will use `amazon-linux-2023/x86_64/standard` for Amazon Linux 2023 (AL2023) `x86` based instance.
 
 ```bash
 aws eks create-nodegroup  \
@@ -196,7 +199,7 @@ aws eks create-nodegroup  \
 After about 3 minutes, verify the new node group named enclaves with an EC2 instance has been created
 
 ```bash
-kubectl get nodes -o custom-columns=Name:.metadata.name,Nodegroup:.metadata.labels."eks\.amazonaws\.com/nodegroup" 
+kubectl get nodes -o custom-columns=Name:.metadata.name,Nodegroup:.metadata.labels."eks\.amazonaws\.com/nodegroup"
 ```
 
 ::::expand{header="Check Output"}
@@ -210,7 +213,6 @@ ip-10-254-215-53.us-west-2.compute.internal    mng-al2
 ```
 
 ::::
-
 
 The new worker node has been labelled `aws-nitro-enclaves-k8s-dp=enabled`. Get Nodes pre-labelled:
 
@@ -257,7 +259,7 @@ Allocatable:
 
 Deploy the Nitro Enclaves Kubernetes device plugin to the cluster and then enable it on each worker node in the cluster using **kubectl**. The plugin enables the pods on each worker node to access the [Nitro Enclaves device driver](https://docs.kernel.org/virt/ne_overview.html). The plugin is deployed to the Kubernetes cluster as a [daemonset](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/).
 
-Confirm there is a worker node on which to install the Nitro Enclaves Kubernetes device plugin using the following command. 
+Confirm there is a worker node on which to install the Nitro Enclaves Kubernetes device plugin using the following command.
 
 ```bash
 kubectl get node -L aws-nitro-enclaves-k8s-dp
@@ -267,10 +269,10 @@ kubectl get node -L aws-nitro-enclaves-k8s-dp
 
 ```bash
 NAME                                           STATUS   ROLES    AGE   VERSION               AWS-NITRO-ENCLAVES-K8S-DP
-ip-10-254-138-215.us-west-2.compute.internal   Ready    <none>   29h   v1.28.8-eks-ae9a62a   
-ip-10-254-168-158.us-west-2.compute.internal    Ready    <none>   29h   v1.28.8-eks-ae9a62a   
+ip-10-254-138-215.us-west-2.compute.internal   Ready    <none>   29h   v1.28.8-eks-ae9a62a
+ip-10-254-168-158.us-west-2.compute.internal    Ready    <none>   29h   v1.28.8-eks-ae9a62a
 ip-10-254-133-18.us-west-2.compute.internal     Ready    <none>   27h   v1.28.8-eks-ae9a62a   enabled
-ip-10-254-215-53.us-west-2.compute.internal    Ready    <none>   29h   v1.28.8-eks-ae9a62a  
+ip-10-254-215-53.us-west-2.compute.internal    Ready    <none>   29h   v1.28.8-eks-ae9a62a
 ```
 
 ::::

@@ -1,5 +1,5 @@
 ---
-title: 'Lab 4: Running kube-bench in Debug mode (Optional)'
+title: "Lab 4: Running kube-bench in Debug mode (Optional)"
 weight: 21
 ---
 

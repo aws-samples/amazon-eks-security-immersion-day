@@ -7,13 +7,17 @@ tasks:
     desc: check workshop studio credentials are SessionToken
     cmds:
       - |
-        if ! aws sts get-caller-identity | jq ".Arn" | grep -q WSDataPlaneContentCreatorRole; then
+        if ! aws sts get-caller-identity | jq ".Arn" | grep -q WSDataPlaneContentWriter; then
           echo -e "\033[0;31mError - you need to retrieve credentials in Workshop Studio https://studio.us-east-1.prod.workshops.aws/workshops/25d0d383-8c35-4e03-b549-fd7cbf3ad9a2#builds\033[0m"
           exit 1
         fi
   pre:
     cmds:
       - pre-commit run --all-files
+
+  test:
+    cmds:
+      - source .envrc && yarn
 
   bootstrap:
     desc: "bootstrap CDK, needs to be only run the first time"
@@ -53,6 +57,11 @@ tasks:
     cmds:
       - yarn destroy
 
+  diff:
+    desc: "Generate the Cloudformation diff for Workshop Studio"
+    cmds:
+      - yarn diff
+
   cfn:
     desc: "Generate the Cloudformation template for Workshop Studio"
     #deps:
@@ -81,12 +90,12 @@ tasks:
     cmds:
       - task: cfn
       - task: check_creds
-      - aws s3 sync ./assets s3://ws-assets-us-east-1/d2b662ae-e9d7-4b31-b68b-64ade19d5dcc --delete
+      - aws s3 sync ./assets s3://ws-assets-us-east-1/165b0729-2791-4452-8920-53b734419050/ --delete
 
   check-assets:
     desc: "Check Assets with Workshop Studio"
     cmds:
-      - aws s3 ls s3://ws-assets-us-east-1/d2b662ae-e9d7-4b31-b68b-64ade19d5dcc/
+      - aws s3 ls s3://ws-assets-us-east-1/165b0729-2791-4452-8920-53b734419050/
 
   get-tfstate-bucket-name:
     desc: "retrieve the bucket name to use"
@@ -107,53 +116,56 @@ tasks:
     desc: "prere-quisite for codebuild"
     cmds:
       - |
-        mkdir -p terraform && cd terraform && rm -rf *
+        mkdir -p _tmp-build && cd _tmp-build && rm -rf *
         yq ".phases.build.commands[0]" < ../cdk/resources/buildspec-common.yaml > build-common.sh
         chmod 755 build-common.sh
-        yq ".phases.build.commands[0]" < ../cdk/resources/buildspec-hub.yaml > build-hub.sh
-        chmod 755 build-hub.sh
-        yq ".phases.build.commands[0]" < ../cdk/resources/buildspec-spoke.yaml > build-spoke.sh
-        chmod 755 build-spoke.sh
+        #yq ".phases.build.commands[0]" < ../cdk/resources/buildspec-hub.yaml > build-hub.sh
+        #chmod 755 build-hub.sh
+        #yq ".phases.build.commands[0]" < ../cdk/resources/buildspec-spoke.yaml > build-spoke.sh
+        #chmod 755 build-spoke.sh
 
   codebuild-configure-check:
     desc: "check prere-quisite for codebuild"
     cmds:
       - |
-        if [ ! -d "terraform" ]; then
-          echo "terraform directory does not exist. You need to run 'task codebuild-configure' first."
+        if [ ! -d "_tmp-build" ]; then
+          echo "_tmp-build directory does not exist. You need to run 'task codebuild-configure' first."
           exit 1
         fi
 
-        if [ ! -f "terraform/build-common.sh" ] || [ ! -f "terraform/build-hub.sh" ] || [ ! -f "terraform/build-spoke.sh" ]; then
+        #if [ ! -f "_tmp-build/build-common.sh" ] || [ ! -f "_tmp-build/build-hub.sh" ] || [ ! -f "_tmp-build/build-spoke.sh" ]; then
+        if [ ! -f "_tmp-build/build-common.sh" ] ; then
           echo "One or more build scripts are missing. You need to run 'task codebuild-configure' first."
           exit 1
         fi
 
-        echo "Terraform directory and build scripts exist."
+        echo "_tmp-build directory and build scripts exist."
 
   codebuild-create:
     desc: "Simulate locally the CodeBuild Create (uses the tfstate bucket from the codebuild)"
-    deps: [codebuild-configure-check]
+    deps: [codebuild-configure, codebuild-configure-check]
     cmds:
       - |
         echo "retrieve TFSTATE Bucket.."
-        project_name=$(aws codebuild list-projects | jq ".projects[]" -r | grep "EKSGITIAMStackDeploy" | head -n 1)
+        project_name=$(aws codebuild list-projects | jq ".projects[]" -r | grep "EKSSECUCOMMON" | head -n 1)
         if [ -n "$project_name" ]; then
           bucket=$(aws codebuild batch-get-projects --names $project_name --query 'projects[0].environment.environmentVariables[?name==`TFSTATE_BUCKET_NAME`].value' --output text)
           echo BUCKET=$bucket
           role=$(aws codebuild batch-get-projects --names $project_name --query 'projects[0].environment.environmentVariables[?name==`PARTICIPANT_ROLE_ARN`].value' --output text)
           echo ROLE=$role
+          GITEA_EXTERNAL_URL=$(aws codebuild batch-get-projects --names $project_name --query 'projects[0].environment.environmentVariables[?name==`GITEA_EXTERNAL_URL`].value' --output text)
+          echo GITEA_EXTERNAL_URL=$GITEA_EXTERNAL_URL
+          GITEA_PASSWORD=$(aws codebuild batch-get-projects --names $project_name --query 'projects[0].environment.environmentVariables[?name==`GITEA_PASSWORD`].value' --output text)
+          echo GITEA_PASSWORD=$GITEA_PASSWORD          
         else
-          echo "No CodeBuild project found with 'FleetStackDeploy' in the name"
+          echo "No CodeBuild project found with 'EKSSECUCOMMON' in the name"
           exit 1
         fi
 
         BUCKET=$bucket
         PARTICIPANT_ROLE_ARN=$role
-        REQUESTED_ACTION=Create AWS_REGION=$AWS_REGION CODEBUILD_SRC_DIR=pwd TFSTATE_BUCKET_NAME=$BUCKET bash ./build-common.sh
-        REQUESTED_ACTION=Create AWS_REGION=$AWS_REGION CODEBUILD_SRC_DIR=pwd TFSTATE_BUCKET_NAME=$BUCKET bash ./build-hub.sh
-        SPOKE=staging REQUESTED_ACTION=Create AWS_REGION=$AWS_REGION CODEBUILD_SRC_DIR=pwd TFSTATE_BUCKET_NAME=$BUCKET bash ./build-spoke.sh
-        SPOKE=prod REQUESTED_ACTION=Create AWS_REGION=$AWS_REGION CODEBUILD_SRC_DIR=pwd TFSTATE_BUCKET_NAME=$BUCKET bash ./build-spoke.sh
+        cd _tmp-build
+        REQUESTED_ACTION=Create AWS_REGION=$AWS_REGION CODEBUILD_SRC_DIR=pwd TFSTATE_BUCKET_NAME=$BUCKET GITEA_EXTERNAL_URL=$GITEA_EXTERNAL_URL GITEA_PASSWORD=$GITEA_PASSWORD bash ./build-common.sh
 
   codebuild-delete:
     desc: "Simulate locally the CodeBuild Delete (uses the tfstate bucket from the codebuild)"
@@ -161,23 +173,20 @@ tasks:
     cmds:
       - |
         echo "retrieve TFSTATE Bucket.."
-        project_name=$(aws codebuild list-projects | jq ".projects[]" -r | grep "EKSGITIAMStackDeploy" | head -n 1)
+        project_name=$(aws codebuild list-projects | jq ".projects[]" -r | grep "EKSSECUCOMMON" | head -n 1)
         if [ -n "$project_name" ]; then
           bucket=$(aws codebuild batch-get-projects --names $project_name --query 'projects[0].environment.environmentVariables[?name==`TFSTATE_BUCKET_NAME`].value' --output text)
           echo BUCKET=$bucket
           role=$(aws codebuild batch-get-projects --names $project_name --query 'projects[0].environment.environmentVariables[?name==`PARTICIPANT_ROLE_ARN`].value' --output text)
           echo ROLE=$role
         else
-          echo "No CodeBuild project found with 'FleetStackDeploy' in the name"
+          echo "No CodeBuild project found with 'EKSSECUCOMMON' in the name"
           exit 1
         fi
-        cd terraform
+        cd _tmp-build
         set -x
         BUCKET=$bucket
         PARTICIPANT_ROLE_ARN=$role
-        SPOKE=staging REQUESTED_ACTION=Delete AWS_REGION=$AWS_REGION CODEBUILD_SRC_DIR=pwd TFSTATE_BUCKET_NAME=$BUCKET bash ./build-spoke.sh
-        SPOKE=prod REQUESTED_ACTION=Delete AWS_REGION=$AWS_REGION CODEBUILD_SRC_DIR=pwd TFSTATE_BUCKET_NAME=$BUCKET bash ./build-spoke.sh
-        REQUESTED_ACTION=Delete AWS_REGION=$AWS_REGION CODEBUILD_SRC_DIR=pwd TFSTATE_BUCKET_NAME=$BUCKET bash ./build-hub.sh
         REQUESTED_ACTION=Delete AWS_REGION=$AWS_REGION CODEBUILD_SRC_DIR=pwd TFSTATE_BUCKET_NAME=$BUCKET bash ./build-common.sh
 
   preview:

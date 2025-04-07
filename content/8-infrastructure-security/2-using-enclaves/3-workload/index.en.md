@@ -1,6 +1,6 @@
 ---
-title : "Deploy a Sample Enclave Application"
-weight : 24
+title: "Deploy a Sample Enclave Application"
+weight: 24
 ---
 
 ## Package your enclave application
@@ -14,7 +14,7 @@ AWS provides a command line tool, **enclavectl** that automates the steps that a
 The **enclavectl** utility can be found in the `aws-nitro-enclaves-with-k8s` GitHub repo. Clone the GitHub repo and navigate into the directory.
 
 ```bash
-git clone https://github.com/aws/aws-nitro-enclaves-with-k8s.git 
+git clone https://github.com/aws/aws-nitro-enclaves-with-k8s.git
 cd aws-nitro-enclaves-with-k8s
 ```
 
@@ -86,7 +86,7 @@ COPY hello/run.sh  /home
 CMD ["/home/run.sh"]
 ```
 
-Note: 
+Note:
 
 After saving the new Dockerfile, use the `enclavectl build` command and specify the name of the directory.
 
@@ -98,11 +98,10 @@ Sample output:
 
 ```bash
 ...
- => => naming to docker.io/library/hello-23a18b21-b1db-4a3e-99ed-6153e4a4b70e:latest 
+ => => naming to docker.io/library/hello-23a18b21-b1db-4a3e-99ed-6153e4a4b70e:latest
 ```
 
-
-The Docker image is created with a name in the following format: `hello-`*`unique_uuid`*. Note the name, you will need it in subsequent steps. To view the full name of the image, run the following command.
+The Docker image is created with a name in the following format: `hello-`_`unique_uuid`_. Note the name, you will need it in subsequent steps. To view the full name of the image, run the following command.
 
 ```bash
 docker image ls | grep hello
@@ -135,7 +134,7 @@ echo $ECR_REPO_URI
 
 Replace the docker image name **hello-23a18b21-b1db-4a3e-99ed-6153e4a4b70e** with the name you retrieved from the previous step:
 
-Tag your image with the Amazon ECR registry, repository, and optional image tag name combination to use. 
+Tag your image with the Amazon ECR registry, repository, and optional image tag name combination to use.
 
 ```bash
 docker tag ${ECR_REPO}:latest ${ECR_REPO_URI}:latest
@@ -223,7 +222,7 @@ kubectl apply -f deployment_spec.yaml
 Check deployment status of the hello application:
 
 ```bash
-kubectl get pods --selector app=hello --watch -o wide 
+kubectl get pods --selector app=hello --watch -o wide
 ```
 
 ::::expand{header="Check Sample Output"}
