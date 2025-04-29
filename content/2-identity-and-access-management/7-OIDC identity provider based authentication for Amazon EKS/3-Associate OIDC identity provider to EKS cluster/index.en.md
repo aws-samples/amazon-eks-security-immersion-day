@@ -15,7 +15,7 @@ Let's walk through the process of associating the identity provider for your Ama
 
 ::::tab{id="cli" label="Using AWS CLI"}
 
-Run the following command to associate OIDCUserpool to EKS cluster
+Run the following command to associate `OIDCUserpool` to EKS cluster
 
 :::code{language=bash showLineNumbers=false showCopyAction=true}
 CLUSTER_NAME=$(aws eks list-clusters | jq -r '.clusters[] | select(contains("eksworkshop"))')

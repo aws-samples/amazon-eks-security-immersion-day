@@ -42,7 +42,7 @@ echo $CLIENT_ID
 
 The output will be similar to this (values will differ in many cases)
 
-![oidc_cognito_groupclaim](/static/images/iam/oidc-cognito/oidc-eks-cognito-groupclaim.jpg)
+![oidc_cognito_group_claim](/static/images/iam/oidc-cognito/oidc-eks-cognito-groupclaim.jpg)
 
 The Cognito ID token payload typically has the claims as shown. The payload helps determine the group key to reference in the group claim field of the association in step 3. For Amazon Cognito-issued ID token, the group key is `"cognito:groups"` as shown below. This may vary with OIDC IDP you may use, hence it is important to understand this to help you configure the cluster OIDC association appropriately in the next step.
 

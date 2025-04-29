@@ -146,11 +146,11 @@ In this lab, we will create a kube-bench batch job in EKS cluster to run the CIS
   [WARN] 4.6.3 The default namespace should not be used (Manual)
 
   == Remediations policies ==
-  4.1.1 Identify all clusterrolebindings to the cluster-admin role. Check if they are used and
+  4.1.1 Identify all `clusterrolebindings` to the cluster-admin role. Check if they are used and
   if they need this role or if they could use a role with fewer privileges.
   Where possible, first bind users to a lower privileged role and then remove the
   clusterrolebinding to the cluster-admin role :
-  kubectl delete clusterrolebinding [name]
+  `kubectl delete clusterrolebinding [name]`
 
   4.1.2 Where possible, remove get, list and watch access to secret objects in the cluster.
 

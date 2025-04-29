@@ -50,11 +50,11 @@ Search for cloudwatch and click on cloudwatch
 
 Click on Logs Insights
 
-![oidc_eks_cloudwatch_loginsights](/static/images/iam/oidc-cognito/oidc-eks-cloudwatch-loginsights.jpg)
+![oidc_eks_cloudwatch_log_insights](/static/images/iam/oidc-cognito/oidc-eks-cloudwatch-loginsights.jpg)
 
 Select "/aws/eks/eksworkshop-eksctl/logs"and 
 
-![oidc_eks_cloudwatch_loginsights](/static/images/iam/oidc-cognito/oidc-eks-cloudwatch-insights-logroups.jpg)
+![oidc_eks_cloudwatch_log_insights](/static/images/iam/oidc-cognito/oidc-eks-cloudwatch-insights-logroups.jpg)
 
 add filter code as shown below
 
@@ -64,7 +64,7 @@ fields @timestamp, @message
 | filter user.username = "test1@example.com"
 :::
 
-![oidc_eks_cloudwatch_loginsights](/static/images/iam/oidc-cognito/oidc-eks-cloudwatch-insights-filter.jpg)
+![oidc_eks_cloudwatch_log_insights](/static/images/iam/oidc-cognito/oidc-eks-cloudwatch-insights-filter.jpg)
 
 The resulting audit log sample within CloudWatch Logs is shown below for the "kubectl get secrets" call 
 

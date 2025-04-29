@@ -301,10 +301,10 @@ Remember, that we have configured app1 to use the envoy proxy for signing the re
 kubectl stern --context $EKS_CLUSTER1_CONTEXT -n app1 app1 -c envoy-sigv4 | grep token
 ```
 
-::alert[App1 was configured in [previous chapter](/6-network-security/2-vpc-lattice-service-access/3-single-cluster-usecases/5-service-connect-https-custom-domain#4.-deploy-the-root-ca-certificate-to-app1-v1-pod) to retrieve the RootCA from our private Certificat Manager ACM, redo this module in case of https error]{header="Info"}
+::alert[App1 was configured in [previous chapter](/6-network-security/2-vpc-lattice-service-access/3-single-cluster-usecases/5-service-connect-https-custom-domain#4.-deploy-the-root-ca-certificate-to-app1-v1-pod) to retrieve the RootCA from our private Certificate Manager ACM, redo this module in case of https error]{header="Info"}
 
 ::::alert{type="info" header="Congratulation!"}
-This time we managed to configure our Service with custom domain name and certificat, with a secure connection in TLS, and authorization validated by VPC Lattice IAM policies, working seamlessly across different EKS clusters in different VPCs.
+This time, we successfully configured our service with a custom domain name and a valid SSL/TLS certificate, enabling a secure connection. The authorization is validated by VPC Lattice IAM policies, allowing the service to work seamlessly across different Amazon EKS clusters in separate VPCs.
 
 We control who can access the vpc lattice with Pod Identity session tags, so that we can allow based on cluster-name, namespace name and service account name, or pod name.
 ::::
