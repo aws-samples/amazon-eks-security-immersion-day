@@ -21,8 +21,9 @@
     "typescript": "~5.2.2"
   },
   "dependencies": {
-    "@workshop-cdk-constructs/vscode-ide": "^0.8.1",
-    "@workshop-cdk-constructs/workshop-studio-utils": "^0.2.3",
+    "@workshop-cdk-constructs/codebuild-custom-resource": "^0.2.1",
+    "@workshop-cdk-constructs/vscode-ide": "^0.8.6",
+    "@workshop-cdk-constructs/workshop-studio-utils": "^0.2.5",
     "aws-cdk-lib": "^2.189.1",
     "constructs": "^10.0.0",
     "source-map-support": "^0.5.21"
