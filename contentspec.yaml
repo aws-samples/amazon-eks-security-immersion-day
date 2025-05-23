@@ -6,6 +6,10 @@ localeCodes:
 
 # START Infrastructure       
 infrastructure:
+  requiredResources:
+    guardduty:
+      - type: detector
+        quantity: 1
   cloudformationTemplates:
     - templateLocation: static/eks-security-workshop-team-stack.json
       label: Amazon EKS Security Immersion Day
