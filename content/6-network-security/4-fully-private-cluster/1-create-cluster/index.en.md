@@ -1,10 +1,9 @@
 ---
-title : "Create Fully Private EKS Cluster"
-weight : 151
+title: "Create Fully Private EKS Cluster"
+weight: 151
 ---
 
 Once you have logged into the AWS Management Console from your Workshop Studio, you will already have an AWS Cloud9 environment. Your AWS Cloud9 workspace will also have all the required tools installed in it.
-
 
 #### Create a VPC with Private Subnets with Internet Egress
 
@@ -17,11 +16,13 @@ aws cloudformation deploy --template-file eks-private-vpc.yaml --stack-name eks-
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 Waiting for changeset to be created..
 Waiting for stack create/update to complete
 Successfully created/updated stack - eks-private-vpc
 ```
+
 ::::
 
 ```bash
@@ -296,7 +297,7 @@ privateCluster:
 
 After the EKS cluster was created and since it is a Private Cluster, there would be VPC endpoints created in the Cluster VPC to create PrivateLink with various AWS services. The following VPC endpoints are created behind the scene.
 
-#### List the VPC endpoints created with the EKS clusters for Private access to AWS Servcies
+#### List the VPC endpoints created with the EKS clusters for Private access to AWS Services
 
 ```bash
 aws ec2 describe-vpc-endpoints --filter "Name=vpc-id,Values=$PRIVATE_CLUSTER_VPC" --query VpcEndpoints[].[VpcId,VpcEndpointId,ServiceName] --output table
@@ -434,12 +435,12 @@ Now the eksworkshop-private Cloud9 instance is ready to manage the fully private
 * Click on **Instances** on the **EC2 Dashboard**
 * Filter with "eksworkshop-eksctl-private" and select and Instance
 * Click on the **Connect** button on the top and Select the **Session Manager** tab
-![seesionManager](/static/images/fully-private-cluster/sessionManagerConnect.png)
+![sessionManager](/static/images/fully-private-cluster/sessionManagerConnect.png)
 * Click the **Connect** button at the bottom to open the Terminal
-![seesionManagerTerminal](/static/images/fully-private-cluster/sessionManagerTerminal.png)
+![sessionManagerTerminal](/static/images/fully-private-cluster/sessionManagerTerminal.png)
 
 * Try to connect to a public site like www.google.com using curl and it would timeout. 
-* Try connecting to the API enpoint of the cluster using curl. You should receive a structured JSON response.
+* Try connecting to the API endpoint of the cluster using curl. You should receive a structured JSON response.
 ![workerNodeTest](/static/images/fully-private-cluster/workNodeTest.png)
 
 This proves that EKS cluster is fully private with connectivity to the private API endpoint.

@@ -1,10 +1,9 @@
 ---
-title : "Analyze Amazon EKS Control Plane logs and Audit CloudTrail logs"
-weight : 35
+title: "Analyze Amazon EKS Control Plane logs and Audit CloudTrail logs"
+weight: 35
 ---
 
 ## EKS Control Plane Logs
-
 
 Amazon EKS control plane logging provides audit and diagnostic logs directly from the Amazon EKS control plane to CloudWatch Logs in your account. These logs make it easy for you to secure and run your clusters. You can select the exact log types you need, and logs are sent as log streams to a group for each Amazon EKS cluster in CloudWatch.
 
@@ -27,4 +26,3 @@ When you create your AWS account, CloudTrail is also enabled on your AWS account
 When pods within Amazon EKS utilize IAM Roles for Service Accounts (IRSA), their interactions with AWS APIs are automatically documented in CloudTrail, along with the corresponding service account name. If you observe an unauthorized service account name in the CloudTrail logs, it might indicate a misconfigured trust policy within the IAM role. CloudTrail proves valuable in associating AWS API actions with specific IAM entities within the context of an EKS cluster.
 
 By effectively utilizing CloudTrail logs for auditing in EKS, you can enhance the security of your Kubernetes clusters, ensure compliance with regulations, and gain better visibility into the activities within your AWS environment.
-

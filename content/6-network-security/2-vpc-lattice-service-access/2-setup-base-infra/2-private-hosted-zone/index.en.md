@@ -1,6 +1,6 @@
 ---
-title : "Create Private Hosted Zone"
-weight : 11
+title: "Create Private Hosted Zone"
+weight: 11
 ---
 
 ## Create Private Hosted Zone
@@ -19,10 +19,12 @@ echo "export CUSTOM_DOMAIN_NAME=$CUSTOM_DOMAIN_NAME" | tee -a ~/.bash_profile
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 EKS_CLUSTER1_VPC_ID=vpc-0bacccb5d3d4d9cb5
 HOSTED_ZONE_ID=/hostedzone/Z039859110X8DLX7ZIT0E
 ```
+
 ::::
 
 You can connect to **Route 53** In the console and check that the private zone as been created:

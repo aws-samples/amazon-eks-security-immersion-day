@@ -1,4 +1,4 @@
 ---
-title : "Observability"
-weight : 24
+title: "Observability"
+weight: 24
 ---

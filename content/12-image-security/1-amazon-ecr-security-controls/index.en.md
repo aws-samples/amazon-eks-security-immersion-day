@@ -1,6 +1,6 @@
 ---
-title : "Amazon ECR Security Controls"
-weight : 30
+title: "Amazon ECR Security Controls"
+weight: 30
 ---
 
 <!---

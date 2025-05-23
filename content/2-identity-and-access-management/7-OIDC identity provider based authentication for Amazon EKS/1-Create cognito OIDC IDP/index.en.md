@@ -332,49 +332,49 @@ In your AWS Console, Search for Cognito
 ![oidc_cognito](/static/images/iam/oidc-cognito/oidc-eks-search-cognito.jpg)
 
 You will land on cognito home screen
-![oidc_cognito-homescreen](/static/images/iam/oidc-cognito/oidc-eks-cognito-home.jpg)
+![oidc_cognito-home_screen](/static/images/iam/oidc-cognito/oidc-eks-cognito-home.jpg)
 
 Click on the hamburger icon and expand the select the user pool
-![oidc_cognito-side-homescreen](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-burgericon.jpg)
+![oidc_cognito-side-home_screen](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-burgericon.jpg)
 
 Click on the hamburger icon and expand the select the user pool
-![oidc_cognito-side-homescreen-icon](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-burgericon.jpg)
+![oidc_cognito-side-home_screen-icon](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-burgericon.jpg)
 
 Click on User pools
-![oidc_cognito-side-homescreen-userpool](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-userpool.jpg)
+![oidc_cognito-side-home_screen-user_pool](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-userpool.jpg)
 
 Click on "Create user pool"
-![oidc_cognito-side-homescreen-createuserpool](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-createuserpool.jpg)
+![oidc_cognito-side-home_screen-create_user_pool](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-createuserpool.jpg)
 
 Choose "Email" in Cognito user pool sign-in options and press Next
-![oidc_cognito-side-homescreen-createuserpoolemail](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-createuserpool-signin-options.jpg)
+![oidc_cognito-side-home_screen-create_user_pool_email](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-createuserpool-signin-options.jpg)
 
 For the purpose of the lab - choose "Cognito defaults" for password policy mode, "No MFA" , Select "Enable self-service account recovery" , "Email" user "User account recovery" and press "Next"
-![oidc_cognito-side-homescreen-createuserpoolcognito](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-createuserpool-securityrequirements.jpg)
+![oidc_cognito-side-home_screen-create_user_pool_cognito](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-createuserpool-securityrequirements.jpg)
 
 In Configure signup experience - use default selections and press "Next"
-![oidc_cognito-side-homescreen-createuserpoolsignup](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-createuserpool-configuresignup.jpg)
+![oidc_cognito-side-home_screen-create_user_pool_signup](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-createuserpool-configuresignup.jpg)
 
 In Configure message delivery - choose "send email with cognito" and press "Next"
-![oidc_cognito-side-homescreen-createuserpoolsendemail](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-createuserpool-configuremessagedelivery.jpg)
+![oidc_cognito-side-home_screen-create_user_pool_send_email](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-createuserpool-configuremessagedelivery.jpg)
 
 In "Integrate your App" - Type in User pool name as "OIDCClient",select Initial app client as "Other", app client as "eksClient" and press "Next"
-![oidc_cognito-side-homescreen-createuserpoolOIDC](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-createuserpool-integrateApp.jpg)
+![oidc_cognito-side-home_screen-create_user_pool_OIDC](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-createuserpool-integrateApp.jpg)
 
 Review all details and press "Create"
 
-Now userpool is created - click on the "User pool name" to see the details
-![oidc_cognito-side-homescreen-createuserpool](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-userpoolcreated.jpg)
+Now user pool is created - click on the "User pool name" to see the details
+![oidc_cognito-side-home_screen-create_user_pool](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-userpoolcreated.jpg)
 
 You can see the "User pool" to see the details
-![oidc_cognito-side-homescreen-createuserpooldetails](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-userpooldetails.jpg)
+![oidc_cognito-side-home_screen-create_user_pool_details](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-userpooldetails.jpg)
 
 ## Create Users and User group
 Click on "OIDCUserPool" and click on "Create user"
-![oidc_cognito-side-homescreen-userpool-createuser](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-userpool-createuser.jpg)
+![oidc_cognito-side-home_screen-user_pool-create_user](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-userpool-createuser.jpg)
 
 Set email as "test1@example.com",choose "set a password" and click on "Create user"
-![oidc_cognito-side-homescreen-createuserpooldetails](/static/images/iam/oidc-cognito/oidc-eks-cognito-createuser.jpg)
+![oidc_cognito-side-home_screen-create_user_pool_details](/static/images/iam/oidc-cognito/oidc-eks-cognito-createuser.jpg)
 
 The user account will be provisioned with a confirmation status of 'Force change password'. Under normal circumstances, a user would be able to log in to the application after the User Pool is integrated.However, for the purposes of this lab exercise, we will run a CLI command to manually change the user's password. This will allow us to then authenticate and gain access to the Amazon EKS cluster using the updated credentials
 
@@ -383,19 +383,19 @@ The user account will be provisioned with a confirmation status of 'Force change
     aws cognito-idp admin-set-user-password --user-pool-id $POOL_ID --username test1@example.com --password Blah123$ --permanent
 :::
 Lets now create user group.Click on "Groups" and create "Create group"
-![oidc_cognito-side-homescreen-createusergroup](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-creategroup.jpg)
+![oidc_cognito-side-home_screen-create_user_group](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-creategroup.jpg)
 
 Add "secret-reader" as Group name and click on "Create group"
-![oidc_cognito-side-homescreen-createusergroup](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-createuserpool-creategroup.jpg)
+![oidc_cognito-side-home_screen-create_user_group](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-createuserpool-creategroup.jpg)
 
 The user group would be created and you can see that in "Groups" table.
-![oidc_cognito-side-homescreen-listgroup](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-createuserpool-creategroup-listgroups.jpg)
+![oidc_cognito-side-home_screen-list_group](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-createuserpool-creategroup-listgroups.jpg)
 
 Lets add users to this group now.Click on the group name "secret reader" and click on "Add user to group"
-![oidc_cognito-side-homescreen-listgroup](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-createuserpool-adduserstogroup.jpg)
+![oidc_cognito-side-home_screen-list_group](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-createuserpool-adduserstogroup.jpg)
 
 You should see the user "test1@example.com" added earlier.Select the user and click "Add"
-![oidc_cognito-side-homescreen-listgroup](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-createuserpool-addUserToGroup.jpg)
+![oidc_cognito-side-home_screen-list_group](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-createuserpool-addUserToGroup.jpg)
 
 You should be able to see the user added to the group now
-![oidc_cognito-side-homescreen-listgroup](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-createuserpool-addusertogrouplist.jpg)
+![oidc_cognito-side-home_screen-list_group](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-createuserpool-addusertogrouplist.jpg)

@@ -1,6 +1,6 @@
 ---
-title : "Egress Traffic Scenarios"
-weight : 24
+title: "Egress Traffic Scenarios"
+weight: 24
 ---
 
 ## Scenario #6: Deny all egress from client-one pod
@@ -30,7 +30,7 @@ spec:
       app: client-one
   egress: []
   policyTypes:
-  - Egress
+    - Egress
 ```
 
 The `client-one-deny-egress` network policy selects the `client-one` application pods using the `podSelector` configuration which uses the pod labels i.e. `app: client-one`. The `Egress` configuration inside the `policyTypes` field is empty and **does not** have any egress traffic, which means all egress / outgoing traffic is blocked from the `client-one` pod.
@@ -42,9 +42,11 @@ kubectl apply -f policies/06-deny-egress-from-client-one.yaml
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 networkpolicy.networking.k8s.io/client-one-deny-egress created
 ```
+
 ::::
 
 ### Verify connectivity between the client-one and demo-app pods in the same namespace
@@ -54,20 +56,23 @@ Test the connectivity from **client-one** pod to **demo-app** pod with in same `
 ```bash
 kubectl exec -it client-one -- curl --max-time 3 demo-app
 ```
+
 You would see below response for each command, indicating timeout error, as client-one pod is **not able to lookup/resolve** the demo-app service ip address.
 
 ::::expand{header="Check Output"}
+
 ```bash
 curl: (28) Resolving timed out after 3000 milliseconds
 command terminated with exit code 28
 ```
+
 ::::
 
 ## Scenario #7: Allow egress to a specific port(53) on coredns from client-one pod
 
 In this scenario, we will allow egress traffic to a specific **port(53)** on **coredns** from **client-one** pod
 
-![sc7-egree-to-coredns](/static/images/6-network-security/1-network-policies/sc7-egree-to-coredns.png)
+![sc7-egress-to-coredns](/static/images/6-network-security/1-network-policies/sc7-egree-to-coredns.png)
 
 ### Deploy the Network Policy
 
@@ -89,16 +94,16 @@ spec:
     matchLabels:
       app: client-one
   egress:
-  - to:
-    - namespaceSelector:
-        matchLabels:
-          kubernetes.io/metadata.name: kube-system
-      podSelector:
-        matchLabels:
-          k8s-app: kube-dns
-    ports:
-    - port: 53
-      protocol: UDP
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - port: 53
+          protocol: UDP
 ```
 
 The `client-one-allow-egress-coredns` network policy configires `egress` section with `namespaceSelector`, `podSelector` and `ports` to select a specific port/protocol for the `kube-dns` pod in the `kube-system` namespace.
@@ -110,9 +115,11 @@ kubectl apply -f policies/07-allow-egress-to-coredns.yaml
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 networkpolicy.networking.k8s.io/client-one-allow-egress-coredns created
 ```
+
 ::::
 
 ### Verify connectivity between the client-one and demo-app pods in the same namespace
@@ -122,9 +129,11 @@ Test the connectivity from **client-one** pod to **demo-app** pod with in same `
 ```bash
 kubectl exec -it client-one -- curl --max-time 3 -v demo-app
 ```
-Now, **client-one** app pod is able to communicate with **coredn** pod in `kube-system` namespace to resolve the service ip of **demo-app**, but failed to connect to **demo-app** due to missing egress rule.
+
+Now, **client-one** app pod is able to communicate with **coredns** pod in `kube-system` namespace to resolve the service ip of **demo-app**, but failed to connect to **demo-app** due to missing egress rule.
 
 ::::expand{header="Check Output"}
+
 ```bash
 * processing: demo-app
 *   Trying 172.20.107.125:80...
@@ -133,14 +142,13 @@ Now, **client-one** app pod is able to communicate with **coredn** pod in `kube-
 curl: (28) Connection timed out after 3003 milliseconds
 command terminated with exit code 28
 ```
+
 ::::
 
+## Scenario #8: Allow egress to coredns and demo-app from client-one pod
 
-## Scenario #8: Allow egress to coredna and demo-app from client-one pod
+In this scenario, we will block all the egress traffic from **client-one** pod to **coredns** and \*\*demo-app(())
 
-
-In this scenario, we will block all the egress traffic from **client-one** pod to **coredns** and **demo-app(())
-]
 ![sc8-allow-egress-coredns-demo-app](/static/images/6-network-security/1-network-policies/sc8-allow-egress-coredns-demo-app.png)
 
 ### Deploy the Network Policy
@@ -163,23 +171,23 @@ spec:
     matchLabels:
       app: client-one
   egress:
-  - to:
-    - namespaceSelector:
-        matchLabels:
-          kubernetes.io/metadata.name: kube-system
-      podSelector:
-        matchLabels:
-          k8s-app: kube-dns
-    ports:
-    - port: 53
-      protocol: UDP
-  - to:
-    - podSelector:
-        matchLabels:
-          app: demo-app
-    ports:
-    - port: 80
-      protocol: TCP
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - port: 53
+          protocol: UDP
+    - to:
+        - podSelector:
+            matchLabels:
+              app: demo-app
+      ports:
+        - port: 80
+          protocol: TCP
 ```
 
 The `client-one-allow-egress-demo-app` network policy includes one more `to` section inside the `egress` configuration to use `podSelector` to select **demo-app** pods.
@@ -191,9 +199,11 @@ kubectl apply -f policies/08-allow-egress-to-demo-app.yaml
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 networkpolicy.networking.k8s.io/client-one-allow-egress-demo-app created
 ```
+
 ::::
 
 ### Verify connectivity between the client-one and demo-app pods in the same namespace
@@ -203,9 +213,11 @@ Test the connectivity from **client-one** pod to **demo-app** pod with in same `
 ```bash
 kubectl exec -it client-one -- curl --max-time 3 demo-app
 ```
+
 You would see below response indicating a successful API i.e. **client-one** is able to resolve the ip address and connect to the **demo-app** on port 80 successfully.
 
 ::::expand{header="Check Output"}
+
 ```bash
 <!DOCTYPE html>
 <html>
@@ -228,7 +240,5 @@ You would see below response indicating a successful API i.e. **client-one** is 
 </body>
 </html>
 ```
+
 ::::
-
-
-

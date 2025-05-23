@@ -1,8 +1,7 @@
 ---
-title : "Create Workspace Environment"
-weight : 20
+title: "Create Workspace Environment"
+weight: 20
 ---
-
 
 To start the workshop, follow one of the following depending on whether you are...
 

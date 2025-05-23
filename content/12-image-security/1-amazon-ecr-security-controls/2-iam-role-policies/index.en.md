@@ -1,6 +1,6 @@
 ---
-title : "Managing access to ECR repos using IAM identity-based policies"
-weight : 22
+title: "Managing access to ECR repos using IAM identity-based policies"
+weight: 22
 ---
 
 In this section, you will use AWS Identity and Access Management (AWS IAM) to create a role and attach a policy to provide access to only one ECR repository. You will review how IAM policies can control user access to specific ECR repositories. IAM policies are generally used to apply permissions for the entire Amazon ECR service but can also be used to control access to specific resources as well.
@@ -38,9 +38,11 @@ aws iam create-role \
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 arn:aws:iam::ACCOUNT_ID:role/ecr_access_teama_role
 ```
+
 ::::
 
 5. Create a new IAM **customer managed** policy
@@ -54,9 +56,11 @@ aws iam create-policy \
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 arn:aws:iam::ACCOUNT_ID:policy/ecr_access_testing
 ```
+
 ::::
 
 6. Attach the new IAM **customer managed** policy to the **ecr_access_teama_role** IAM role
@@ -87,11 +91,12 @@ echo -e "\nAWS CLI requests with 'ecrTester' profile use the identity of $TEST_R
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 AWS CLI requests with 'ecrTester' profile use the identity of ecr_access_teama_role role
 ```
-::::
-9. List images in the ECR repository `team-a/alpine` using **ecr_access_teama_role** role permissions. This action is explicitly allowed by the IAM policy attached to the role.
+
+:::: 9. List images in the ECR repository `team-a/alpine` using **ecr_access_teama_role** role permissions. This action is explicitly allowed by the IAM policy attached to the role.
 
 ```bash
 aws ecr list-images \
@@ -125,9 +130,9 @@ aws ecr list-images \
 The output will look like below and confirms the ECR repository access can be controlled by IAM permissions:
 
 ```
-An error occurred (AccessDeniedException) when calling the ListImages operation: 
-User: arn:aws:sts::ACCOUNT_ID:assumed-role/ecr_access_teama_role/ECR-Access-Testing 
-is not authorized to perform: ecr:ListImages on resource: 
-arn:aws:ecr:us-west-2:ACCOUNT_ID:repository/team-b/alpine 
+An error occurred (AccessDeniedException) when calling the ListImages operation:
+User: arn:aws:sts::ACCOUNT_ID:assumed-role/ecr_access_teama_role/ECR-Access-Testing
+is not authorized to perform: ecr:ListImages on resource:
+arn:aws:ecr:us-west-2:ACCOUNT_ID:repository/team-b/alpine
 because no identity-based policy allows the ecr:ListImages action <--
 ```

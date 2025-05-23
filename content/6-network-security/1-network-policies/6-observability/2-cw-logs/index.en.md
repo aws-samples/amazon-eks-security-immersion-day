@@ -1,12 +1,11 @@
 ---
-title : "Using Cloud Watch logs"
-weight : 22
+title: "Using Cloud Watch logs"
+weight: 22
 ---
-
 
 ## Network policy logs
 
-Whether connections are allowed or denied by a network policies is logged in flow logs. The network policy logs on each node include the flow logs for every pod that has a network policy. Network policy logs are stored at `/var/log/aws-routed-eni/network-policy-agent.log`. 
+Whether connections are allowed or denied by a network policies is logged in flow logs. The network policy logs on each node include the flow logs for every pod that has a network policy. Network policy logs are stored at `/var/log/aws-routed-eni/network-policy-agent.log`.
 
 Let us login into the worker node using SSM.
 
@@ -16,15 +15,14 @@ Run the below command to connect one of the worker nodes in the EKS Cluster.
 aws ssm start-session --target $(aws ec2 describe-instances --filters "Name=tag:eks:nodegroup-name,Values=mng-al2" | jq -r '.[][0]["Instances"][0]["InstanceId"]')
 ```
 
-
 ::::expand{header="Check Output"}
+
 ```bash
 Starting session with SessionId: i-06ffbd08f775157e6-062fff1d92f37bd3d
-sh-4.2$ 
+sh-4.2$
 ```
+
 ::::
-
-
 
 In the SSM shell, Run the below command to dump all ebpf program related data
 
@@ -95,38 +93,33 @@ The output will look like below,
 
 ### Send network policy logs to Amazon CloudWatch Logs
 
-
 You can monitor the network policy logs using services such as Amazon CloudWatch Logs. You can use the following methods to send the network policy logs to CloudWatch Logs.
 
 For EKS clusters, the policy logs will be located under `/aws/eks/cluster-name/cluster/`
 
 ### Prerequisites
 
-* Add the following permissions as a stanza or separate policy to the IAM role that you are using for the VPC CNI. 
+- Add the following permissions as a stanza or separate policy to the IAM role that you are using for the VPC CNI.
 
 ```json
 {
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Sid": "VisualEditor0",
-            "Effect": "Allow",
-            "Action": [
-                "logs:DescribeLogGroups",
-                "logs:CreateLogGroup",
-                "logs:CreateLogStream",
-                "logs:PutLogEvents"
-            ],
-            "Resource": "*"
-        }
-    ]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "VisualEditor0",
+      "Effect": "Allow",
+      "Action": [
+        "logs:DescribeLogGroups",
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "*"
+    }
+  ]
 }
 ```
-* enable `enableCloudWatchLogs` in **Optional configuration settings** for Amazon EKS VPC CNI as follows.
+
+- enable `enableCloudWatchLogs` in **Optional configuration settings** for Amazon EKS VPC CNI as follows.
 
 ![console-cni-config-network-policy-logs](/static/images/6-network-security/1-network-policies/console-cni-config-network-policy-logs.png)
-
-
-
-
-

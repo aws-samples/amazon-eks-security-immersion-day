@@ -1,13 +1,13 @@
 ---
-title : "Create Template Files for Gateway, Apps and Routes"
-weight : 13
+title: "Create Template Files for Gateway, Apps and Routes"
+weight: 13
 ---
 
 In this section, we will create multiple template files, which we will be using later in the workshop to instantiate various manifest files.
 
-## Create template for Gateway 
+## Create template for Gateway
 
-This will create a template file to later create `Namespace` and `Gateway` Kubernetes objects. The Gateway  will have HTTP and HTTPS listeners, and HTTPS listenet with custom domain that will terminate TLS using associated ACM certificate.
+This will create a template file to later create `Namespace` and `Gateway` Kubernetes objects. The Gateway will have HTTP and HTTPS listeners, and HTTPS listener with custom domain that will terminate TLS using associated ACM certificate.
 
 ```bash
 cat > templates/gateway-template.yaml <<EOF
@@ -56,17 +56,18 @@ spec:
         from: Selector
         selector:
           matchLabels:
-            allow-attachment-to-infra-gw: "true"    
+            allow-attachment-to-infra-gw: "true"
     tls:
       mode: Terminate
       options:
-        application-networking.k8s.aws/certificate-arn: \$CERTIFICATE_ARN                  
+        application-networking.k8s.aws/certificate-arn: \$CERTIFICATE_ARN
 EOF
 ```
 
-## Create template for K8s Application Deployment & Service.  
+## Create template for K8s Application Deployment & Service.
 
 This template will be used to create our applications:
+
 - Namespace
 - Deployment
 - Service
@@ -109,11 +110,11 @@ spec:
 #addcacert          value: "\$CA_ARN"
         securityContext:
           runAsUser: 0
-          runAsGroup: 1000          
+          runAsGroup: 1000
 #addprestop        lifecycle:
 #addprestop          preStop:
 #addprestop            exec:
-#addprestop              command: ["/bin/sh", "-c", "sleep 15"]          
+#addprestop              command: ["/bin/sh", "-c", "sleep 15"]
 #addcert        volumeMounts:
 #addcert        - name: root-cert
 #addcert          mountPath: /cert/
@@ -156,7 +157,7 @@ spec:
   parentRefs:
   - kind: Gateway
     name: \$GATEWAY_NAME
-    namespace: \$GATEWAY_NAMESPACE  
+    namespace: \$GATEWAY_NAMESPACE
     sectionName: http-listener
   rules:
   - backendRefs:
@@ -166,7 +167,7 @@ spec:
     matches:
       - path:
           type: PathPrefix
-          value: /      
+          value: /
 EOF
 ```
 
@@ -183,12 +184,12 @@ spec:
   parentRefs:
   - kind: Gateway
     name: \$GATEWAY_NAME
-    namespace: \$GATEWAY_NAMESPACE  
+    namespace: \$GATEWAY_NAMESPACE
     sectionName: http-listener
   - kind: Gateway
     name: \$GATEWAY_NAME
-    namespace: \$GATEWAY_NAMESPACE  
-    sectionName: https-listener-with-default-domain    
+    namespace: \$GATEWAY_NAMESPACE
+    sectionName: https-listener-with-default-domain
   rules:
   - backendRefs:
     - name: \$APPNAME-\$VERSION
@@ -197,7 +198,7 @@ spec:
     matches:
       - path:
           type: PathPrefix
-          value: /      
+          value: /
 EOF
 ```
 
@@ -216,84 +217,13 @@ spec:
   parentRefs:
   - kind: Gateway
     name: \$GATEWAY_NAME
-    namespace: \$GATEWAY_NAMESPACE  
-    sectionName: https-listener-with-custom-domain   
+    namespace: \$GATEWAY_NAMESPACE
+    sectionName: https-listener-with-custom-domain
   rules:
   - backendRefs:
     - name: \$APPNAME-\$VERSION
       kind: Service
       port: 80
-    matches:
-      - path:
-          type: PathPrefix
-          value: /  
----
-apiVersion: application-networking.k8s.aws/v1alpha1
-kind: IAMAuthPolicy
-metadata:
-    name: \${APPNAME}-iam-auth-policy
-    namespace: \$APPNAME
-spec:
-    targetRef:
-        group: "gateway.networking.k8s.io"
-        kind: HTTPRoute
-        namespace: \$APPNAME
-        name: \$APPNAME
-    policy: |
-        {
-            "Version": "2012-10-17",
-            "Statement": [
-                {
-                    "Effect": "Allow",
-                    "Principal": {
-                        "AWS": "arn:aws:iam::\${ACCOUNT_ID}:root"
-                    },
-                    "Action": "vpc-lattice-svcs:Invoke",
-                    "Resource": "*",
-                    "Condition": {
-                        "StringEquals": {
-                            "vpc-lattice-svcs:SourceVpc": [
-                                "\$EKS_CLUSTER1_VPC_ID",
-                                "\$EKS_CLUSTER2_VPC_ID"
-                            ],
-                            "aws:PrincipalTag/eks-cluster-name": "\$SOURCE_CLUSTER",
-                            "aws:PrincipalTag/kubernetes-namespace": "\$SOURCE_NAMESPACE"                             
-                        }
-                    }                    
-                }
-            ]
-        }              
-EOF
-```
-
-
-### Create Template for HTTPRoute with Custom Domain and HTTPS Listener and Weighted Routing, and ServiceImport
-
-```bash
-cat > templates/route-template-http-custom-domain-weighted.yaml  <<EOF
-apiVersion: gateway.networking.k8s.io/v1beta1
-kind: HTTPRoute
-metadata:
-  name: \$APPNAME
-  namespace: \$APPNAME
-spec:
-  hostnames:
-  - \$APPNAME.\$CUSTOM_DOMAIN_NAME
-  parentRefs:
-  - kind: Gateway
-    name: \$GATEWAY_NAME
-    namespace: \$GATEWAY_NAMESPACE  
-    sectionName: https-listener-with-custom-domain
-  rules:
-  - backendRefs:
-    - name: \$APPNAME-\$VERSION1
-      kind: Service
-      port: 80
-      weight: 50
-    - name: \$APPNAME-\$VERSION2
-      kind: ServiceImport
-      port: 80
-      weight: 50      
     matches:
       - path:
           type: PathPrefix
@@ -330,9 +260,79 @@ spec:
                             "aws:PrincipalTag/eks-cluster-name": "\$SOURCE_CLUSTER",
                             "aws:PrincipalTag/kubernetes-namespace": "\$SOURCE_NAMESPACE"
                         }
-                    }                    
+                    }
                 }
             ]
-        }          
+        }
+EOF
+```
+
+### Create Template for HTTPRoute with Custom Domain and HTTPS Listener and Weighted Routing, and ServiceImport
+
+```bash
+cat > templates/route-template-http-custom-domain-weighted.yaml  <<EOF
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: HTTPRoute
+metadata:
+  name: \$APPNAME
+  namespace: \$APPNAME
+spec:
+  hostnames:
+  - \$APPNAME.\$CUSTOM_DOMAIN_NAME
+  parentRefs:
+  - kind: Gateway
+    name: \$GATEWAY_NAME
+    namespace: \$GATEWAY_NAMESPACE
+    sectionName: https-listener-with-custom-domain
+  rules:
+  - backendRefs:
+    - name: \$APPNAME-\$VERSION1
+      kind: Service
+      port: 80
+      weight: 50
+    - name: \$APPNAME-\$VERSION2
+      kind: ServiceImport
+      port: 80
+      weight: 50
+    matches:
+      - path:
+          type: PathPrefix
+          value: /
+---
+apiVersion: application-networking.k8s.aws/v1alpha1
+kind: IAMAuthPolicy
+metadata:
+    name: \${APPNAME}-iam-auth-policy
+    namespace: \$APPNAME
+spec:
+    targetRef:
+        group: "gateway.networking.k8s.io"
+        kind: HTTPRoute
+        namespace: \$APPNAME
+        name: \$APPNAME
+    policy: |
+        {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Effect": "Allow",
+                    "Principal": {
+                        "AWS": "arn:aws:iam::\${ACCOUNT_ID}:root"
+                    },
+                    "Action": "vpc-lattice-svcs:Invoke",
+                    "Resource": "*",
+                    "Condition": {
+                        "StringEquals": {
+                            "vpc-lattice-svcs:SourceVpc": [
+                                "\$EKS_CLUSTER1_VPC_ID",
+                                "\$EKS_CLUSTER2_VPC_ID"
+                            ],
+                            "aws:PrincipalTag/eks-cluster-name": "\$SOURCE_CLUSTER",
+                            "aws:PrincipalTag/kubernetes-namespace": "\$SOURCE_NAMESPACE"
+                        }
+                    }
+                }
+            ]
+        }
 EOF
 ```

@@ -1,6 +1,6 @@
 ---
-title : "Cleanup"
-weight : 26
+title: "Cleanup"
+weight: 26
 ---
 
 Once you have completed this chapter, you can cleanup the files and resources you created by issuing the following commands:
@@ -19,19 +19,19 @@ export IAM_PRINCIPAL_ARN="arn:aws:iam::${ACCOUNT_ID}:role/k8sClusterAdmin"
 export ACCESS_POLICY_ARN="arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
 aws eks disassociate-access-policy --cluster-name $EKS_CLUSTER_NAME \
   --principal-arn $IAM_PRINCIPAL_ARN \
-  --policy-arn $ACCESS_POLICY_ARN 
+  --policy-arn $ACCESS_POLICY_ARN
 
 export IAM_PRINCIPAL_ARN="arn:aws:iam::${ACCOUNT_ID}:role/k8sTeamADev"
 export ACCESS_POLICY_ARN="arn:aws:eks::aws:cluster-access-policy/AmazonEKSAdminPolicy"
 aws eks disassociate-access-policy --cluster-name $EKS_CLUSTER_NAME \
   --principal-arn $IAM_PRINCIPAL_ARN \
-  --policy-arn $ACCESS_POLICY_ARN 
-  
+  --policy-arn $ACCESS_POLICY_ARN
+
 export IAM_PRINCIPAL_ARN="arn:aws:iam::${ACCOUNT_ID}:role/k8sTeamATest"
 export ACCESS_POLICY_ARN="arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"
 aws eks disassociate-access-policy --cluster-name $EKS_CLUSTER_NAME \
   --principal-arn $IAM_PRINCIPAL_ARN \
-  --policy-arn $ACCESS_POLICY_ARN 
+  --policy-arn $ACCESS_POLICY_ARN
 
 # Delete the access entries
 
@@ -46,15 +46,15 @@ aws eks delete-access-entry --cluster-name $EKS_CLUSTER_NAME \
 
 export IAM_PRINCIPAL_ARN="arn:aws:iam::${ACCOUNT_ID}:role/k8sTeamATest"
 aws eks delete-access-entry --cluster-name $EKS_CLUSTER_NAME \
-  --principal-arn $IAM_PRINCIPAL_ARN  
+  --principal-arn $IAM_PRINCIPAL_ARN
 
 aws iam remove-user-from-group --group-name k8sClusterAdmin --user-name User1Admin
 aws iam remove-user-from-group --group-name k8sTeamADev --user-name User1TeamADev
 aws iam remove-user-from-group --group-name k8sTeamATest --user-name User1TeamATest
 
-aws iam delete-group-policy --group-name k8sClusterAdmin --policy-name k8sClusterAdmin-policy 
+aws iam delete-group-policy --group-name k8sClusterAdmin --policy-name k8sClusterAdmin-policy
 aws iam delete-group-policy --group-name k8sTeamADev --policy-name k8sTeamADev-policy
-aws iam delete-group-policy --group-name k8sTeamATest --policy-name k8sTeamATest-policy 
+aws iam delete-group-policy --group-name k8sTeamATest --policy-name k8sTeamATest-policy
 
 aws iam delete-group --group-name k8sClusterAdmin
 aws iam delete-group --group-name k8sTeamADev

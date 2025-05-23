@@ -1,11 +1,11 @@
 ---
-title: 'Generate Kubernetes Findings using Kubectl in Cloud9 Instance'
+title: "Generate Kubernetes Findings using Kubectl"
 weight: 23
 ---
 
-In this section, we will generate some Kubernetes findings in your Amazon EKS cluster using your Cloud9 instance.
+In this section, we will generate some Kubernetes findings in your Amazon EKS cluster using your IDE.
 
-Go to your Cloud9 terminal and run the following commands to generate the sample findings.
+Go to your terminal and run the following commands to generate the sample findings.
 
 ### [`Execution:Runtime/NewBinaryExecuted`, `Impact:Runtime/CryptoMinerExecuted` and `CryptoCurrency:Runtime/BitcoinTool.B!DNS`](https://docs.aws.amazon.com/guardduty/latest/ug/findings-eks-runtime-monitoring.html)
 
@@ -133,7 +133,7 @@ root@ubuntunetcat:/# ./xmrig -o stratum+tcp://xmr.pool.minergate.com:45700 -u fo
 
 Go back [AWS GuardDuty console](<[console.aws.amazon.com/guardduty](https://us-west-2.console.aws.amazon.com/guardduty/home?region=us-west-2#/findings?macros=current)>) and check that a finding is generated for this.
 
-::alert[If the finding doesn’t appear immediateley in the GuardDuty Console, keep refreshing the page since it make take few minutes to to generate the Kubernetes Findings]{header="Note"}
+::alert[If the finding doesn’t appear immediately in the GuardDuty Console, keep refreshing the page since it make take few minutes to to generate the Kubernetes Findings]{header="Note"}
 
 You can find three findings in the Console.
 
@@ -309,7 +309,7 @@ Ncat: Connection refused.
 
 Go back [AWS GuardDuty console](<[console.aws.amazon.com/guardduty](https://us-west-2.console.aws.amazon.com/guardduty/home?region=us-west-2#/findings?macros=current)>) and check that a finding is generated for this.
 
-::alert[If the finding doesn’t appear immediateley in the GuardDuty Console, keep refreshing the page since it make take few minutes to to generate the Kubernetes Findings]{header="Note"}
+::alert[If the finding doesn’t appear immediately in the GuardDuty Console, keep refreshing the page since it make take few minutes to to generate the Kubernetes Findings]{header="Note"}
 
 You can find the following findings in the Console.
 

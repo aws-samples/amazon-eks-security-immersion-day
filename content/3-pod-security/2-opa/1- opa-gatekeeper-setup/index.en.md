@@ -1,6 +1,6 @@
 ---
-title : "OPA Gatekeeper setup in EKS"
-weight : 22
+title: "OPA Gatekeeper setup in EKS"
+weight: 22
 ---
 
 In this section, we will setup OPA Gatekeeper within the cluster.
@@ -12,7 +12,8 @@ kubectl apply -f https://raw.githubusercontent.com/open-policy-agent/gatekeeper/
 :::
 
 ::::expand{header="Check Output"}
-```bash
+
+```
 namespace/gatekeeper-system created
 resourcequota/gatekeeper-critical-pods created
 customresourcedefinition.apiextensions.k8s.io/assign.mutations.gatekeeper.sh created
@@ -41,6 +42,7 @@ mutatingwebhookconfiguration.admissionregistration.k8s.io/gatekeeper-mutating-we
 validatingwebhookconfiguration.admissionregistration.k8s.io/gatekeeper-validating-webhook-configuration created
 
 ```
+
 ::::
 
 2. To validate that OPA Gatekeeper is running within your cluster run the following command:
@@ -59,19 +61,19 @@ gatekeeper-controller-manager-5ff69b954d-pmm7v   1/1     Running   0            
 gatekeeper-controller-manager-5ff69b954d-t59kk   1/1     Running   0             41s
 ```
 
-
-If you notice the `gatekeeper-audit-6584df88df-nsf28` pod is created when we deploy the OpaGatekeeperAddOn. The audit functionality enables periodic evaluations of replicated resources against the Constraints enforced in the cluster to detect pre-existing misconfigurations. Gatekeeper stores audit results as violations listed in the status field of the relevant Constraint. The `gatekeeper-controller-manager` is simply there to manage the OpaGatekeeperAddOn. 
+If you notice the `gatekeeper-audit-6584df88df-nsf28` pod is created when we deploy the OpaGatekeeperAddOn. The audit functionality enables periodic evaluations of replicated resources against the Constraints enforced in the cluster to detect pre-existing misconfigurations. Gatekeeper stores audit results as violations listed in the status field of the relevant Constraint. The `gatekeeper-controller-manager` is simply there to manage the OpaGatekeeperAddOn.
 
 3. Once OPA Gatekeeper pods are in 'Running' state, monitor Audit controller and Controller manager component logs for webhook requests that are being issued by the Kubernetes API server.
 
-Run the following command in **separate terminal window** to monitor Audit controller logs 
+Run the following command in **separate terminal window** to monitor Audit controller logs
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
-kubectl logs -l control-plane=audit-controller -n gatekeeper-system -f 
+kubectl logs -l control-plane=audit-controller -n gatekeeper-system -f
 :::
 
 ::::expand{header="Check Output"}
-```bash
+
+```
 {"level":"info","ts":1691054570.044209,"logger":"controller","msg":"resource count","metaKind":"upgrade","count":0}
 {"level":"info","ts":1691054570.0442343,"logger":"controller","msg":"resource","metaKind":"upgrade","kind":"AssignMetadata","group":"mutations.gatekeeper.sh","version":"v1alpha1"}
 {"level":"info","ts":1691054570.0488415,"logger":"controller","msg":"resource count","metaKind":"upgrade","count":0}
@@ -84,16 +86,18 @@ kubectl logs -l control-plane=audit-controller -n gatekeeper-system -f
 {"level":"info","ts":1691054629.8529873,"logger":"controller","msg":"auditing is complete","process":"audit","audit_id":"2023-08-03T09:23:49Z","event_type":"audit_finished"}
 
 ```
+
 ::::
 
-Run the following command in **separate terminal window** to monitor Controller manager logs 
+Run the following command in **separate terminal window** to monitor Controller manager logs
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}
-kubectl logs -l control-plane=controller-manager -n gatekeeper-system -f 
+kubectl logs -l control-plane=controller-manager -n gatekeeper-system -f
 :::
 
 ::::expand{header="Check Output"}
-```bash
+
+```
 {"level":"info","ts":1691054569.154963,"logger":"controller","msg":"resource count","metaKind":"upgrade","count":0}
 {"level":"info","ts":1691054569.1549916,"logger":"controller","msg":"resource","metaKind":"upgrade","kind":"ModifySet","group":"mutations.gatekeeper.sh","version":"v1alpha1"}
 {"level":"info","ts":1691054569.1592152,"msg":"Starting workers","controller":"externaldata-controller","worker count":1}
@@ -131,4 +135,3 @@ kubectl logs -l control-plane=controller-manager -n gatekeeper-system -f
 You can follow the OPA logs to see the webhook requests being issued by the Kubernetes API server.
 
 This completes the OPA Gatekeeper setup on Amazon EKS cluster. In order to define and enforce the policy, OPA Gatekeeper uses a framework [OPA Constraint Framework](https://github.com/open-policy-agent/frameworks/tree/master/constraint)
-

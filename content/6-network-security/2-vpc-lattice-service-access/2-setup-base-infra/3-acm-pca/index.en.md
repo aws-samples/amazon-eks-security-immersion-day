@@ -1,6 +1,6 @@
 ---
-title : "Setup ACM PCA Infrastructure"
-weight : 12
+title: "Setup ACM PCA Infrastructure"
+weight: 12
 ---
 
 ## Create Private Certificate Authority (PCA) with AWS Certificate Manager
@@ -26,7 +26,7 @@ cat <<EOT > manifests/ca_config.json
 EOT
 ```
 
-2. Create an AWS ACM PCA using the `manifests/ca_config.json` 
+2. Create an AWS ACM PCA using the `manifests/ca_config.json`
 
 ```bash
 export CA_ARN=$(aws acm-pca create-certificate-authority --certificate-authority-configuration \
@@ -40,9 +40,11 @@ echo "export CA_ARN=$CA_ARN" >> ~/.bash_profile
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 CA_ARN=arn:aws:acm-pca:us-west-2:ACCOUNT_ID:certificate-authority/8ef430b4-ccdf-4251-8c2d-96ec9d81f07e
 ```
+
 ::::
 
 3. Generate a certificate signing request (CSR).
@@ -71,11 +73,12 @@ echo "ROOT_CERT_ARN=$ROOT_CERT_ARN"
 echo "export ROOT_CERT_ARN=$ROOT_CERT_ARN" >> ~/.bash_profile
 ```
 
-
 ::::expand{header="Check Output"}
+
 ```bash
 ROOT_CERT_ARN=arn:aws:acm-pca:us-west-2:ACCOUNT_ID:certificate-authority/8ef430b4-ccdf-4251-8c2d-96ec9d81f07e/certificate/22b702e74933a57ae855ae9c3b27dbd8
 ```
+
 ::::
 
 5. Retrieve the root certificate:
@@ -94,19 +97,21 @@ aws acm-pca get-certificate \
 aws acm-pca import-certificate-authority-certificate \
 --certificate-authority-arn ${CA_ARN} \
 --certificate fileb://manifests/root_cert.pem \
---region $AWS_REGION 
+--region $AWS_REGION
 ```
 
 7. Ensure that the CA status changed to **ACTIVE**.
 
 ```bash
-aws acm-pca describe-certificate-authority --certificate-authority-arn ${CA_ARN} --query CertificateAuthority.Status 
+aws acm-pca describe-certificate-authority --certificate-authority-arn ${CA_ARN} --query CertificateAuthority.Status
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 "ACTIVE"
 ```
+
 ::::
 
 You can also see the Status in the [AWS PCA Console](https://us-west-2.console.aws.amazon.com/acm-pca/home?region=us-west-2#/certificateAuthorities?arn=&tab=null)
@@ -127,11 +132,12 @@ echo "export CERTIFICATE_ARN=$CERTIFICATE_ARN" >> ~/.bash_profile
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 CERTIFICATE_ARN=arn:aws:acm:us-west-2:ACCOUNT_ID:certificate/d5ebbf85-9b6a-4501-9bfb-65d638b9c0f2
 ```
-::::
 
+::::
 
 ```bash
 export STATUS=$(aws acm describe-certificate --certificate-arn $CERTIFICATE_ARN --region $AWS_REGION --output json | jq -r '.Certificate.Status')
@@ -139,12 +145,13 @@ echo "STATUS=$STATUS"
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 STATUS=ISSUED
 ```
+
 ::::
 
-
-Go to [AWS ACM Console](https://us-west-2.console.aws.amazon.com/acm/home?region=us-west-2#/certificates/list) and ensure that Certificate is Issued. 
+Go to [AWS ACM Console](https://us-west-2.console.aws.amazon.com/acm/home?region=us-west-2#/certificates/list) and ensure that Certificate is Issued.
 
 ![acm-cert.png](/static/images/6-network-security/2-vpc-lattice-service-access/acm-cert.png)

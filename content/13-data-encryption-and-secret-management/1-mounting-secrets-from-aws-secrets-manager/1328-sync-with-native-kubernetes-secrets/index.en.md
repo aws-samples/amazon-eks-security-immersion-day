@@ -1,6 +1,6 @@
 ---
-title : "Sync with Native Kubernetes Secrets"
-weight : 28
+title: "Sync with Native Kubernetes Secrets"
+weight: 28
 ---
 
 ### **Create SecretProviderClass to extract key-value pairs**
@@ -18,7 +18,7 @@ metadata:
   name: nginx-deployment-spc-k8s-secrets
 spec:
   provider: aws
-  parameters: 
+  parameters:
     objects: |
       - objectName: "dbsecret_eksid"
         objectType: "secretsmanager"
@@ -28,11 +28,11 @@ spec:
           - path: password
             objectAlias: dbpassword
   # Create k8s secret. It requires volume mount first in the pod and then sync.
-  secretObjects:                
+  secretObjects:
     - secretName: my-secret-01
       type: Opaque
       data:
-        #- objectName: <objectName> or <objectAlias> 
+        #- objectName: <objectName> or <objectAlias>
         - objectName: dbusername
           key: db_username_01
         - objectName: dbpassword
@@ -120,12 +120,14 @@ kubectl get pods -l "app=nginx-k8s-secrets"
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 deployment.apps/nginx-deployment-k8s-secrets created
 
 NAME                                           READY   STATUS    RESTARTS   AGE
 nginx-deployment-k8s-secrets-9969576b6-r47jw   1/1     Running   0          80s
 ```
+
 ::::
 
 ### **Verify the result**
@@ -138,9 +140,11 @@ kubectl exec -it ${POD_NAME} -- /bin/bash
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 root@nginx-deployment-k8s-secrets-9969576b6-r47jw:/#
 ```
+
 ::::
 
 At the shell prompt of POD, run the following set of commands and watch the output.
@@ -150,7 +154,7 @@ export PS1='# '
 cd /mnt/secrets
 ls -l   #--- List mounted secrets
 
-cat dbusername; echo  
+cat dbusername; echo
 cat dbpassword; echo
 cat dbsecret_eksid; echo
 
@@ -169,14 +173,14 @@ total 12
 -rw-r--r-- 1 root root 12 Aug 16 23:08 dbpassword
 -rw-r--r-- 1 root root 53 Aug 16 23:08 dbsecret_eksid
 -rw-r--r-- 1 root root 11 Aug 16 23:08 dbusername
-# 
-# cat dbusername; echo  
+#
+# cat dbusername; echo
 testdb_user
 # cat dbpassword; echo
 super-sekret
 # cat dbsecret_eksid; echo
 {"username":"testdb_user", "password":"super-sekret"}
-# 
+#
 # env | grep DB    #-- Display two ENV variables set from the secret values
 DB_USERNAME_01=testdb_user
 DB_PASSWORD_01=super-sekret
@@ -189,9 +193,9 @@ DB_PASSWORD_01=super-sekret
 
 Observe the following:
 
-- Files *"dbusername"* and *"dbpassword"* contains extracted values from the JSON formatted secret *dbsecret_eksid*.
-- *"/mnt/secrets"* key-values pairs extracted in separate files based on jmesPath specification.
-- Environment variables *"DB_USERNAME_01"* and *"DB_PASSWORD_01"* are mapped from Kubernetes secrets object *"my-secret-01"*
+- Files `dbusername` and `dbpassword` contains extracted values from the JSON formatted secret `dbsecret_eksid`.
+- `/mnt/secrets` key-values pairs extracted in separate files based on jmesPath specification.
+- Environment variables `DB_USERNAME_01` and `DB_PASSWORD_01` are mapped from Kubernetes secrets object `my-secret-01`
   which was created automatically by the CSI driver during POD deployment.
 
 Lets check the Kubernetes secret created by CSI driver during POD creation.

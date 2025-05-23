@@ -1,12 +1,11 @@
 ---
-title : "Review CI/CD pipeline"
-weight : 21
+title: "Review CI/CD pipeline"
+weight: 21
 ---
-
 
 ::alert[Please ensure you are in the correct region for the tasks listed below. You can select the correct region from the region selection dropdown towards the top right of the AWS console.]{header="Note"}
 
-Select Services and go to CodePipeline under Developer Tools. Identify the Pipeline created for [ContainerBuildDeployPipeline](https://us-west-2.console.aws.amazon.com/codesuite/codepipeline/pipelines/ContainerBuildDeployPipeline/view?region=us-west-2). 
+Select Services and go to CodePipeline under Developer Tools. Identify the Pipeline created for [ContainerBuildDeployPipeline](https://us-west-2.console.aws.amazon.com/codesuite/codepipeline/pipelines/ContainerBuildDeployPipeline/view?region=us-west-2).
 
 Review the stages in the pipeline and notice the approval stage.
 
@@ -22,16 +21,14 @@ Here is further explanation for each stages of Code Pipeline.
 2. The source action then collects files from the source repository and makes them available to the rest of the pipeline stages.
 3. The pipeline then moves to the build stage.
 
-
 ## Build stage
 
 1. In the build stage, CodeBuild extracts the `Dockerfile` that holds the container definition and the `buildspec.yaml` file that contains the overall build instructions
-2. CodeBuild creates the final container image and then pushes the container image to the designated Amazon ECR repository. 
+2. CodeBuild creates the final container image and then pushes the container image to the designated Amazon ECR repository.
 3. Amazon Inspector scanning begins to check the image for vulnerabilities.
 4. As part of the build, the image digest of the container image is stored as a variable in the build stage so that it can be used by later stages in the pipeline.
 
 ![build_stage](/static/images/image-security/devsecops-inspector/build_stage.png)
-
 
 ## Container Vulnerability Assessment
 
@@ -50,13 +47,12 @@ Here is further explanation for each stages of Code Pipeline.
 Based on the threshold evaluation, the container image will be flagged as either Approved or Rejected.
 ![Lambda logic](/static/images/image-security/devsecops-inspector/Lambda-Scanning-logic.png)
 
-Following figure  shows thresholds that are defined for different Amazon Inspector vulnerability severities, as part of the Lambda function.
+Following figure shows thresholds that are defined for different Amazon Inspector vulnerability severities, as part of the Lambda function.
 
 ![Inspector Score](/static/images/image-security/devsecops-inspector/Inspector-lambda-variables.png)
 
 6. Lambda retrieves pipeline details and sends auto rejection message if there are critical vulnerabilities found
 7. Users can also manually approve container vulnerability assessment in the pipeline
-
 
 ### Deploy stage
 

@@ -1,6 +1,6 @@
 ---
-title : "Enable mTLS in ALB"
-weight : 13
+title: "Enable mTLS in ALB"
+weight: 13
 ---
 
 Let’s enable mTLS by editing the ingress manifest we previously deployed to the cluster. You can configure multiple listener options and decide to either turn on/off mTLS for each listener. In this example, we will configure 4 listeners. The listener HTTPS:80 is set to passthrough mode, the listener HTTPS:443 will be set to verify mode and will be associated with the provided `trust-store-arn arn:aws:elasticloadbalancing:trustStoreArn` we created earlier. The remaining listeners HTTPS:8080 and HTTPS:8443 will be set to default mTLS mode (i.e., off).
@@ -21,9 +21,9 @@ metadata:
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 80}, {"HTTPS": 443}, {"HTTPS": 8080}, {"HTTPS": 8443}]'
     ## TLS Settings
     alb.ingress.kubernetes.io/certificate-arn: ${CERTIFICATE_ARN}  # the ARN we imported to AWS Certificate Manager in previous lab
-    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS13-1-2-2021-06 
+    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS13-1-2-2021-06
     # mTLS configuration
-    alb.ingress.kubernetes.io/mutual-authentication: '[{"port": 80, "mode": "passthrough"}, 
+    alb.ingress.kubernetes.io/mutual-authentication: '[{"port": 80, "mode": "passthrough"},
                                         {"port": 443, "mode": "verify", "trustStore": "$TRUSTORE_ARN", "ignoreClientCertificateExpiry" : false}]'
 spec:
   ingressClassName: alb
@@ -37,11 +37,12 @@ spec:
             service:
               name: mtls-service
               port:
-                number: 80 
+                number: 80
 EOF
 ```
 
 Notable configurations in the ingress manifests:
+
 - The ingress listen-ports specifies four HTTPS ports: 80, 443, 8080, 8443 to illustrate multiple listener configuration options that you can implement.
 - `ignoreClientCertificateExpiry` indicates whether expired client certificates are ignored. We set it to false to not allow expired client certificates. The cert-manager helps to ensure that the certificate is [auto-renewed](https://cert-manager.io/docs/usage/certificate/#renewal-reissuance) before it expires.
 
@@ -53,7 +54,6 @@ kubectl apply -f ingress.yaml
 
 Navigate to Application Loadbalancer in [AWS EC2 console](https://console.aws.amazon.com/ec2/home?#LoadBalancers:) to verify that the listeners now been updated.
 ![mtls-listeners](/static/images/6-network-security/3-mtls-with-alb/mtls-listeners.png)
-
 
 Navigate to Application Loadbalancer in [AWS EC2 console](https://console.aws.amazon.com/ec2/home?#LoadBalancers), confirm that the HTTPS 443 Listener now has Mutual authentication (mTLS) set to "Verify with trust store" using the trust store we created and HTTPS 80 Listener set to passthrough mode.
 
@@ -68,13 +68,15 @@ curl -k https://mtls.vpc-lattice-custom-domain.io
 or
 
 ```bash
-curl https://mtls.vpc-lattice-custom-domain.io --cacert manifests/root_cert.pem 
+curl https://mtls.vpc-lattice-custom-domain.io --cacert manifests/root_cert.pem
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 curl: (35) Recv failure: Connection reset by peer
 ```
+
 ::::
 
 To test connectivity outside of the Kubernetes cluster, you can retrieve the certificate issued to the client pod and use it to test connectivity to the internal ALB enabled with mTLS:
@@ -91,10 +93,12 @@ curl https://mtls.vpc-lattice-custom-domain.io --cacert manifests/root_cert.pem 
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 WSOpsRole:~/environment $ curl https://mtls.vpc-lattice-custom-domain.io --cacert manifests/root_cert.pem --key tls.key --cert tls.crt
 Amazon EKS Security Immersion Workshop - mTLS with ALB in Amazon EKS
 ```
+
 ::::
 
 or
@@ -106,6 +110,7 @@ curl https://mtls.vpc-lattice-custom-domain.io --cacert manifests/root_cert.pem 
 You should see a **200** HTTP response only when the certificate and key is specified in the curl command.
 
 ::::expand{header="Check Output"}
+
 ```bash
 *   Trying 10.254.166.201:443...
 * Connected to mtls.vpc-lattice-custom-domain.io (10.254.166.201) port 443
@@ -144,17 +149,18 @@ You should see a **200** HTTP response only when the certificate and key is spec
 > Host: mtls.vpc-lattice-custom-domain.io
 > User-Agent: curl/8.3.0
 > Accept: */*
-> 
-**< HTTP/2 200** 
+>
+**< HTTP/2 200**
 < date: Thu, 21 Mar 2024 15:18:56 GMT
 < content-type: text/plain; charset=utf-8
 < content-length: 69
 < x-app-name: http-echo
 < x-app-version: 1.0.0
-< 
+<
 Amazon EKS Security Immersion Workshop - mTLS with ALB in Amazon EKS
 * Connection #0 to host mtls.vpc-lattice-custom-domain.io left intact
 ```
+
 ::::
 
 Create a sample pod that will use the client certificate we requested from the ACM PCA with the manifest below with a file name `client.yaml`
@@ -201,11 +207,13 @@ kubectl get pods -n mtls
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 NAME                        READY   STATUS    RESTARTS   AGE
 mtls-app-6459cb6456-6tp7s   1/1     Running   0          37m
 mtls-client                 1/1     Running   0          11s
 ```
+
 ::::
 
 Verify that the pod is able to connect with the application using a mutual TLS. The client pod used the issued certificate stored as a secret and presented it to the Application Load Balancer for certificate authentication.
@@ -215,8 +223,10 @@ kubectl logs mtls-client -n mtls
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 kubectl logs mtls-client -n mtls
 Amazon EKS Security Immersion Workshop - mTLS with ALB in Amazon EKS
 ```
+
 ::::

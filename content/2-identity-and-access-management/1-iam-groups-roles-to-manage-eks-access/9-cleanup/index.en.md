@@ -1,6 +1,6 @@
 ---
-title : "Cleanup"
-weight : 29
+title: "Cleanup"
+weight: 29
 ---
 
 Once you have completed this chapter, you can cleanup the files and resources you created by issuing the following commands:
@@ -19,9 +19,9 @@ aws iam remove-user-from-group --group-name k8sAdmin --user-name PaulAdmin
 aws iam remove-user-from-group --group-name k8sDev --user-name JeanDev
 aws iam remove-user-from-group --group-name k8sInteg --user-name PierreInteg
 
-aws iam delete-group-policy --group-name k8sAdmin --policy-name k8sAdmin-policy 
-aws iam delete-group-policy --group-name k8sDev --policy-name k8sDev-policy 
-aws iam delete-group-policy --group-name k8sInteg --policy-name k8sInteg-policy 
+aws iam delete-group-policy --group-name k8sAdmin --policy-name k8sAdmin-policy
+aws iam delete-group-policy --group-name k8sDev --policy-name k8sDev-policy
+aws iam delete-group-policy --group-name k8sInteg --policy-name k8sInteg-policy
 
 aws iam delete-group --group-name k8sAdmin
 aws iam delete-group --group-name k8sDev
@@ -48,6 +48,7 @@ aws configure set default.region ${AWS_REGION}
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 namespace "development" deleted
 namespace "integration" deleted
@@ -56,4 +57,5 @@ pod "nginx-admin" deleted
 2023-03-14 10:38:40 [ℹ]  removing identity "arn:aws:iam::XXXXXXXXXX:role/k8sDev" from auth ConfigMap (username = "dev-user", groups = [])
 2023-03-14 10:38:42 [ℹ]  removing identity "arn:aws:iam::XXXXXXXXXX:role/k8sInteg" from auth ConfigMap (username = "integ-user", groups = [])
 ```
+
 ::::

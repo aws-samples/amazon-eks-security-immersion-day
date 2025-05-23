@@ -1,15 +1,14 @@
 ---
-title : "Configure Kubernetes RBAC Roles"
-weight : 25
+title: "Configure Kubernetes RBAC Roles"
+weight: 25
 ---
 
- 
 So far we created **IAM Roles/Groups/Users** in AWS. In this section, let's create corresponding Kubernetes RBAC objects.
 
 #### Create kubernetes namespaces
 
--   **development** namespace will be accessible for IAM users from **k8sDev** group
--   **integration** namespace will be accessible for IAM users from **k8sInteg** group
+- **development** namespace will be accessible for IAM users from **k8sDev** group
+- **integration** namespace will be accessible for IAM users from **k8sInteg** group
 
 ```bash
 kubectl create namespace integration
@@ -17,13 +16,13 @@ kubectl create namespace development
 ```
 
 ::::expand{header="Expand for Output"}
+
 ```bash
 namespace/integration created
 namespace/development created
 ```
+
 ::::
-
-
 
 #### Configuring access to development namespace
 
@@ -77,13 +76,15 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 EOF
 ```
+
 ::::expand{header="Expand for Output"}
+
 ```bash
 role.rbac.authorization.k8s.io/dev-role created
 rolebinding.rbac.authorization.k8s.io/dev-role-binding created
 ```
-::::
 
+::::
 
 The role we define will give full access to everything in that namespace. It is a Role, and not a ClusterRole, so it is going to be applied only in the **development** namespace.
 
@@ -141,10 +142,12 @@ EOF
 ```
 
 ::::expand{header="Expand for Output"}
+
 ```bash
 role.rbac.authorization.k8s.io/integ-role created
 rolebinding.rbac.authorization.k8s.io/integ-role-binding created
 ```
+
 ::::
 
 The role we define will give full access to everything in that namespace. It is a `Role`, and not a `ClusterRole`, so it is going to be applied only in the **integration** namespace.

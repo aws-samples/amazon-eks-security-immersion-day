@@ -1,6 +1,6 @@
 ---
-title : "Create AWS IAM Users"
-weight : 24
+title: "Create AWS IAM Users"
+weight: 24
 ---
 
 In order to test our scenarios, we will create 3 users, one for each groups we created :
@@ -13,7 +13,7 @@ for IAM_USER in ${IAM_USERS[@]}; do
     then
         IAM_USER_ARN=$(aws iam create-user --user-name $IAM_USER | jq -r '.User.Arn')
         echo "IAM User ${IAM_USER} created. IAM_USER_ARN=$IAM_USER_ARN"
-    
+
     else
         echo "IAM User ${IAM_USER} already exist..."
     fi
@@ -21,13 +21,14 @@ done
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 IAM User PaulAdmin created. IAM_USER_ARN=arn:aws:iam::ACCOUNT_ID:user/PaulAdmin
 IAM User JeanDev created. IAM_USER_ARN=arn:aws:iam::ACCOUNT_ID:user/JeanDev
 IAM User PierreInteg created. IAM_USER_ARN=arn:aws:iam::ACCOUNT_ID:user/PierreInteg
 ```
-::::
 
+::::
 
 Add users to associated groups:
 
@@ -46,6 +47,7 @@ aws iam get-group --group-name k8sInteg
 ```
 
 ::::expand{header="Check Output"}
+
 ```json
 {
     "Users": [
@@ -104,10 +106,10 @@ aws iam get-group --group-name k8sInteg
     }
 }
 ```
+
 ::::
 
-
-**Note** For the sake of simplicity, in this chapter, we will save credentials to a file to make it easy to toggle back and forth between users. Never do this in production or with credentials that have priviledged access; It is not a security best practice to store credentials on the filesystem.
+**Note** For the sake of simplicity, in this chapter, we will save credentials to a file to make it easy to toggle back and forth between users. Never do this in production or with credentials that have privileged access; It is not a security best practice to store credentials on the filesystem.
 
 Retrieve Access Keys for our fake users:
 
@@ -118,6 +120,7 @@ aws iam create-access-key --user-name PierreInteg | tee /tmp/PierreInteg.json
 ```
 
 ::::expand{header="Check Output"}
+
 ```json
 {
     "AccessKey": {
@@ -149,20 +152,18 @@ aws iam create-access-key --user-name PierreInteg | tee /tmp/PierreInteg.json
     }
 }
 ```
-::::
 
+::::
 
 Recap:
 
--   **PaulAdmin** is in the **k8sAdmin** group and will be able to assume the **k8sAdmin** role.
--   **JeanDev** is in **k8sDev** Group and will be able to assume IAM role **k8sDev**
--   **PierreInteg** is in **k8sInteg** group and will be able to assume IAM role **k8sInteg**
-
+- **PaulAdmin** is in the **k8sAdmin** group and will be able to assume the **k8sAdmin** role.
+- **JeanDev** is in **k8sDev** Group and will be able to assume IAM role **k8sDev**
+- **PierreInteg** is in **k8sInteg** group and will be able to assume IAM role **k8sInteg**
 
 Let's go to the [AWS IAM Console](https://console.aws.amazon.com/iamv2/home#/home) and check one of the above IAM Groups and see that there are IAM users part of the group.
 
 ![IAM-group-users](/static/images/iam/iam-role-rbac/IAM-group-users.png)
-
 
 And also let's see trust policy of the IAM Group that allows users from this group to assume an IAM Role:
 

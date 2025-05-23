@@ -1,6 +1,6 @@
 ---
-title : "Cleanup"
-weight : 28
+title: "Cleanup"
+weight: 28
 ---
 
 Use these commands to delete the resources created during this post:
@@ -11,7 +11,9 @@ Delete the Kubernetes Job and the sample deployment.
 cd ~/environment/amazon-eks-custom-amis
 kubectl delete -f nginx-deploy.yaml
 ```
+
 Check Output
+
 ```bash
 deployment.apps "nginx" deleted
 ```
@@ -24,6 +26,7 @@ eksctl delete nodegroup -f cis-al2-mng.yaml --approve --wait
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 2024-02-10 22:13:47 [ℹ]  comparing 0 nodegroups defined in the given config ("cis-al2-mng.yaml") against remote state
 2024-02-10 22:13:47 [ℹ]  1 nodegroup (custom-ng-amd) was included (based on the include/exclude rules)
@@ -42,6 +45,7 @@ eksctl delete nodegroup -f cis-al2-mng.yaml --approve --wait
 2024-02-10 22:16:46 [ℹ]  waiting for CloudFormation stack "eksctl-eksworkshop-eksctl-nodegroup-custom-ng-amd"
 2024-02-10 22:16:46 [✔]  deleted 1 nodegroup(s) from cluster "eksworkshop-eksctl"
 ```
+
 ::::
 
 Delete the AMI
@@ -50,14 +54,15 @@ Delete the AMI
 aws ec2 deregister-image --image-id $EKS_AMI_ID
 ```
 
-
 Delete the repository
+
 ```bash
 cd ~/environment/
 rm -rf amazon-eks-custom-amis/
 ```
 
-Disable Amazon Inspector 
+Disable Amazon Inspector
+
 ```bash
 aws inspector2 disable --resource-types LAMBDA_CODE LAMBDA ECR EC2
 ```

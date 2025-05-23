@@ -1,6 +1,6 @@
 ---
-title : "Lab: Amazon EKS  Pod Security"
-weight : 23
+title: "Lab: Amazon EKS  Pod Security"
+weight: 23
 ---
 
 #### Introduction
@@ -11,9 +11,7 @@ The following hands-on lab is based on the Amazon EKS testing done with PSA and 
 
 Amazon EKS 1.23 (or later version) is provisioned and `kubectl` CLI is installed and connected to the cluster
 
-In this lab we are going to update many times files in the Cloud9 environment. As Auto-save is not enabled by default, we recommand you activate the option in Cloud9 **On focus Change**
-
-![activate autosave in cloud9](/static/images/pod-security/pss-psa/cloud9_autosave.png)
+In this lab we are going to update many times files in the code environment (IDE).
 
 #### Steps
 
@@ -33,11 +31,10 @@ In this lab we are going to update many times files in the Cloud9 environment. A
 
 7. Change the `policy-test` Namespace settings and run the next test scenario.
 
-> __Note:__ If you have time and are so inclined, feel free to mix PSA modes and PSS profiles to go beyond the documented test scenarios.
+> **Note:** If you have time and are so inclined, feel free to mix PSA modes and PSS profiles to go beyond the documented test scenarios.
 
 #### Summary
 
 PSA and PSS are the native Kubernetes replacement for PSP; moreover, PSA and PSS can coexist with PSP in the same cluster, to facilitate PSP replacement. Testing of PSA and PSS with Amazon EKS 1.23 is documented in this [AWS Samples OSS project](https://github.com/aws-samples/k8s-psa-pss-testing).
 
 The default configurations of PSA and PSS are part of Amazon EKS 1.23+, and Kubernetes Namespaces can be configured with labels to opt into Pod security defined by PSS and implemented by PSA. With appropriate policies you can successfully replace PSP.
-

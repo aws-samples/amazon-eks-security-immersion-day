@@ -1,6 +1,6 @@
 ---
-title : "Validate Bottlerocket AMI against CIS Benchmark"
-weight : 24
+title: "Validate Bottlerocket AMI against CIS Benchmark"
+weight: 24
 ---
 
 After deploying a managed node group that adheres to the CIS Benchmark, we can use the commands outlined in the benchmark to verify the configuration, as 26 of the 28 checks are able to be automatically audited. For this step, we created a container to execute a script to perform the validation and a Kubernetes pod configuration to deploy the container to the cluster. This deployment method is idempotent in nature, so it can be executed once to verify initial configuration and regularly afterwards to detect any configuration drift.
@@ -78,20 +78,19 @@ https://docs.docker.com/engine/reference/commandline/login/#credentials-store
 
 Login Succeeded
 
-Logging in with your password grants your terminal complete access to your account. 
+Logging in with your password grants your terminal complete access to your account.
 For better security, log in with a limited-privilege personal access token. Learn more at https://docs.docker.com/go/access-tokens/
 The push refers to repository [XXXXXXXXXXX.dkr.ecr.us-east-1.amazonaws.com/bottlerocket-cis-validation-image]
-ab6dd5fb8454: Pushed 
-e074ab1fd705: Pushed 
-f5511157c85c: Pushed 
-b2d5eeeaba3a: Pushed 
+ab6dd5fb8454: Pushed
+e074ab1fd705: Pushed
+f5511157c85c: Pushed
+b2d5eeeaba3a: Pushed
 latest: digest: sha256:860de03d8a99db479f7c966f66f20c19e7aa04cccdedd3784b649ba64bda6cf4 size: 1155
 ```
 
 Let's go to the [Amazon ECR console](https://us-east-1.console.aws.amazon.com/ecr/get-started?region=us-east-1) and ensure that the Repository is created and the validating container image is pushed successfully.
 
 ![bottlerocket-cis-validating-image](/static/images/regulatory-compliance/cis-bottlerocket-eks/bottlerocket-cis-validating-image.png)
-
 
 Third, we will use another cat command to insert the environment variables defined previously to create the file job-eks.yaml. This file is used to deploy the Kubernetes batch job object which references the validation image onto the cluster:
 
@@ -108,11 +107,11 @@ spec:
   template:
     metadata:
       labels:
-        app: eks-cis-benchmark  
+        app: eks-cis-benchmark
     spec:
       hostNetwork: true
       nodeSelector:
-         eks.amazonaws.com/nodegroup: bottlerocket-mng     
+         eks.amazonaws.com/nodegroup: bottlerocket-mng
       containers:
         - name: eks-cis-benchmark
           image: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$VALIDATION_ECR_REPO:latest
@@ -133,9 +132,11 @@ kubectl apply -f job-eks.yaml
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 job.batch/eks-cis-benchmark created
 ```
+
 ::::
 
 Apply the batch job using kubectl and check if the pod completed the execution:
@@ -143,6 +144,7 @@ Apply the batch job using kubectl and check if the pod completed the execution:
 ```bash
 kubectl get Job,pod
 ```
+
 The output looks like the following:
 
 ```bash
@@ -156,7 +158,6 @@ pod/nginx-6c8b449b8f-29ldd    1/1     Running     0          5m20s          0   
 ```
 
 Once the batch job has completed, we can view the pod logs to verify the CIS Bottlerocket Benchmark compliance status of the node:
-
 
 ```bash
 POD_NAME=$(kubectl get pods -l=app=eks-cis-benchmark -o=jsonpath={.items..metadata.name})
@@ -195,6 +196,3 @@ This tool validates the Amazon EKS optimized AMI against CIS Bottlerocket Benchm
 [PASS] 4.1.2 Ensure permissions on journal files are configured (Automated)
 26/26 checks passed
 ```
-
-
-

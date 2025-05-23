@@ -1,10 +1,9 @@
 ---
-title : "Create EKS-managed node group with Bottlerocket AMI"
-weight : 22
+title: "Create EKS-managed node group with Bottlerocket AMI"
+weight: 22
 ---
 
-With the bootstrap container created and ready for use in Amazon ECR, we can create a managed node group running Bottlerocket configured to CIS Bottlerocket Benchmark. 
-
+With the bootstrap container created and ready for use in Amazon ECR, we can create a managed node group running Bottlerocket configured to CIS Bottlerocket Benchmark.
 
 Let us set some environment variables.
 
@@ -24,6 +23,7 @@ echo $EKS_CLUSTER_SEC_GROUP_ID
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 vpc-030e4a3055ba71b2c
 subnet-021c732a5fb47987d
@@ -31,6 +31,7 @@ subnet-0a519601dde1343db
 subnet-06b2953cd4cf217a7
 sg-006edc1b420a36f44
 ```
+
 ::::
 
 Run the following cat command to insert the environment variables defined earlier into the cluster.yaml file located in the root of the GitHub repository.
@@ -97,33 +98,35 @@ managedNodeGroups:
                # 3.1.1
                "net.ipv4.conf.all.send_redirects": "0"
                "net.ipv4.conf.default.send_redirects": "0"
-               
+
                # 3.2.2
                "net.ipv4.conf.all.accept_redirects": "0"
                "net.ipv4.conf.default.accept_redirects": "0"
                "net.ipv6.conf.all.accept_redirects": "0"
                "net.ipv6.conf.default.accept_redirects": "0"
-               
+
                # 3.2.3
                "net.ipv4.conf.all.secure_redirects": "0"
                "net.ipv4.conf.default.secure_redirects": "0"
-               
+
                # 3.2.4
                "net.ipv4.conf.all.log_martians": "1"
                "net.ipv4.conf.default.log_martians": "1"
 EOF
 ```
 
-[Bottlerocket configuration settings](https://github.com/bottlerocket-os/bottlerocket#settings) are passed through to the managed nodes through user data in TOML format as referenced above to include the setting referencing the bootstrap container we created. 
+[Bottlerocket configuration settings](https://github.com/bottlerocket-os/bottlerocket#settings) are passed through to the managed nodes through user data in TOML format as referenced above to include the setting referencing the bootstrap container we created.
 
 To provision the cluster, run the following:
 
 ```bash
 eksctl create nodegroup -f br-mng.yaml
 ```
+
 It will take couple of minutes to create the Amazon EKS managed nodegroup.
 
 ::::expand{header="Check Output"}
+
 ```bash
 2023-03-14 18:14:46 [!]  no eksctl-managed CloudFormation stacks found for "eksworkshop-eksctl", will attempt to create nodegroup(s) on non eksctl-managed cluster
 2023-03-14 18:14:46 [ℹ]  nodegroup "bottlerocket-mng" will use "" [Bottlerocket/1.25]
@@ -150,6 +153,7 @@ It will take couple of minutes to create the Amazon EKS managed nodegroup.
 2023-03-14 18:19:01 [ℹ]  checking security group configuration for all nodegroups
 2023-03-14 18:19:01 [ℹ]  all nodegroups have up-to-date cloudformation templates
 ```
+
 ::::
 
 Once the managed nodegroup is created, ensure that bottlerocket nodes join the cluster:
@@ -176,10 +180,11 @@ aws ssm start-session --target $(aws ec2 describe-instances --filters "Name=tag:
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 Starting session with SessionId: i-0d45e819f38a652ea-0d75f54772f0f4085
           Welcome to Bottlerocket's control container!
-    ╱╲    
+    ╱╲
    ╱┄┄╲   This container gives you access to the Bottlerocket API,
    │▗▖│   which in turn lets you inspect and configure the system.
   ╱│  │╲  You'll probably want to use the `apiclient` tool for that;
@@ -207,8 +212,9 @@ You can disable the admin container like this:
 
    disable-admin-container
 
-[ssm-user@control]$ 
+[ssm-user@control]$
 ```
+
 ::::
 
 In the SSM shell, Run the below commands in the same order `enter-admin-container`, `sudo sheltie` and `journalctl -u` as shown below and then followed by `exit`, `exit` and `exit` to return the terminal.
@@ -232,5 +238,3 @@ exit
 exit
 Exiting session with sessionId: i-0d45e819f38a652ea-09be5b7991b5823d4.
 ```
-
-

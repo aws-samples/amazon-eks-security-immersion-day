@@ -1,11 +1,9 @@
 ---
-title : "Enable Amazon GuardDuty Protection for Amazon EKS"
-weight : 21
+title: "Enable Amazon GuardDuty Protection for Amazon EKS"
+weight: 21
 ---
 
-
 ::alert[Note that below steps are for configuring EKS Audit Log Monitoring for a standalone account. To configure EKS Audit Log Monitoring in multiple-account environments,you need to use delegated administrator account to manage their member accounts using AWS Organizations. Please refer to the [documentation](https://docs.aws.amazon.com/guardduty/latest/ug/guardduty-eks-audit-log-monitoring.html)]{header="Note"}
-
 
 :::::tabs{variant="container"}
 
@@ -20,7 +18,7 @@ cat > guardduty-eks-protection-config.json <<EOF
 [
   {
     "Name": "EKS_AUDIT_LOGS",
-    "Status": "ENABLED",      
+    "Status": "ENABLED",
     "Name": "EKS_RUNTIME_MONITORING",
     "Status": "ENABLED",
     "AdditionalConfiguration": [
@@ -36,16 +34,17 @@ EOF
 
 Run the below command to enable EKS Protection for Amazon GuardDuty.
 
-
 ```bash
 GUARDDUTY_DETECTOR_ID=$(aws guardduty create-detector --enable --features file://guardduty-eks-protection-config.json | jq -r '.DetectorId')
 echo $GUARDDUTY_DETECTOR_ID
 ```
 
 The output will look like below
+
 ```bash
 b6b992d6d2f48e64bc59180bfexample
 ```
+
 ::::
 
 ::::tab{id="console" label="Using AWS Console"}
@@ -61,17 +60,15 @@ Click **Get Started**
 Click **Enable GuardDuty**
 ![GDEnabledInAccount](/static/images/detective-controls/GDEnabledInAccount.png)
 
-
 When you enable GuardDuty for the first time (new GuardDuty account), EKS Audit Log Monitoring within EKS Protection is already enabled with a 30-day free trial period.
-
 
 In the [Amazon GuardDuty console](https://console.aws.amazon.com/guardduty/home), you will see that EKS Audit Log Monitoring is enabled.
 
 ![GDNewEKSProtectionScreen-New](/static/images/detective-controls/GDNewEKSProtectionScreen-New.png)
 
-Under the **Configuration** tab,  Click on the **EDIT** button.  In the **Edit configuration** page, select **Enable** button, select the checkboxes for **EKS Audit Log Monitoring**, **EKS Runtime Monitoring** and **Manage agent automatically**. Click on the **Save Changes** button.
+Under the **Configuration** tab, Click on the **EDIT** button. In the **Edit configuration** page, select **Enable** button, select the checkboxes for **EKS Audit Log Monitoring**, **EKS Runtime Monitoring** and **Manage agent automatically**. Click on the **Save Changes** button.
 
-![GDEnableEKSAuditlogsandRunTime](/static/images/detective-controls/GDEnableEKSAuditlogsandRunTime.png)
+![GD Enable EKS Audit logs and RunTime](/static/images/detective-controls/GDEnableEKSAuditlogsandRunTime.png)
 
 ::::
 
@@ -83,10 +80,9 @@ After EKS Protection in Amazon GuardDuty is enabled, it looks like below in the 
 
 Go to Findings. You should see there are no findings available yet.
 
-![GDNofindings](/static/images/detective-controls/GDNofindings.png)
+![GD No findings](/static/images/detective-controls/GDNofindings.png)
 
-
-GuardDuty Findings are automatically sent to EventBridge. You can also export findings to an S3 bucket. New findings are exported within 5 minutes. You can modify the frequency for updated findings below. Update to EventBridge and S3 occurs every 6 hours by default.  Let us change it to 15 mins.
+GuardDuty Findings are automatically sent to EventBridge. You can also export findings to an S3 bucket. New findings are exported within 5 minutes. You can modify the frequency for updated findings below. Update to EventBridge and S3 occurs every 6 hours by default. Let us change it to 15 mins.
 
 Go to the **Settings** --> **Findings export options** and Click on the Edit.
 
@@ -95,7 +91,6 @@ Go to the **Settings** --> **Findings export options** and Click on the Edit.
 Select **15 minutes** and Click on **Save Changes**.
 
 ![change_settings](/static/images/detective-controls/change_settings.png)
-
 
 Findings export options
 

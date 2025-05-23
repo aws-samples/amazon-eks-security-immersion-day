@@ -1,10 +1,9 @@
 ---
-title : "Deleting IAM principal from access entry"
-weight : 25
+title: "Deleting IAM principal from access entry"
+weight: 25
 ---
 
 ## Deleting IAM principal from access entry
-
 
 The reference of a cluster access entry to its underlying AWS IAM principal is unique, as seen in the `accessEntryArn` in the following create-access-entry output snippet.
 
@@ -17,11 +16,12 @@ echo "ACCESS_ENTRY_ARN=$ACCESS_ENTRY_ARN"
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 ACCESS_ENTRY_ARN=arn:aws:eks:us-west-2:ACCOUNT_ID:access-entry/eksworkshop-eksctl/role/ACCOUNT_ID/k8sTeamADev/f8c6ad21-ebb9-d2aa-335c-d8af833bb77e
 ```
-::::
 
+::::
 
 Once an access entry is created, the underlying AWS IAM principal cannot be changed, while keeping the cluster access. The access entry and associated access policies must be recreated
 
@@ -33,26 +33,28 @@ kubectl whoami
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 arn:aws:sts::ACCOUNT_ID:assumed-role/k8sTeamADev/botocore-session-1703494771
 ```
+
 ::::
 
 Test access to cluster.
-
 
 ```bash
 kubectl get pod -n team-a
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 NAME          READY   STATUS    RESTARTS   AGE
 nginx-admin   1/1     Running   0          78m
 nginx-dev     1/1     Running   0          3s
 ```
-::::
 
+::::
 
 Before deleting the IAM Principal `k8sTeamADev`. let us find the Role Id.
 
@@ -63,9 +65,11 @@ echo "ROLE_ID=$ROLE_ID"
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 ROLE_ID=AROAQAHCJ2QPJTOAB3E4V
 ```
+
 ::::
 
 ### Delete and re-create IAM Role
@@ -75,7 +79,6 @@ Let us delete the IAM Role `k8sTeamADev`
 ```bash
 aws iam delete-role --role-name $IAM_ROLE
 ```
-
 
 Let us re-create the IAM Role `k8sTeamADev`
 
@@ -93,16 +96,18 @@ then
         --output text \
         --query 'Role.Arn')
       echo "IAM Role ${IAM_ROLE} created. IAM_ROLE_ARN=$IAM_ROLE_ARN"
-  
+
 else
       echo "IAM Role ${IAM_ROLE} already exist..."
 fi
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 IAM Role k8sTeamADev created. IAM_ROLE_ARN=arn:aws:iam::ACCOUNT_ID:role/k8sTeamADev
 ```
+
 ::::
 
 Let us find the Role Id.
@@ -114,9 +119,11 @@ echo "ROLE_ID=$ROLE_ID"
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 ROLE_ID=AROAQAHCJ2QPOIJYQ2RTT
 ```
+
 ::::
 
 Note that the current Role Id `AROAQAHCJ2QPOIJYQ2RTT` is different from the earlier one `AROAQAHCJ2QPJTOAB3E4V` even for same Role ARN.
@@ -128,20 +135,23 @@ kubectl whoami
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 Error: Unauthorized
 ```
-::::
 
+::::
 
 ```bash
 kubectl get pod -n team-a
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 error: You must be logged in to the server (Unauthorized)
 ```
+
 ::::
 
 ### Delete and re-create access entry
@@ -162,23 +172,24 @@ aws eks   create-access-entry --cluster-name $EKS_CLUSTER_NAME --principal-arn $
 ```
 
 ::::expand{header="Check Output"}
+
 ```json
 {
-    "accessEntry": {
-        "clusterName": "eksworkshop-eksctl",
-        "principalArn": "arn:aws:iam::ACCOUNT_ID:role/k8sTeamADev",
-        "kubernetesGroups": [],
-        "accessEntryArn": "arn:aws:eks:us-west-2:ACCOUNT_ID:access-entry/eksworkshop-eksctl/role/ACCOUNT_ID/k8sTeamADev/00c6ad42-1fed-ba20-0c0a-3e40f6d0e5eb",
-        "createdAt": "2024-01-30T13:17:13.189000+00:00",
-        "modifiedAt": "2024-01-30T13:17:13.189000+00:00",
-        "tags": {},
-        "username": "arn:aws:sts::ACCOUNT_ID:assumed-role/k8sTeamADev/{{SessionName}}",
-        "type": "STANDARD"
-    }
+  "accessEntry": {
+    "clusterName": "eksworkshop-eksctl",
+    "principalArn": "arn:aws:iam::ACCOUNT_ID:role/k8sTeamADev",
+    "kubernetesGroups": [],
+    "accessEntryArn": "arn:aws:eks:us-west-2:ACCOUNT_ID:access-entry/eksworkshop-eksctl/role/ACCOUNT_ID/k8sTeamADev/00c6ad42-1fed-ba20-0c0a-3e40f6d0e5eb",
+    "createdAt": "2024-01-30T13:17:13.189000+00:00",
+    "modifiedAt": "2024-01-30T13:17:13.189000+00:00",
+    "tags": {},
+    "username": "arn:aws:sts::ACCOUNT_ID:assumed-role/k8sTeamADev/{{SessionName}}",
+    "type": "STANDARD"
+  }
 }
 ```
-::::
 
+::::
 
 ```bash
 export IAM_PRINCIPAL_ARN="arn:aws:iam::${ACCOUNT_ID}:role/k8sTeamADev"
@@ -192,37 +203,37 @@ aws eks associate-access-policy --cluster-name $EKS_CLUSTER_NAME \
 ```
 
 ::::expand{header="Check Output"}
+
 ```json
 {
-    "clusterName": "eksworkshop-eksctl",
-    "principalArn": "arn:aws:iam::ACCOUNT_ID:role/k8sTeamADev",
-    "associatedAccessPolicy": {
-        "policyArn": "arn:aws:eks::aws:cluster-access-policy/AmazonEKSAdminPolicy",
-        "accessScope": {
-            "type": "namespace",
-            "namespaces": [
-                "team-a"
-            ]
-        },
-        "associatedAt": 1703496078.676,
-        "modifiedAt": 1703496078.676
-    }
+  "clusterName": "eksworkshop-eksctl",
+  "principalArn": "arn:aws:iam::ACCOUNT_ID:role/k8sTeamADev",
+  "associatedAccessPolicy": {
+    "policyArn": "arn:aws:eks::aws:cluster-access-policy/AmazonEKSAdminPolicy",
+    "accessScope": {
+      "type": "namespace",
+      "namespaces": ["team-a"]
+    },
+    "associatedAt": 1703496078.676,
+    "modifiedAt": 1703496078.676
+  }
 }
 ```
+
 ::::
 
-
 ```bash
-\rm -rf ~/.aws/cli/cache
+rm -rf ~/.aws/cli/cache
 kubectl whoami
 ```
 
 ::::expand{header="Check Output"}
+
 ```json
 arn:aws:sts::ACCOUNT_ID:assumed-role/k8sTeamADev/botocore-session-1703496838
 ```
-::::
 
+::::
 
 Let's create a pod:
 
@@ -231,9 +242,11 @@ kubectl run nginx-dev2 --image=nginx -n team-a
 ```
 
 ::::expand{header="Check Output"}
+
 ```bash
 pod/nginx-dev2 created
 ```
+
 ::::
 
 We can list the pods:
