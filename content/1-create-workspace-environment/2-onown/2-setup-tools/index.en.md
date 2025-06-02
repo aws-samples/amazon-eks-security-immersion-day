@@ -1,14 +1,16 @@
 ---
-title : "Install Kubernetes Tools"
-weight : 23
+title: "Install Kubernetes Tools"
+weight: 23
 ---
 
 #### Install eksctl
+
 ```bash
 curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
 
 sudo mv -v /tmp/eksctl /usr/local/bin
 ```
+
 Confirm the eksctl command works:
 
 ```bash
@@ -23,12 +25,13 @@ Enable eksctl bash-completion
 ```
 
 #### Install kubectl
+
 ```bash
 sudo curl --silent --location -o /usr/local/bin/kubectl \
    https://s3.us-west-2.amazonaws.com/amazon-eks/1.28.1/2023-09-14/bin/linux/amd64/kubectl
 
 sudo chmod +x /usr/local/bin/kubectl
-sudo chmod 755 /usr/local/bin/kubectl 
+sudo chmod 755 /usr/local/bin/kubectl
 ```
 
 Enable completion for Kubectl
@@ -61,6 +64,7 @@ curl -sS https://webinstall.dev/k9s | bash
 ```
 
 #### Install yq for yaml processing
+
 ```bash
 echo 'yq() {
   docker run --rm -i -v "${PWD}":/workdir mikefarah/yq "$@"
@@ -85,6 +89,7 @@ kubectl krew install stern
 ```
 
 #### Verify the binaries are in the path and executable
+
 ```bash
 for command in kubectl jq envsubst aws
   do
@@ -92,8 +97,7 @@ for command in kubectl jq envsubst aws
   done
 ```
 
-
-#### Create an AWS KMS Custom Managed Key (CMK) 
+#### Create an AWS KMS Custom Managed Key (CMK)
 
 Create a CMK for the EKS cluster to use when encrypting your Kubernetes secrets:
 
@@ -118,16 +122,20 @@ echo "export MASTER_ARN=${MASTER_ARN}" | tee -a ~/.bash_profile
 #### Install Session Manager plugin on Linux
 
 1. Download the Session Manager plugin RPM package.
+
 ```bash
 curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/linux_64bit/session-manager-plugin.rpm" -o "session-manager-plugin.rpm"
 sudo yum install -y session-manager-plugin.rpm
 ```
 
 2. Run the following commands to verify that the Session Manager plugin installed successfully.
+
 ```bash
 session-manager-plugin
 ```
+
 If the installation was successful, the following message is returned.
+
 ```
 The Session Manager plugin is installed successfully. Use the AWS CLI to start a session.
 ```

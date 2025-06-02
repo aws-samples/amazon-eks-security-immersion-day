@@ -113,3 +113,10 @@ jmesPath
 Truststores
 aquasec
 signup
+Remediations
+clusterrolebinding
+clusterroles
+automount
+managedservices
+iamserviceaccount
+asff

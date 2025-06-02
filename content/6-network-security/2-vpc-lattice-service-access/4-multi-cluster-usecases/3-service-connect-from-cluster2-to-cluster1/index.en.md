@@ -157,7 +157,7 @@ kubectl --context $EKS_CLUSTER2_CONTEXT exec -it deploy/app5-v1 -n app5 -c app5-
 ```
 
 > the role name should contain **aws-sigv4-client**
-::::
+> ::::
 
 You can also watch the logs of the pod identity controller:
 

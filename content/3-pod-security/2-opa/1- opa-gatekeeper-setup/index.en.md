@@ -130,6 +130,7 @@ kubectl logs -l control-plane=controller-manager -n gatekeeper-system -f
 {"level":"info","ts":1691054570.4463212,"logger":"readiness-tracker","msg":"readiness satisfied, no further collection"}
 
 ```
+
 ::::
 
 You can follow the OPA logs to see the webhook requests being issued by the Kubernetes API server.

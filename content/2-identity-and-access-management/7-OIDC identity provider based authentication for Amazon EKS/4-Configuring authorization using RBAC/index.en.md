@@ -1,6 +1,6 @@
 ---
-title : "Configuring authorization using RBAC"
-weight : 44
+title: "Configuring authorization using RBAC"
+weight: 44
 ---
 
 Excellent, we've now integrated our Cognito User Pool as the OIDC identity provider for the Amazon EKS cluster. The next step is to set up the necessary authorization to allow users to access resources within the cluster.
@@ -10,24 +10,23 @@ Before we test the authentication flow, we need to create a Kubernetes RBAC Clus
 Let's start by creating a Cluster Role that will allow read-only access to Secrets within the cluster. We'll call this role secret-readers.
 
 :::code{language=yml showLineNumbers=false showCopyAction=true}
-cat <<EOF> clusterrole-read-secrets.yaml 
+cat <<EOF> clusterrole-read-secrets.yaml
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: secret-readers
+name: secret-readers
 rules:
+
 - apiGroups:
   - ""
-  resources:
+    resources:
   - secrets
-  verbs:
+    verbs:
   - 'get'
   - 'watch'
   - 'list'
-EOF
-:::
-
-
+    EOF
+    :::
 
 :::code{language=bash showLineNumbers=false showCopyAction=true}
 kubectl create -f clusterrole-read-secrets.yaml
@@ -35,25 +34,24 @@ kubectl create -f clusterrole-read-secrets.yaml
 
 Great, now we can bind this Cluster Role to a group called secret-readers in our OIDC identity provider. This will grant users who are members of the secret-reader group the ability to read Secrets, but they won't be able to access any other Kubernetes resources.
 
-
 :::code{language=yml showLineNumbers=false showCopyAction=true}
 cat <<EOF> clusterrolebinding-read-secrets.yaml
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: secret-readers-role-binding
-  namespace: default
+name: secret-readers-role-binding
+namespace: default
 subjects:
+
 - kind: Group
   name: "gid:secret-reader"
   apiGroup: rbac.authorization.k8s.io
-roleRef:
+  roleRef:
   kind: ClusterRole
   name: secret-readers
   apiGroup: rbac.authorization.k8s.io
-EOF
-:::
-
+  EOF
+  :::
 
 :::code{language=bash showLineNumbers=false showCopyAction=true}
 kubectl create -f clusterrolebinding-read-secrets.yaml
@@ -61,19 +59,18 @@ kubectl create -f clusterrolebinding-read-secrets.yaml
 
 we've now set up the necessary RBAC permissions to allow users in the secret-readers group to access Secrets within the EKS cluster.
 
-
 Let's now create a secret for this exercise to see if we can use our new identity from OIDC Identity provider and see the secret.The username and password are encoded in base64
 
 :::code{language=yml showLineNumbers=false showCopyAction=true}
-cat  <<EOF> secrets-create.yaml
+cat <<EOF> secrets-create.yaml
 apiVersion: v1
 kind: Secret
 metadata:
-  name: my-secret
+name: my-secret
 type: Opaque
 data:
-  username: dXNlcg==
-  password: cGFzc3dvcmQ=
+username: dXNlcg==
+password: cGFzc3dvcmQ=
 EOF
 :::
 
@@ -88,7 +85,6 @@ REFRESH_TOKEN=$(echo $output | jq -r '.AuthenticationResult.RefreshToken')
 ID_TOKEN=$(echo $output | jq -r '.AuthenticationResult.IdToken')
 :::
 
-
 Now we can use those values to update the ~/.kube/config file with the necessary OIDC authenticator settings:
 
 :::code{language=bash showLineNumbers=false showCopyAction=true}
@@ -99,7 +95,6 @@ kubectl config set-credentials cognito-user \
 --auth-provider-arg=refresh-token=$REFRESH_TOKEN \
 --auth-provider-arg=id-token=$ID_TOKEN
 :::
-
 
 ::::expand{header="Check Output"}
 User "cognito-user" set.
@@ -146,8 +141,8 @@ kubectl get secrets
 :::expand{header="Check Output"}
 ::code{language=t4-templating showLineNumbers=false showCopyAction=true}
 kubectl get secrets
-NAME        TYPE     DATA   AGE
-my-secret   Opaque   2      51s
+NAME TYPE DATA AGE
+my-secret Opaque 2 51s
 ::
 :::
 
@@ -167,8 +162,6 @@ Error from server (Forbidden): nodes is forbidden: User "test1@example.com" cann
 
 ::::tab{id="console" label="Using -token parameter"}
 
-
-
 Let's verify the user's access by trying to list the Secrets in the default namespace using the token parameter:
 
 :::code{language=bash showLineNumbers=false showCopyAction=true}
@@ -178,10 +171,9 @@ kubectl --token=$ID_TOKEN get secrets
 :::expand{header="Check Output"}
 :::code{language=t4-templating showLineNumbers=false showCopyAction=true}
 kubectl --token=$ID_TOKEN get secrets
-NAME        TYPE     DATA   AGE
-my-secret   Opaque   2      556s
+NAME TYPE DATA AGE
+my-secret Opaque 2 556s
 :::
-
 
 Let's verify the user's access by trying to list the nodes in the default namespace which the user should not have access to:
 
@@ -196,15 +188,6 @@ Error from server (Forbidden): nodes is forbidden: User "test1@example.com" cann
 :::
 ::::
 
-
 ::::
 
-
-
-
-
-
-
 ::::
-
-

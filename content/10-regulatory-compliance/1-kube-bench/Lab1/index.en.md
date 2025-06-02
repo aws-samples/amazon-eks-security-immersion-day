@@ -5,8 +5,8 @@ weight: 21
 
 In this lab, we will install kube-bench directly in one of the linux nodes and run the CIS Amazon EKS Benchmark node assessment against eks-1.2.0 node controls.
 
-1. Open the workshop IDE
-2. List Amazon EKS cluster nodes
+1.  Open the workshop IDE
+2.  List Amazon EKS cluster nodes
 
     ```shell
     kubectl get nodes
@@ -20,29 +20,30 @@ In this lab, we will install kube-bench directly in one of the linux nodes and r
         ip-10-254-178-204.us-west-2.compute.internal   Ready    <none>   26m    v1.25.9-eks-0a21954
         ip-10-254-193-104.us-west-2.compute.internal   Ready    <none>   2d2h   v1.25.11-eks-a5565ad
         ```
+
     :::
 
-3. Select one of the worker node from the AWS console
+3.  Select one of the worker node from the AWS console
 
     ![AWS Console Instance](/static/images/regulatory-compliance/kube-bench/Lab1/instance.jpg)
 
-4. Connect the Instance through Sessions Manager
+4.  Connect the Instance through Sessions Manager
 
-   ![SSM Connect](/static/images/regulatory-compliance/kube-bench/Lab1/ssm-connect.jpg)
+    ![SSM Connect](/static/images/regulatory-compliance/kube-bench/Lab1/ssm-connect.jpg)
 
-5. Install kube-bench using the commands below.
+5.  Install kube-bench using the commands below.
 
     ```shell
     KUBEBENCH_URL=$(curl -s https://api.github.com/repos/aquasecurity/kube-bench/releases/latest | jq -r '.assets[] | select(.name | contains("amd64.rpm")) | .browser_download_url')
     ```
 
-6. Install kubebench package with yum command
+6.  Install kubebench package with yum command
 
     ```shell
     sudo yum install -y $KUBEBENCH_URL
     ```
 
-7. Run the kube bench command
+7.  Run the kube bench command
 
     ```shell
     kube-bench --benchmark eks-1.2.0

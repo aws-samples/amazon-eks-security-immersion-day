@@ -3,7 +3,6 @@ title: "Installing the AWS Load Balancer Controller add-on"
 weight: 152
 ---
 
-
 The AWS Load Balancer Controller manages AWS Elastic Load Balancers for a Kubernetes cluster. The controller provisions the following resources:
 
 Kubernetes Ingress
@@ -25,9 +24,7 @@ Create an IAM OIDC identity provider for your cluster with the following command
 eksctl utils associate-iam-oidc-provider --region=$AWS_REGION --cluster=eksworkshop-eksctl-private --approve
 ```
 
-
 Download an IAM policy for the AWS Load Balancer Controller that allows it to make calls to AWS APIs on your behalf from the Workshop IDE instance.
-
 
 ```bash
 curl -O https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.6.2/docs/install/iam_policy.json
@@ -40,7 +37,6 @@ aws iam create-policy \
 --policy-name AWSLoadBalancerControllerIAMPolicy \
 --policy-document file://iam_policy.json
 ```
-
 
 Create an IAM role. Create a Kubernetes service account named aws-load-balancer-controller in the kube-system namespace for the AWS Load Balancer Controller and annotate the Kubernetes service account with the name of the IAM role.
 
@@ -62,7 +58,7 @@ chmod 700 get_helm.sh
 ./get_helm.sh
 ```
 
-# Install the AWS Load Balancer Controller using Helm V3 or later 
+# Install the AWS Load Balancer Controller using Helm V3 or later
 
 Add the eks-charts repository.
 
@@ -162,6 +158,6 @@ kubectl get deployment -n kube-system aws-load-balancer-controller
 An example output is as follows.
 
 :::code{showCopyAction=true showLineNumbers=false}
-NAME                           READY   UP-TO-DATE   AVAILABLE   AGE
-aws-load-balancer-controller   2/2     2            2           84s
+NAME READY UP-TO-DATE AVAILABLE AGE
+aws-load-balancer-controller 2/2 2 2 84s
 :::

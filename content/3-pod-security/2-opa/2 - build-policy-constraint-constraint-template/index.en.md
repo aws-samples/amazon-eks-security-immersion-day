@@ -133,7 +133,6 @@ In this section, we will test if the use of unprivileged containers is enforced 
 Let us deploy a privileged nginx pod:
 
 <!-- prettier-ignore-start -->
-
 :::code{showCopyAction=true showLineNumbers=false language=bash}
 cd ~/environment
 cat > example-1.yaml <<EOF

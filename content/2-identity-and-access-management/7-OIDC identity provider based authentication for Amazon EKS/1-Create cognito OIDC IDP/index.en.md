@@ -1,9 +1,9 @@
 ---
-title : "Create Cognito OIDC IDP"
-weight : 41
+title: "Create Cognito OIDC IDP"
+weight: 41
 ---
 
-Let's start with Amazon Cognito User Pool to serve as  OpenID Connect (OIDC) identity provider for Amazon EKS. Cognito User Pools provide a fully-managed, scalable user directory to handle all of our authentication needs. With Cognito, we can easily create and manage users and groups without having to deploy any additional infrastructure
+Let's start with Amazon Cognito User Pool to serve as OpenID Connect (OIDC) identity provider for Amazon EKS. Cognito User Pools provide a fully-managed, scalable user directory to handle all of our authentication needs. With Cognito, we can easily create and manage users and groups without having to deploy any additional infrastructure
 
 :::::tabs{variant="container"}
 
@@ -16,272 +16,272 @@ aws cognito-idp create-user-pool --pool-name OIDCUserPool --username-attributes 
 :::
 
 :::expand{header="Check Output"}
+
 ```json
 {
-"UserPool": {
-"Id": "eu-west-2_ilD61yy1L",
-"Name": "OICDUserPool",
-"Policies": {
-"PasswordPolicy": {
-"MinimumLength": 8,
-"RequireUppercase": true,
-"RequireLowercase": true,
-"RequireNumbers": true,
-"RequireSymbols": true,
-"TemporaryPasswordValidityDays": 7
-}
-},
-"DeletionProtection": "INACTIVE",
-"LambdaConfig": {},
-"LastModifiedDate": "2024-09-06T11:01:58.421000+00:00",
-"CreationDate": "2024-09-06T11:01:58.421000+00:00",
-"SchemaAttributes": [
-{
-"Name": "sub",
-"AttributeDataType": "String",
-"DeveloperOnlyAttribute": false,
-"Mutable": false,
-"Required": true,
-"StringAttributeConstraints": {
-"MinLength": "1",
-"MaxLength": "2048"
-}
-},
-{
-"Name": "name",
-"AttributeDataType": "String",
-"DeveloperOnlyAttribute": false,
-"Mutable": true,
-"Required": false,
-"StringAttributeConstraints": {
-"MinLength": "0",
-"MaxLength": "2048"
-}
-},
-{
-"Name": "given_name",
-"AttributeDataType": "String",
-"DeveloperOnlyAttribute": false,
-"Mutable": true,
-"Required": false,
-"StringAttributeConstraints": {
-"MinLength": "0",
-"MaxLength": "2048"
-}
-},
-{
-"Name": "family_name",
-"AttributeDataType": "String",
-"DeveloperOnlyAttribute": false,
-"Mutable": true,
-"Required": false,
-"StringAttributeConstraints": {
-"MinLength": "0",
-"MaxLength": "2048"
-}
-},
-{
-"Name": "middle_name",
-"AttributeDataType": "String",
-"DeveloperOnlyAttribute": false,
-"Mutable": true,
-"Required": false,
-"StringAttributeConstraints": {
-"MinLength": "0",
-"MaxLength": "2048"
-}
-},
-{
-"Name": "nickname",
-"AttributeDataType": "String",
-"DeveloperOnlyAttribute": false,
-"Mutable": true,
-"Required": false,
-"StringAttributeConstraints": {
-"MinLength": "0",
-"MaxLength": "2048"
-}
-},
-{
-"Name": "preferred_username",
-"AttributeDataType": "String",
-"DeveloperOnlyAttribute": false,
-"Mutable": true,
-"Required": false,
-"StringAttributeConstraints": {
-"MinLength": "0",
-"MaxLength": "2048"
-}
-},
-{
-"Name": "profile",
-"AttributeDataType": "String",
-"DeveloperOnlyAttribute": false,
-"Mutable": true,
-"Required": false,
-"StringAttributeConstraints": {
-"MinLength": "0",
-"MaxLength": "2048"
-}
-},
-{
-"Name": "picture",
-"AttributeDataType": "String",
-"DeveloperOnlyAttribute": false,
-"Mutable": true,
-"Required": false,
-"StringAttributeConstraints": {
-"MinLength": "0",
-"MaxLength": "2048"
-}
-},
-{
-"Name": "website",
-"AttributeDataType": "String",
-"DeveloperOnlyAttribute": false,
-"Mutable": true,
-"Required": false,
-"StringAttributeConstraints": {
-"MinLength": "0",
-"MaxLength": "2048"
-}
-},
-{
-"Name": "email",
-"AttributeDataType": "String",
-"DeveloperOnlyAttribute": false,
-"Mutable": true,
-"Required": false,
-"StringAttributeConstraints": {
-"MinLength": "0",
-"MaxLength": "2048"
-}
-},
-{
-"Name": "email_verified",
-"AttributeDataType": "Boolean",
-"DeveloperOnlyAttribute": false,
-"Mutable": true,
-"Required": false
-},
-{
-"Name": "gender",
-"AttributeDataType": "String",
-"DeveloperOnlyAttribute": false,
-"Mutable": true,
-"Required": false,
-"StringAttributeConstraints": {
-"MinLength": "0",
-"MaxLength": "2048"
-}
-},
-{
-"Name": "birthdate",
-"AttributeDataType": "String",
-"DeveloperOnlyAttribute": false,
-"Mutable": true,
-"Required": false,
-"StringAttributeConstraints": {
-"MinLength": "10",
-"MaxLength": "10"
-}
-},
-{
-"Name": "zoneinfo",
-"AttributeDataType": "String",
-"DeveloperOnlyAttribute": false,
-"Mutable": true,
-"Required": false,
-"StringAttributeConstraints": {
-"MinLength": "0",
-"MaxLength": "2048"
-}
-},
-{
-"Name": "locale",
-"AttributeDataType": "String",
-"DeveloperOnlyAttribute": false,
-"Mutable": true,
-"Required": false,
-"StringAttributeConstraints": {
-"MinLength": "0",
-"MaxLength": "2048"
-}
-},
-{
-"Name": "phone_number",
-"AttributeDataType": "String",
-"DeveloperOnlyAttribute": false,
-"Mutable": true,
-"Required": false,
-"StringAttributeConstraints": {
-"MinLength": "0",
-"MaxLength": "2048"
-}
-},
-{
-"Name": "phone_number_verified",
-"AttributeDataType": "Boolean",
-"DeveloperOnlyAttribute": false,
-"Mutable": true,
-"Required": false
-},
-{
-"Name": "address",
-"AttributeDataType": "String",
-"DeveloperOnlyAttribute": false,
-"Mutable": true,
-"Required": false,
-"StringAttributeConstraints": {
-"MinLength": "0",
-"MaxLength": "2048"
-}
-},
-{
-"Name": "updated_at",
-"AttributeDataType": "Number",
-"DeveloperOnlyAttribute": false,
-"Mutable": true,
-"Required": false,
-"NumberAttributeConstraints": {
-"MinValue": "0"
-}
-}
-],
-"UsernameAttributes": [
-"email"
-],
-"VerificationMessageTemplate": {
-"DefaultEmailOption": "CONFIRM_WITH_CODE"
-},
-"UserAttributeUpdateSettings": {
-"AttributesRequireVerificationBeforeUpdate": []
-},
-"MfaConfiguration": "OFF",
-"EstimatedNumberOfUsers": 0,
-"EmailConfiguration": {
-"EmailSendingAccount": "COGNITO_DEFAULT"
-},
-"AdminCreateUserConfig": {
-"AllowAdminCreateUserOnly": false,
-"UnusedAccountValidityDays": 7
-},
-"Arn": "arn:aws:cognito-idp:eu-west-2:053778695015:userpool/eu-west-2_ilD61yy1L",
-"AccountRecoverySetting": {
-"RecoveryMechanisms": [
-{
-"Priority": 1,
-"Name": "verified_email"
-},
-{
-"Priority": 2,
-"Name": "verified_phone_number"
-}
-]
-}
-}
+  "UserPool": {
+    "Id": "eu-west-2_ilD61yy1L",
+    "Name": "OICDUserPool",
+    "Policies": {
+      "PasswordPolicy": {
+        "MinimumLength": 8,
+        "RequireUppercase": true,
+        "RequireLowercase": true,
+        "RequireNumbers": true,
+        "RequireSymbols": true,
+        "TemporaryPasswordValidityDays": 7
+      }
+    },
+    "DeletionProtection": "INACTIVE",
+    "LambdaConfig": {},
+    "LastModifiedDate": "2024-09-06T11:01:58.421000+00:00",
+    "CreationDate": "2024-09-06T11:01:58.421000+00:00",
+    "SchemaAttributes": [
+      {
+        "Name": "sub",
+        "AttributeDataType": "String",
+        "DeveloperOnlyAttribute": false,
+        "Mutable": false,
+        "Required": true,
+        "StringAttributeConstraints": {
+          "MinLength": "1",
+          "MaxLength": "2048"
+        }
+      },
+      {
+        "Name": "name",
+        "AttributeDataType": "String",
+        "DeveloperOnlyAttribute": false,
+        "Mutable": true,
+        "Required": false,
+        "StringAttributeConstraints": {
+          "MinLength": "0",
+          "MaxLength": "2048"
+        }
+      },
+      {
+        "Name": "given_name",
+        "AttributeDataType": "String",
+        "DeveloperOnlyAttribute": false,
+        "Mutable": true,
+        "Required": false,
+        "StringAttributeConstraints": {
+          "MinLength": "0",
+          "MaxLength": "2048"
+        }
+      },
+      {
+        "Name": "family_name",
+        "AttributeDataType": "String",
+        "DeveloperOnlyAttribute": false,
+        "Mutable": true,
+        "Required": false,
+        "StringAttributeConstraints": {
+          "MinLength": "0",
+          "MaxLength": "2048"
+        }
+      },
+      {
+        "Name": "middle_name",
+        "AttributeDataType": "String",
+        "DeveloperOnlyAttribute": false,
+        "Mutable": true,
+        "Required": false,
+        "StringAttributeConstraints": {
+          "MinLength": "0",
+          "MaxLength": "2048"
+        }
+      },
+      {
+        "Name": "nickname",
+        "AttributeDataType": "String",
+        "DeveloperOnlyAttribute": false,
+        "Mutable": true,
+        "Required": false,
+        "StringAttributeConstraints": {
+          "MinLength": "0",
+          "MaxLength": "2048"
+        }
+      },
+      {
+        "Name": "preferred_username",
+        "AttributeDataType": "String",
+        "DeveloperOnlyAttribute": false,
+        "Mutable": true,
+        "Required": false,
+        "StringAttributeConstraints": {
+          "MinLength": "0",
+          "MaxLength": "2048"
+        }
+      },
+      {
+        "Name": "profile",
+        "AttributeDataType": "String",
+        "DeveloperOnlyAttribute": false,
+        "Mutable": true,
+        "Required": false,
+        "StringAttributeConstraints": {
+          "MinLength": "0",
+          "MaxLength": "2048"
+        }
+      },
+      {
+        "Name": "picture",
+        "AttributeDataType": "String",
+        "DeveloperOnlyAttribute": false,
+        "Mutable": true,
+        "Required": false,
+        "StringAttributeConstraints": {
+          "MinLength": "0",
+          "MaxLength": "2048"
+        }
+      },
+      {
+        "Name": "website",
+        "AttributeDataType": "String",
+        "DeveloperOnlyAttribute": false,
+        "Mutable": true,
+        "Required": false,
+        "StringAttributeConstraints": {
+          "MinLength": "0",
+          "MaxLength": "2048"
+        }
+      },
+      {
+        "Name": "email",
+        "AttributeDataType": "String",
+        "DeveloperOnlyAttribute": false,
+        "Mutable": true,
+        "Required": false,
+        "StringAttributeConstraints": {
+          "MinLength": "0",
+          "MaxLength": "2048"
+        }
+      },
+      {
+        "Name": "email_verified",
+        "AttributeDataType": "Boolean",
+        "DeveloperOnlyAttribute": false,
+        "Mutable": true,
+        "Required": false
+      },
+      {
+        "Name": "gender",
+        "AttributeDataType": "String",
+        "DeveloperOnlyAttribute": false,
+        "Mutable": true,
+        "Required": false,
+        "StringAttributeConstraints": {
+          "MinLength": "0",
+          "MaxLength": "2048"
+        }
+      },
+      {
+        "Name": "birthdate",
+        "AttributeDataType": "String",
+        "DeveloperOnlyAttribute": false,
+        "Mutable": true,
+        "Required": false,
+        "StringAttributeConstraints": {
+          "MinLength": "10",
+          "MaxLength": "10"
+        }
+      },
+      {
+        "Name": "zoneinfo",
+        "AttributeDataType": "String",
+        "DeveloperOnlyAttribute": false,
+        "Mutable": true,
+        "Required": false,
+        "StringAttributeConstraints": {
+          "MinLength": "0",
+          "MaxLength": "2048"
+        }
+      },
+      {
+        "Name": "locale",
+        "AttributeDataType": "String",
+        "DeveloperOnlyAttribute": false,
+        "Mutable": true,
+        "Required": false,
+        "StringAttributeConstraints": {
+          "MinLength": "0",
+          "MaxLength": "2048"
+        }
+      },
+      {
+        "Name": "phone_number",
+        "AttributeDataType": "String",
+        "DeveloperOnlyAttribute": false,
+        "Mutable": true,
+        "Required": false,
+        "StringAttributeConstraints": {
+          "MinLength": "0",
+          "MaxLength": "2048"
+        }
+      },
+      {
+        "Name": "phone_number_verified",
+        "AttributeDataType": "Boolean",
+        "DeveloperOnlyAttribute": false,
+        "Mutable": true,
+        "Required": false
+      },
+      {
+        "Name": "address",
+        "AttributeDataType": "String",
+        "DeveloperOnlyAttribute": false,
+        "Mutable": true,
+        "Required": false,
+        "StringAttributeConstraints": {
+          "MinLength": "0",
+          "MaxLength": "2048"
+        }
+      },
+      {
+        "Name": "updated_at",
+        "AttributeDataType": "Number",
+        "DeveloperOnlyAttribute": false,
+        "Mutable": true,
+        "Required": false,
+        "NumberAttributeConstraints": {
+          "MinValue": "0"
+        }
+      }
+    ],
+    "UsernameAttributes": ["email"],
+    "VerificationMessageTemplate": {
+      "DefaultEmailOption": "CONFIRM_WITH_CODE"
+    },
+    "UserAttributeUpdateSettings": {
+      "AttributesRequireVerificationBeforeUpdate": []
+    },
+    "MfaConfiguration": "OFF",
+    "EstimatedNumberOfUsers": 0,
+    "EmailConfiguration": {
+      "EmailSendingAccount": "COGNITO_DEFAULT"
+    },
+    "AdminCreateUserConfig": {
+      "AllowAdminCreateUserOnly": false,
+      "UnusedAccountValidityDays": 7
+    },
+    "Arn": "arn:aws:cognito-idp:eu-west-2:053778695015:userpool/eu-west-2_ilD61yy1L",
+    "AccountRecoverySetting": {
+      "RecoveryMechanisms": [
+        {
+          "Priority": 1,
+          "Name": "verified_email"
+        },
+        {
+          "Priority": 2,
+          "Name": "verified_phone_number"
+        }
+      ]
+    }
+  }
 }
 ```
+
 :::
 
 Now let's create a username and secret-reader user group which we would use to login to EKS cluster.
@@ -290,12 +290,13 @@ Now let's create a username and secret-reader user group which we would use to l
     export POOL_ID=$(aws cognito-idp list-user-pools --max-results 10 | jq -r '.UserPools[] | select(.Name == "OIDCUserPool") | .Id')
     aws cognito-idp admin-create-user --user-pool-id $POOL_ID --username test1@example.com --temporary-password Password1!
     aws cognito-idp admin-set-user-password --user-pool-id $POOL_ID --username test1@example.com --password Blah123$ --permanent
-    
+
     aws cognito-idp create-group --group-name secret-reader --user-pool-id $POOL_ID
     aws cognito-idp admin-add-user-to-group --user-pool-id $POOL_ID --username test1@example.com --group-name secret-reader
 ```
 
 ::::expand{header="Check Output"}
+
 ```json
 {
   "User": {
@@ -323,6 +324,7 @@ Now let's create a username and secret-reader user group which we would use to l
   }
 }
 ```
+
 ::::
 ::::
 
@@ -370,6 +372,7 @@ You can see the "User pool" to see the details
 ![oidc_cognito-side-home_screen-create_user_pool_details](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-userpooldetails.jpg)
 
 ## Create Users and User group
+
 Click on "OIDCUserPool" and click on "Create user"
 ![oidc_cognito-side-home_screen-user_pool-create_user](/static/images/iam/oidc-cognito/oidc-eks-cognito-home-userpool-createuser.jpg)
 
@@ -379,7 +382,7 @@ Set email as "test1@example.com",choose "set a password" and click on "Create us
 The user account will be provisioned with a confirmation status of 'Force change password'. Under normal circumstances, a user would be able to log in to the application after the User Pool is integrated.However, for the purposes of this lab exercise, we will run a CLI command to manually change the user's password. This will allow us to then authenticate and gain access to the Amazon EKS cluster using the updated credentials
 
 :::code{language=bash showLineNumbers=false showCopyAction=true}
-    export POOL_ID=$(aws cognito-idp list-user-pools --max-results 10 | jq -r '.UserPools[] | select(.Name == "OIDCUserPool") | .Id')
+export POOL_ID=$(aws cognito-idp list-user-pools --max-results 10 | jq -r '.UserPools[] | select(.Name == "OIDCUserPool") | .Id')
     aws cognito-idp admin-set-user-password --user-pool-id $POOL_ID --username test1@example.com --password Blah123$ --permanent
 :::
 Lets now create user group.Click on "Groups" and create "Create group"

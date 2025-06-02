@@ -56,7 +56,6 @@ EOF
 :::
 <!-- prettier-ignore-end -->
 
-
 Create the ConstraintTemplate using the following command
 
 :::code{showCopyAction=true showLineNumbers=false language=bash}

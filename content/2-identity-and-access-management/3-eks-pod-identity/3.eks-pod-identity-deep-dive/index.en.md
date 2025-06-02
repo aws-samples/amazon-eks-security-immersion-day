@@ -185,6 +185,7 @@ kubectl -n kube-system get ds -lapp.kubernetes.io/name=eks-pod-identity-agent -o
 ```
 
 ::::expand{header="Check Output"}
+
 <!-- prettier-ignore-start -->
 :::code{language=yaml showCopyAction=false showLineNumbers=true highlightLines='106'}
 apiVersion: v1
