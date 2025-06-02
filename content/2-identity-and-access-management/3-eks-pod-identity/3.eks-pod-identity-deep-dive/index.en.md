@@ -451,15 +451,15 @@ aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,Attribut
   "userIdentity": {
     "type": "AssumedRole",
     "principalId": "AROA37QFXJP5E2DPF472Q:i-07574d724fb843fda",
-    "arn": "arn:aws:sts::823571991546:assumed-role/eks-security-workshop/i-07574d724fb843fda",
-    "accountId": "823571991546",
+    "arn": "arn:aws:sts::012345678910:assumed-role/eks-security-workshop/i-07574d724fb843fda",
+    "accountId": "012345678910",
     "accessKeyId": "ASIA37QFXJP5LMALW5PH",
     "sessionContext": {
       "sessionIssuer": {
         "type": "Role",
         "principalId": "AROA37QFXJP5E2DPF472Q",
-        "arn": "arn:aws:iam::823571991546:role/eks-security-workshop",
-        "accountId": "823571991546",
+        "arn": "arn:aws:iam::012345678910:role/eks-security-workshop",
+        "accountId": "012345678910",
         "userName": "eks-security-workshop"
       },
       "attributes": {
@@ -485,7 +485,7 @@ aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,Attribut
   "readOnly": true,
   "eventType": "AwsApiCall",
   "managementEvent": true,
-  "recipientAccountId": "823571991546",
+  "recipientAccountId": "012345678910",
   "eventCategory": "Management",
   "tlsDetails": {
     "tlsVersion": "TLSv1.3",
@@ -547,13 +547,13 @@ jq -r '.Events[].CloudTrailEvent |
   "sourceIPAddress": "pods.eks.amazonaws.com",
   "userAgent": "pods.eks.amazonaws.com",
   "requestParameters": {
-    "roleArn": "arn:aws:iam::823571991546:role/eks-pod-s3-read-access-role",
+    "roleArn": "arn:aws:iam::012345678910:role/eks-pod-s3-read-access-role",
     "roleSessionName": "eks-eksworksho-app1-498124c2-a555-40bf-9059-ca9a26821eb0",
     "durationSeconds": 21600,
     "tags": [
       {
         "key": "eks-cluster-arn",
-        "value": "arn:aws:eks:us-west-2:823571991546:cluster/eksworkshop-eksctl"
+        "value": "arn:aws:eks:us-west-2:012345678910:cluster/eksworkshop-eksctl"
       },
       {
         "key": "eks-cluster-name",
@@ -587,13 +587,13 @@ jq -r '.Events[].CloudTrailEvent |
   },
   "responseElements": {
     "credentials": {
-      "accessKeyId": "ASIA37QFXJP5MQOWRZ6Q",
+      "accessKeyId": "TEMPORARY_CREDENTIALS",
       "sessionToken": "IQoJb3JpZ2luX2VjEIL//////////wEaCXVzLXdlc3QtMiJHMEUCIBIC8yw6n5TTiLCWM1YTOCvGCfjSgZHJZFU1sj5+qqvhAiEAm7lq4NL7joREHEA3kxCbr6ZP3Hftbm7WjdqO/LJTG2QqvgQIuv//////////ARAAGgw4MjM1NzE5OTE1NDYiDA/OosTJYTQlWD1LeyqSBA7ueUmFbbPZ850h5rEByl/Bg4kLz6Sp+61MkrhN3UQKmGWgQkLaSbZNj8fhVvFxpNy7HdLryOz0Nm3MQ4NK6alFMnogF3AMvt0Hz0qxoaWNqTnK2YS1O9bqpVt5nay03KoryjQjdM+fxE67e5IPDi6pbSzAnkfkfwMMD8VPtZyCckZ3+/b7KASEk5wGO8pJ28Ic2eI499VxZxEJ/obooLmjTJKizxMidUnmHGrBmFTCuHCZVOlL8xC2YFMT7acHvfoGqG3QjjdpGHbIdTw1kETrnxWJuken2AD46NbybI2XxDfVPWaU4RDrnHpDGmUwsSZl5l3lcN5HIvEEuGZrhfV/WErtsGeXLPFNSlRpUMuXEMGJHeZHmRA4aTeWDtFgzqfbYmB6e7NARuEQuzDmyhphbKx7PAd5Lm7dpgqT6D8Ejs3SqCBDaLe4XgOwWcGkAdXBaipsw4eQGmLlk2P/OXajbc7peTbhmXeZPWWQFWXTW8D9zLj5cmGZDuLE5HApfjiHwEcI80X1+XKalXXWAfsd6zytlkVHriv7Jm+7gwP2hGKtLCqmjC2ZAeNSPPQwXshFKJEQYaGJxJUHDxqVmzZI54Bl+9UCgDPnt5OPrraeBARoroyYXG3QN5mqf1sX+2kKhpSAN17rZdtp+uCUtOo5LN8CFOjwNDe7OQ339IWzOh8WJF2f/lE6g5SeegvwJPv3MMSF+bAGOo4BQueeZmOUoDcTyvXqvTRqrurdwole4HRq8D4V3F9viF/CXBYlkN18xdaM+dHwjdyD4fYGLVmoR1NWx8koKWICRiFv7JAG0MB/pd085pldHQ7Ea6uhS16AXK473ceRGEVL4GogjsASKi/gYGen7uCoKdIJR48yA2Fz19nUR5sYOUMnGtggmJHQyvbZMlJzGQ==",
       "expiration": "Apr 16, 2024, 3:20:04 PM"
     },
     "assumedRoleUser": {
       "assumedRoleId": "AROA37QFXJP5LOO5CGXEC:eks-eksworksho-app1-498124c2-a555-40bf-9059-ca9a26821eb0",
-      "arn": "arn:aws:sts::823571991546:assumed-role/eks-pod-s3-read-access-role/eks-eksworksho-app1-498124c2-a555-40bf-9059-ca9a26821eb0"
+      "arn": "arn:aws:sts::012345678910:assumed-role/eks-pod-s3-read-access-role/eks-eksworksho-app1-498124c2-a555-40bf-9059-ca9a26821eb0"
     },
     "packedPolicySize": 56
   },
@@ -602,14 +602,14 @@ jq -r '.Events[].CloudTrailEvent |
   "readOnly": true,
   "resources": [
     {
-      "accountId": "823571991546",
+      "accountId": "012345678910",
       "type": "AWS::IAM::Role",
-      "ARN": "arn:aws:iam::823571991546:role/eks-pod-s3-read-access-role"
+      "ARN": "arn:aws:iam::012345678910:role/eks-pod-s3-read-access-role"
     }
   ],
   "eventType": "AwsApiCall",
   "managementEvent": true,
-  "recipientAccountId": "823571991546",
+  "recipientAccountId": "012345678910",
   "sharedEventID": "c30ac43f-e051-426b-94bc-ab73b05e34e9",
   "eventCategory": "Management"
 }
