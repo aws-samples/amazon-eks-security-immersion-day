@@ -338,9 +338,7 @@ Decoding this token at [https://jwt.io/](https://jwt.io/) shows below Payload Da
 
 ```json
 {
-  "aud": [
-    "sts.amazonaws.com"
-  ],
+  "aud": ["sts.amazonaws.com"],
   "exp": 1678099678,
   "iat": 1678013278,
   "iss": "https://oidc.eks.us-west-2.amazonaws.com/id/80D562ED8026E91294D52E09BEA261D4",

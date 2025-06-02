@@ -28,6 +28,7 @@ kubectl apply -f manifests/
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 namespace/another-ns created
 service/demo-app created

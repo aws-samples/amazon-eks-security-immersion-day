@@ -118,7 +118,7 @@ aws vpc-lattice list-service-network-vpc-associations --vpc-id $EKS_CLUSTER1_VPC
 ```
 
 > wait for status to be ACTIVE
-::::
+> ::::
 
 View the VPC Lattice Service network `app-services-gw` in the [Amazon VPC Console](https://console.aws.amazon.com/vpc/home?ServiceNetwork=&#ServiceNetworks:)
 

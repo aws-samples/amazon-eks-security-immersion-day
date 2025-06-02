@@ -44,7 +44,7 @@ kubectl get node
 
 ::::expand{header="Check Output"}
 
-```bash
+````bash
 Error from server (Forbidden): pods is forbidden: User "arn:aws:sts::ACCOUNT_ID:assumed-role/k8sClusterAdmin/botocore-session-1703490059" cannot list resource "pods" in API group "" in the namespace "default"```
 ::::
 
@@ -58,7 +58,7 @@ export EKS_ADMIN_RBAC_GROUP="k8s-rbac-group-admin"
 export IAM_PRINCIPAL_ARN="arn:aws:iam::${ACCOUNT_ID}:role/k8sClusterAdmin"
 
 aws eks   update-access-entry --cluster-name $EKS_CLUSTER_NAME --principal-arn $IAM_PRINCIPAL_ARN  --kubernetes-groups $EKS_ADMIN_RBAC_GROUP
-```
+````
 
 ::::expand{header="Check Output"}
 
@@ -141,3 +141,4 @@ ip-192-168-158-255.ec2.internal   Ready    <none>   4d1h   v1.28.3-eks-e71965b
 ip-192-168-184-154.ec2.internal   Ready    <none>   4d1h   v1.28.3-eks-e71965b
 ::::
 ```
+````

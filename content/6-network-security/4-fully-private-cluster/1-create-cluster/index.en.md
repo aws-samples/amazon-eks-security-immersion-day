@@ -30,6 +30,7 @@ aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values
 ```
 
 ::::expand{header="Check Output"}
+
 ```
 ----------------------------------------------------------------------
 |                           DescribeSubnets                          |
@@ -40,6 +41,7 @@ aws ec2 describe-subnets --filters Name=tag:aws:cloudformation:stack-name,Values
 |  subnet-0c1f95d3789157c84 |  vpc-02cc579cdd679aa3c  |  us-west-2c |
 +---------------------------+-------------------------+--------------+
 ```
+
 ::::
 
 Run below commands to set few environment variables. Please fetch the subnet and VPC settings from the **Create VPC** section.
@@ -56,7 +58,7 @@ export PRIVATE_CLUSTER_SG=$(aws ec2 describe-security-groups --filters Name=grou
 echo $PRIVATE_AZ1_SUBNET $PRIVATE_AZ2_SUBNET $PRIVATE_AZ3_SUBNET $PRIVATE_CLUSTER_VPC $PRIVATE_CLUSTER_SG
 ```
 
- Let's save these into bash_profile
+Let's save these into bash_profile
 
 ```bash
 echo "export PRIVATE_AZS=(${PRIVATE_AZS[@]})" | tee -a ~/.bash_profile
@@ -64,7 +66,7 @@ echo "export PRIVATE_AZS=(${PRIVATE_AZS[@]})" | tee -a ~/.bash_profile
 
 1. Create A VPC peering connection between the existing VPC and the new VPC.
 
-* create and accept a VPC peering connection between your VPCs
+- create and accept a VPC peering connection between your VPCs
 
 ```bash
 PRIVATE_VPC_ID=$(aws ec2 describe-vpcs --filters "Name=tag:aws:cloudformation:stack-name,Values=eks-private-vpc" --query 'Vpcs[0].VpcId' --output text)
@@ -127,7 +129,7 @@ aws ec2 accept-vpc-peering-connection --vpc-peering-connection-id $VpcPeeringCon
 
 ::::
 
-* create a route to the Primary EKS cluster VPC in the new Private VPC
+- create a route to the Primary EKS cluster VPC in the new Private VPC
 
 ```bash
 PRIVATE_VPC_RouteTableId=$(aws ec2 describe-route-tables --filter "Name=vpc-id, Values=$PRIVATE_VPC_ID" --query 'RouteTables[0].RouteTableId' --output text)
@@ -146,8 +148,8 @@ aws ec2 create-route --route-table-id $PRIVATE_VPC_RouteTableId --destination-ci
 
 ::::
 
-* Allow DNS resolution over the peered VPCs.
-  
+- Allow DNS resolution over the peered VPCs.
+
 ```bash
 aws ec2 modify-vpc-peering-connection-options --vpc-peering-connection-id "$VpcPeeringConnectionId" --requester-peering-connection-options '{"AllowDnsResolutionFromRemoteVpc":true}' --accepter-peering-connection-options '{"AllowDnsResolutionFromRemoteVpc":true}'
 ```
@@ -167,8 +169,7 @@ aws ec2 modify-vpc-peering-connection-options --vpc-peering-connection-id "$VpcP
 
 ::::
 
-
-* create a route for the Workshop IDE's Subnet to the new Private VPC.
+- create a route for the Workshop IDE's Subnet to the new Private VPC.
 
 ```bash
 
@@ -200,7 +201,7 @@ aws ec2 describe-route-tables --filters "Name=association.subnet-id,Values=$HOST
 
 ```
 
-* create Inbound rule for Kubernetes Control Plane Security Group to allow communication from the 2 VPCs
+- create Inbound rule for Kubernetes Control Plane Security Group to allow communication from the 2 VPCs
 
 ```bash
 aws ec2 authorize-security-group-ingress \
@@ -287,12 +288,11 @@ This should setup an EKS cluster with Private Endpoint for the Control Plane. Th
 
 The only required field to create a fully-private cluster is `privateCluster.enabled`. Only private node groups (both managed and self-managed) are supported in a fully-private cluster because the cluster's VPC is created without any public subnets. The `privateNetworking` field must be explicitly set. It is an error to leave `privateNetworking` unset in a fully-private cluster.
 
-
 If Karpenter is used for Auto scaling of worker nodes the following considerations are required. https://aws.github.io/aws-eks-best-practices/karpenter/#amazon-eks-private-cluster-without-outbound-internet-access
 
 :::code{showCopyAction=true showLineNumbers=false language=yaml}
 privateCluster:
-  enabled: true
+enabled: true
 :::
 
 After the EKS cluster was created and since it is a Private Cluster, there would be VPC endpoints created in the Cluster VPC to create PrivateLink with various AWS services. The following VPC endpoints are created behind the scene.
@@ -302,7 +302,6 @@ After the EKS cluster was created and since it is a Private Cluster, there would
 ```bash
 aws ec2 describe-vpc-endpoints --filter "Name=vpc-id,Values=$PRIVATE_CLUSTER_VPC" --query VpcEndpoints[].[VpcId,VpcEndpointId,ServiceName] --output table
 ```
-
 
 ```
 ----------------------------------------------------------------------------
@@ -314,17 +313,17 @@ aws ec2 describe-vpc-endpoints --filter "Name=vpc-id,Values=$PRIVATE_CLUSTER_VPC
 |  vpc-02cc579cdd679aa3c |  com.amazonaws.us-west-2.logs                  |
 |  vpc-02cc579cdd679aa3c |  com.amazonaws.us-west-2.ec2                   |
 |  vpc-02cc579cdd679aa3c |  com.amazonaws.us-west-2.sts                   |
-|  vpc-02cc579cdd679aa3c |  com.amazonaws.us-west-2.autoscaling           ||  
+|  vpc-02cc579cdd679aa3c |  com.amazonaws.us-west-2.autoscaling           ||
 +------------------------+-------------------------------------------------+
 ```
 
 This Workshop would additionally require these VPC endpoints additionally. We would be creating the same below.
 
-* elasticloadbalancing - For ALB Controller addon to create ELBs
-* eks - For privately querying EKS Service APIs
-* ssm - EKS Worker nodes to be accessed through SSM without opening SSH ports
-* ssmmessages - EKS Worker nodes to be accessed through SSM without opening SSH ports
-* ec2messages - EKS Worker nodes to be accessed through SSM without opening SSH ports
+- elasticloadbalancing - For ALB Controller addon to create ELBs
+- eks - For privately querying EKS Service APIs
+- ssm - EKS Worker nodes to be accessed through SSM without opening SSH ports
+- ssmmessages - EKS Worker nodes to be accessed through SSM without opening SSH ports
+- ec2messages - EKS Worker nodes to be accessed through SSM without opening SSH ports
 
 #### Create VPC endpoints
 
@@ -414,7 +413,7 @@ nslookup AFB4045AF25413FF766AD8CA1FF0CAEA.yl4.us-west-2.eks.amazonaws.com
 
 ::::expand{header="Check Output"}
 
-````bash
+```bash
 Server:         10.254.0.2
 Address:        10.254.0.2#53
 
@@ -423,7 +422,7 @@ Name:   AFB4045AF25413FF766AD8CA1FF0CAEA.yl4.us-west-2.eks.amazonaws.com
 Address: 10.50.153.103
 Name:   AFB4045AF25413FF766AD8CA1FF0CAEA.yl4.us-west-2.eks.amazonaws.com
 Address: 10.50.176.167
-````
+```
 
 ::::
 
@@ -431,16 +430,16 @@ Now the eksworkshop-private Cloud9 instance is ready to manage the fully private
 
 #### Test the Private connectivity of the EKS Worker Nodes
 
-* Open AWS management console and search for EC2
-* Click on **Instances** on the **EC2 Dashboard**
-* Filter with "eksworkshop-eksctl-private" and select and Instance
-* Click on the **Connect** button on the top and Select the **Session Manager** tab
-![sessionManager](/static/images/fully-private-cluster/sessionManagerConnect.png)
-* Click the **Connect** button at the bottom to open the Terminal
-![sessionManagerTerminal](/static/images/fully-private-cluster/sessionManagerTerminal.png)
+- Open AWS management console and search for EC2
+- Click on **Instances** on the **EC2 Dashboard**
+- Filter with "eksworkshop-eksctl-private" and select and Instance
+- Click on the **Connect** button on the top and Select the **Session Manager** tab
+  ![sessionManager](/static/images/fully-private-cluster/sessionManagerConnect.png)
+- Click the **Connect** button at the bottom to open the Terminal
+  ![sessionManagerTerminal](/static/images/fully-private-cluster/sessionManagerTerminal.png)
 
-* Try to connect to a public site like www.google.com using curl and it would timeout. 
-* Try connecting to the API endpoint of the cluster using curl. You should receive a structured JSON response.
-![workerNodeTest](/static/images/fully-private-cluster/workNodeTest.png)
+- Try to connect to a public site like www.google.com using curl and it would timeout.
+- Try connecting to the API endpoint of the cluster using curl. You should receive a structured JSON response.
+  ![workerNodeTest](/static/images/fully-private-cluster/workNodeTest.png)
 
 This proves that EKS cluster is fully private with connectivity to the private API endpoint.

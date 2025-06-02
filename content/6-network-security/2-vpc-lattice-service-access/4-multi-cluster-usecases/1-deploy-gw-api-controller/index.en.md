@@ -240,7 +240,6 @@ status:
 <!-- prettier-ignore-end -->
 ::::
 
-
 The `status` conditions contains the ARN of the Amazon VPC Lattice Service Network.
 
 Note that the Gateway ARN in your output status in message field is same as the one stored earlier in the environment variable.

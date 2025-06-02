@@ -86,11 +86,11 @@ metadata:
     # pod-security.kubernetes.io/enforce: privileged
     # pod-security.kubernetes.io/audit: privileged
     # pod-security.kubernetes.io/warn: privileged
-    
+
     # pod-security.kubernetes.io/enforce: baseline
     # pod-security.kubernetes.io/audit: baseline
     # pod-security.kubernetes.io/warn: baseline
-    
+
     # pod-security.kubernetes.io/enforce: restricted
     # pod-security.kubernetes.io/audit: restricted
     # pod-security.kubernetes.io/warn: restricted

@@ -321,6 +321,7 @@ kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app1-v1 -c app1-v1 -n ap
 ```
 
 ::::expand{header="Check Output"}
+
 <!-- prettier-ignore-start -->
 :::code{language=json showCopyAction=false showLineNumbers=false highlightLines='2'}
 Server:         172.20.0.10
@@ -333,10 +334,10 @@ Name:   app2-app2-0e5f3d2b3db4c7962.7d67968.vpc-lattice-svcs.us-west-2.on.aws
 Address: fd00:ec2:80::a9fe:ab21
 :::
 <!-- prettier-ignore-end -->
+
 ::::
 
 > Notice that the IP `169.254.171.33` for **app2DNS** is from `MANAGED_PREFIX=169.254.171.0/24` we saw in the earlier section.
-
 
 Exec into app1 pod to check connectivity to `app2` service. Since there are no IAM access policies are configured for either Service network or Service, access to `app2` is allowed from any client from the VPCs associated to the Service network.
 We can also see that the reverse is true, if we try to connect from app2 to app1:

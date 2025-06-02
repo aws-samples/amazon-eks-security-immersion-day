@@ -401,7 +401,7 @@ spec:
             method: POST
             data:
               - key: images
-                value: '{{ request.object.spec.[ephemeralContainers, initContainers, containers][].image }}'
+                value: "{{ request.object.spec.[ephemeralContainers, initContainers, containers][].image }}"
             service:
               url: https://svc.kyverno-notation-aws/checkimages
               caBundle: |-
@@ -434,11 +434,11 @@ spec:
                 -----END CERTIFICATE-----
 
       validate:
-        message: 'not allowed'
+        message: "not allowed"
         deny:
           conditions:
             all:
-              - key: '{{ result.verified }}'
+              - key: "{{ result.verified }}"
                 operator: EQUALS
                 value: false
 ```

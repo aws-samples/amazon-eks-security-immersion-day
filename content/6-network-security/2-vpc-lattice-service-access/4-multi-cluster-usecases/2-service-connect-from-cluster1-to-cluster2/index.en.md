@@ -179,6 +179,7 @@ status:
         sectionName: http-listener
 :::
 <!-- prettier-ignore-end -->
+
 ::::
 
 The `status` field in the above output also contains the DNS Name of the Service `message: 'DNS Name: app5-app5-0290b3274559b1c62.7d67968.vpc-lattice-svcs.us-west-2.on.aws'`
@@ -293,6 +294,7 @@ We should now see the proper response from the `app5`.
 ```bash
 Requsting to Pod(app5-v1-5f558c7fb6-c7vsl): Hello from app5-v1
 ```
+
 ::::
 
 Remember, that we have configured app1 to use the envoy proxy for signing the request. You can verify that envoy is currently creating the signature each time you execute the previous curl by looking at the logs
@@ -333,6 +335,7 @@ kubectl --context $EKS_CLUSTER1_CONTEXT exec -it deploy/app2-v1 -n app2 -c app2-
 AccessDeniedException: User: arn:aws:sts::012345678910:assumed-role/aws-sigv4-client/eks-eksworkshop-app2-v1-bd-95eec466-e227-49b0-8048-bac5db382a4a is not authorized to perform: vpc-lattice-svcs:Invoke on resource: arn:aws:vpc-lattice:eu-west-1:012345678910:service/svc-0172f5b22a68d46bc/ because no service-based policy allows the vpc-lattice-svcs:Invoke action
 
 ```
+
 ::::
 
 You should have seen an error.

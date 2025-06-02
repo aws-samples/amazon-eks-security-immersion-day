@@ -1,2 +1,14 @@
 assets/eks-security-workshop-team-stack-self.json
 static/eks-security-workshop-team-stack.json
+# Ignore code blocks in markdown files
+**/*.md/**/*.yaml
+**/*.md/**/*.yml
+**/*.md/**/*.json
+**/*.md/**/*.bash
+#Ignore cdk code
+cdk/*
+
+# Ignore specific problematic files with code blocks
+#content/3-pod-security/2-opa/2 - build-policy-constraint-constraint-template/index.en.md
+#content/3-pod-security/2-opa/3 - build-policy-constraint-constraint-template.1/index.en.md
+#content/6-network-security/2-vpc-lattice-service-access/4-multi-cluster-usecases/1-deploy-gw-api-controller/index.en.md

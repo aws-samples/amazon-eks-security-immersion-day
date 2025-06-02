@@ -1,0 +1,27 @@
+{
+  "singleQuote": true,
+  "trailingComma": "es5",
+  "printWidth": 100,
+  "tabWidth": 2,
+  "semi": true,
+  "bracketSpacing": true,
+  "arrowParens": "avoid",
+  "proseWrap": "preserve",
+  "htmlWhitespaceSensitivity": "ignore",
+  "endOfLine": "lf",
+  "embeddedLanguageFormatting": "off",
+  "parser": "markdown",
+  "requirePragma": true,
+  "overrides": [
+    {
+      "files": "*.md",
+      "options": {
+        "proseWrap": "preserve",
+        "htmlWhitespaceSensitivity": "ignore",
+        "parser": "markdown",
+        "embeddedLanguageFormatting": "off",
+        "requirePragma": true
+      }
+    }
+  ]
+}

@@ -1,8 +1,7 @@
 ---
-title : "Create Amazon EKS Cluster"
-weight : 24
+title: "Create Amazon EKS Cluster"
+weight: 24
 ---
-
 
 Create an eksctl deployment file (**eksworkshop.yaml**) used in creating your cluster using the following syntax:
 
@@ -47,7 +46,6 @@ EOF
 
 Next, use the file you created as the input for the eksctl cluster creation.
 
-
 ```bash
 eksctl create cluster -f eksworkshop.yaml
 ```
@@ -76,5 +74,5 @@ echo "export EKS_CLUSTER=eksworkshop-eksctl" >> ~/.bash_profile
 echo "export EKS_CLUSTER1_NAME=eksworkshop-eksctl" >> ~/.bash_profile
 echo "export EKS_CLUSTER1_CONTEXT=eksworkshop-eksctl" >> ~/.bash_profile
 source ~/.bash_profile
-aws eks update-kubeconfig --name $EKS_CLUSTER1_NAME --alias $EKS_CLUSTER1_NAME 
+aws eks update-kubeconfig --name $EKS_CLUSTER1_NAME --alias $EKS_CLUSTER1_NAME
 ```
