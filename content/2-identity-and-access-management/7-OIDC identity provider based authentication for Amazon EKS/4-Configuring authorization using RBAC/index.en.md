@@ -14,19 +14,19 @@ cat <<EOF> clusterrole-read-secrets.yaml
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-name: secret-readers
+  name: secret-readers
 rules:
 
 - apiGroups:
   - ""
-    resources:
+  resources:
   - secrets
-    verbs:
+  verbs:
   - 'get'
   - 'watch'
   - 'list'
-    EOF
-    :::
+EOF
+:::
 
 :::code{language=bash showLineNumbers=false showCopyAction=true}
 kubectl create -f clusterrole-read-secrets.yaml
@@ -35,23 +35,22 @@ kubectl create -f clusterrole-read-secrets.yaml
 Great, now we can bind this Cluster Role to a group called secret-readers in our OIDC identity provider. This will grant users who are members of the secret-reader group the ability to read Secrets, but they won't be able to access any other Kubernetes resources.
 
 :::code{language=yml showLineNumbers=false showCopyAction=true}
-cat <<EOF> clusterrolebinding-read-secrets.yaml
+cat > clusterrolebinding-read-secrets.yaml <<EOF
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-name: secret-readers-role-binding
-namespace: default
+  name: secret-readers-role-binding
+  namespace: default
 subjects:
-
 - kind: Group
   name: "gid:secret-reader"
   apiGroup: rbac.authorization.k8s.io
-  roleRef:
+roleRef:
   kind: ClusterRole
   name: secret-readers
   apiGroup: rbac.authorization.k8s.io
-  EOF
-  :::
+EOF
+:::
 
 :::code{language=bash showLineNumbers=false showCopyAction=true}
 kubectl create -f clusterrolebinding-read-secrets.yaml
@@ -66,11 +65,11 @@ cat <<EOF> secrets-create.yaml
 apiVersion: v1
 kind: Secret
 metadata:
-name: my-secret
+  name: my-secret
 type: Opaque
 data:
-username: dXNlcg==
-password: cGFzc3dvcmQ=
+  username: dXNlcg==
+  password: cGFzc3dvcmQ=
 EOF
 :::
 

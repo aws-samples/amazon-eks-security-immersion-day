@@ -105,7 +105,7 @@ In this section, we will create an Amazon VPC endpoint for GuardDuty Service.
 Run below commands to set environment variables for EKS VPC and Subnets used for the managed Nodegroup. We will need the list of subnets while creating the VPC Endpoint.
 
 ```bash
-export NODEGROUP_NAME="mng-al2"
+export NODEGROUP_NAME=""
 EKS_VPC_ID=$(eksctl get cluster $EKS_CLUSTER_NAME -ojson | jq -r '.[0]["ResourcesVpcConfig"]["VpcId"]')
 echo $EKS_VPC_ID
 export SUBNET_LIST=$(aws eks describe-nodegroup --cluster-name $EKS_CLUSTER_NAME --nodegroup-name $NODEGROUP_NAME  | jq -r '.nodegroup.subnets| join(" ")')
