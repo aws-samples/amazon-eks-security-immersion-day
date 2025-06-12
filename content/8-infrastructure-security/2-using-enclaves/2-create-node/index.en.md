@@ -130,7 +130,7 @@ SUBNETS=(`aws eks describe-cluster --name $EKS_CLUSTER --query 'cluster.resource
 SUBNET1=${SUBNETS[0]}
 SUBNET2=${SUBNETS[1]}
 SUBNET3=${SUBNETS[2]}
-NODE_ROLE=$(aws eks describe-nodegroup --nodegroup-name mng-al2 --cluster-name ${EKS_CLUSTER} --query 'nodegroup.nodeRole' --output text)
+NODE_ROLE=$(aws eks describe-nodegroup --nodegroup-name main --cluster-name ${EKS_CLUSTER} --query 'nodegroup.nodeRole' --output text)
 ```
 
 Create the node group in the existing Amazon EKS cluster using AWS CLI. The node group will use `amazon-linux-2023/x86_64/standard` for Amazon Linux 2023 (AL2023) `x86` based instance.

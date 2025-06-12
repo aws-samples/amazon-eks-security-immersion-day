@@ -6,8 +6,8 @@ weight: 25
 To cleanup, follow these steps.
 
 ```bash
-kubectl delete -f app1.txt
-kubectl delete -f app2.txt
+kubectl delete -f app1.yaml
+kubectl delete -f app2.yaml
 
 aws s3api delete-object --bucket $S3_BUCKET --key customer1.txt
 aws s3api delete-object --bucket $S3_BUCKET --key customer2.txt

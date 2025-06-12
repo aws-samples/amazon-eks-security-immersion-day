@@ -40,7 +40,7 @@ It is possible to automate the retrieval of temporary credentials for the assume
 ```bash
 mkdir -p ~/.aws
 
-export AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
+export AWS_REGION=$(TOKEN=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"` && curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
 export ADMIN_ROLE="k8sClusterAdmin"
 export ADMIN_PROFILE="eksAdmin"
 export DEV_ROLE="k8sTeamADev"

@@ -322,14 +322,14 @@ fields @timestamp, @message, sourceIPs.0
 
 ### Scenario-14 : Find recently added node in the cluster
 
-> To simulate this, Let's scale node-group mng-al2.
+> To simulate this, Let's scale node-group main.
 
-> Currently mng-al2 node-group has two ec2 instances. We will increase this count to three.
+> Currently main node-group has two ec2 instances. We will increase this count to three.
 
 > Execute this in Cloud9 Terminal
 
 ```bash
-eksctl scale nodegroup --cluster=eksworkshop-eksctl --nodes=3 mng-al2
+eksctl scale nodegroup --cluster=eksworkshop-eksctl --nodes=3 main
 ```
 
 > Check the status of node creation by executing

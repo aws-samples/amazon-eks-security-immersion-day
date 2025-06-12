@@ -43,7 +43,7 @@ aws eks describe-cluster --name $EKS_CLUSTER_NAME --query 'cluster.accessConfig'
 
 ```json
 {
-  "authenticationMode": "CONFIG_MAP"
+  "authenticationMode": "API_AND_CONFIG_MAP"
 }
 ```
 

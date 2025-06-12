@@ -17,7 +17,7 @@ Let us first describe the access entry for the EKS cluster creation role `eks-se
 
 ```bash
 export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
-export ACCESS_ENTRY="arn:aws:iam::$ACCOUNT_ID:role/eks-security-workshop"
+export ACCESS_ENTRY="arn:aws:iam::${ACCOUNT_ID}:role/eks-security-workshop"
 echo "ACCESS_ENTRY=$ACCESS_ENTRY"
 ```
 

@@ -8,7 +8,7 @@ The latest version of the Amazon VPC CNI ships an SDK that provides an interface
 Run the below command to connect one of the worker nodes in the EKS Cluster.
 
 ```bash
-aws ssm start-session --target $(aws ec2 describe-instances --filters "Name=tag:eks:nodegroup-name,Values=mng-al2" | jq -r '.[][0]["Instances"][0]["InstanceId"]')
+aws ssm start-session --target $(aws ec2 describe-instances --filters "Name=tag:eks:nodegroup-name,Values=main" | jq -r '.[][0]["Instances"][0]["InstanceId"]')
 ```
 
 ::::expand{header="Check Output"}
