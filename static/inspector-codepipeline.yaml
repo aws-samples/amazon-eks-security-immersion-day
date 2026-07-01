@@ -54,6 +54,24 @@ Resources:
   CodePipelineArtifactBucket:
     Type: AWS::S3::Bucket
 
+  CodePipelineArtifactBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref CodePipelineArtifactBucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: DenyInsecureConnections
+            Effect: Deny
+            Principal: "*"
+            Action: s3:*
+            Resource:
+              - !GetAtt CodePipelineArtifactBucket.Arn
+              - !Join ["", [!GetAtt CodePipelineArtifactBucket.Arn, "/*"]]
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+
   ContainerComponentsRepo:
     Type: AWS::CodeCommit::Repository
     Properties:
@@ -171,7 +189,8 @@ Resources:
             Principal: "*"
             Action: s3:*
             Resource:
-              !Join ["", [!GetAtt CodePipelineArtifactStoreBucket.Arn, "/*"]]
+              - !GetAtt CodePipelineArtifactStoreBucket.Arn
+              - !Join ["", [!GetAtt CodePipelineArtifactStoreBucket.Arn, "/*"]]
             Condition:
               Bool:
                 aws:SecureTransport: false
