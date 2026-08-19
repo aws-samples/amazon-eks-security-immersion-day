@@ -150,7 +150,7 @@ kubectl --context $EKS_CLUSTER2_CONTEXT exec -it deploy/app5-v1 -n app5 -c app5-
 
 ```
 {
-    "UserId": "AROAVR5MHJVYTH5XQCUZ7:eks-eksworksho-app5-v1-5d-b1844cc2-f35b-45a7-a0a4-c6245b9bceb4",
+    "UserId": "AROAEXAMPLEID:eks-eksworksho-app5-v1-5d-b1844cc2-f35b-45a7-a0a4-c6245b9bceb4",
     "Account": "012345678901",
     "Arn": "arn:aws:sts::012345678901:assumed-role/aws-sigv4-client/eks-eksworksho-app5-v1-5d-b1844cc2-f35b-45a7-a0a4-c6245b9bceb4"
 }

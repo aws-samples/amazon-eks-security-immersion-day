@@ -67,7 +67,7 @@ echo "ROLE_ID=$ROLE_ID"
 ::::expand{header="Check Output"}
 
 ```bash
-ROLE_ID=AROAQAHCJ2QPJTOAB3E4V
+ROLE_ID=AROAEXAMPLEID1
 ```
 
 ::::
@@ -121,12 +121,12 @@ echo "ROLE_ID=$ROLE_ID"
 ::::expand{header="Check Output"}
 
 ```bash
-ROLE_ID=AROAQAHCJ2QPOIJYQ2RTT
+ROLE_ID=AROAEXAMPLEID2
 ```
 
 ::::
 
-Note that the current Role Id `AROAQAHCJ2QPOIJYQ2RTT` is different from the earlier one `AROAQAHCJ2QPJTOAB3E4V` even for same Role ARN.
+Note that the current Role Id `AROAEXAMPLEID2` is different from the earlier one `AROAEXAMPLEID1` even for same Role ARN.
 
 Let us test access to EKS cluster.
 
