@@ -49,7 +49,7 @@ aws iam attach-role-policy \
     "Role": {
         "Path": "/",
         "RoleName": "aws-sigv4-client",
-        "RoleId": "AROAVR5MHJVY7PQ6Q7AMI",
+        "RoleId": "AROAEXAMPLEID",
         "Arn": "arn:aws:iam::382076407153:role/aws-sigv4-client",
         "CreateDate": "2024-02-09T11:00:22+00:00",
         "AssumeRolePolicyDocument": {
@@ -165,7 +165,7 @@ kubectl --context $EKS_CLUSTER1_CONTEXT exec -ti -n app1 deployment/app1-v1 -- a
 ::::expand{header="Check Output"}
 ```
 {
-    "UserId": "AROARNLDHSLO22SR73KBL:eks-eksworksho-app1-v1-5b-de387d83-d53c-4022-bebe-d6e35a034e4b",
+    "UserId": "AROAEXAMPLEID:eks-eksworksho-app1-v1-5b-de387d83-d53c-4022-bebe-d6e35a034e4b",
     "Account": "012345678901",
     "Arn": "arn:aws:sts::012345678901:assumed-role/aws-sigv4-client/eks-eksworksho-app1-v1-5b-de387d83-d53c-4022-bebe-d6e35a034e4b"
 }
@@ -181,7 +181,7 @@ kubectl stern --context $EKS_CLUSTER1_CONTEXT -n kube-system daemonset/eks-pod-i
 
 ::::expand{header="Check Output"}
 ```
-eks-pod-identity-agent-fd2zw eks-pod-identity-agent {"client-addr":"10.254.145.206:37308","cluster-name":"eksworkshop-eksctl","fetched_role_arn":"arn:aws:sts::097381749469:assumed-role/aws-sigv4-client/eks-eksworksho-app1-v1-5b-de387d83-d53c-4022-bebe-d6e35a034e4b","fetched_role_id":"AROARNLDHSLO22SR73KBL:eks-eksworksho-app1-v1-5b-de387d83-d53c-4022-bebe-d6e35a034e4b","level":"info","msg":"Successfully fetched credentials from EKS Auth","request_time_ms":179,"time":"2024-02-08T13:32:58Z"}
+eks-pod-identity-agent-fd2zw eks-pod-identity-agent {"client-addr":"10.254.145.206:37308","cluster-name":"eksworkshop-eksctl","fetched_role_arn":"arn:aws:sts::097381749469:assumed-role/aws-sigv4-client/eks-eksworksho-app1-v1-5b-de387d83-d53c-4022-bebe-d6e35a034e4b","fetched_role_id":"AROAEXAMPLEID:eks-eksworksho-app1-v1-5b-de387d83-d53c-4022-bebe-d6e35a034e4b","level":"info","msg":"Successfully fetched credentials from EKS Auth","request_time_ms":179,"time":"2024-02-08T13:32:58Z"}
 ```
 ::::
 

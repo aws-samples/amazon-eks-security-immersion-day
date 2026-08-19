@@ -150,9 +150,9 @@ The output will like look below.
 
 ```json
 {
-  "AccessKeyId": "ASIAQAHCJ2QPOKXPLCQ4",
-  "SecretAccessKey": "UYEyaLMLoa0y6lx1FvpSzSwHJzZml7b9qiSRU2ry",
-  "Token": "IQoJb3JpZ2luX2VjEK///////////wEaCXVzLWVhc3QtMSJIMEYCIQD26IOY4R6nkjzmSZBsya2g3lFNBEmsMUJ/WanZ7S9I6wIhANLXXajMfkaS2VaMjpMsTfCAJ0wqsXoguAJXtKbwV1MeKrIECCgQBBoMMDAwNDc0NjAwNDc4IgxBoWc4XimzrdkzqaAqjwQ7FZNzbWKi7Em4oEvEi9mvXmDd4fNf6ex5T++TZ2DNq+UTr7my46evteWjRmtX/NfK+JwIf5An87r47HMC6HifYexbL9oOixfPoAYihk75rA24WF2Xpiqrv6KqlFDeKNe4GIMevc9J4KjxaUGly0BGfEfarSG4z49nDdZfkrphj7GbAxNwZsIrKOnR9NkSg0f2MyKnWZFnKKtTWW8Kx70irDUmDghTXvAPVWljOaDW+V5STEx2AUHb6XMmQo8tc7MUWTSZglh2EcRfplKClJjXkwsPdCp8/5LFrZPYiOgK5pSV4thNxwhxPmvbLLvXNVnqAM80xRB/05qC0ww5J94t1qyvUsmignuF9R8NoFJr8VcQA0mIDp0lGnL5AvB1L4BNF96CQgBG2gbqpejB1cAcANbnRs9tWvjLr6uDtJyL+IhQGfXdCpSd12rqy4Ex2qMAP9dcaoX0ShlPYwQdP4k5tSeH5HIW9k0XADa0I41+hc32R0iHd8/vD+5Hf0k8l+jGUHgNQ5QCRuEl0BAm50rV+IRSFafTwcDXYNbQUXlHM6Z7sp58ksqzwX7qQfE5j4eruQF/MrYqcnxHYSySO0Y9WvpDfm1YgEX/IZCdJWQPxCVnGAY8cluiGBw2PdLu8We3cyC/Vnc+2nhg7I5R7gmyCuI10fepv99y71UpPCJacYfn++cuAzdX95b2v5k5UTDEheCrBjqOASSNOnzg8FcFw0zabrb/ryinPDWpKAJE2p/I5KlVQcJlXacEl3jD4qd/fVRRCm7ckrbngNWQTMxm6WEQLXNYKWk52+e/kxxgYdygOju3pzYSdEYcM/50O4h89amgwfZQfPK/8R9mCEqngUKOEbAty4ibwen0HyeNI4ILWf3rmVK0tCIfzLO3+lGCA9DQpqg=",
+  "AccessKeyId": "AKIAIOSFODNN7EXAMPLE",
+  "SecretAccessKey": "REDACTED",
+  "Token": "REDACTED",
   "AccountId": "ACCOUNT_ID",
   "Expiration": "2023-12-12T12:50:44Z"
 }
@@ -367,12 +367,12 @@ An example output from the above call `aws eks-auth assume-role-for-pod-identity
     },
     "assumedRoleUser": {
         "arn": "arn:aws:sts::ACCOUNT_ID:assumed-role/eks-pod-s3-readonly-access/eks-eks-ref-sc-app2-17903385-a093-4b17-9f47-97e9137a30fc",
-        "assumeRoleId": "AROAQAHCJ2QPFDE3D2IDP:eks-eks-ref-sc-app2-17903385-a093-4b17-9f47-97e9137a30fc"
+        "assumeRoleId": "AROAEXAMPLEID:eks-eks-ref-sc-app2-17903385-a093-4b17-9f47-97e9137a30fc"
     },
     "credentials": {
-        "sessionToken": "IQoJb3JpZ2luX2VjEH4aCXVzLWVhc3QtMSJHMEUCIQDPfnCLOWO6aEuGGPfdYgrqqGFABVr+N9uZDPg5ONu39gIgLF9V2ONFar0zWDMERDeuS7wJnd8zijYBdi9ljTypMAwquwQI5v//////////ARAEGgwwMDA0NzQ2MDA0NzgiDO9thgc7RgERWWYK/iqPBPIaPWyt3e9JAIV/zq6REb/Fa3RCIFkzobnvD4fb4DuQiWWl84KkUIEpVxv0MG3hk6s8mkM41bNGokoDI4J70/EJfY/9Q3Ygo6Az6eVpbG0EgrFOrQm9Lv54bZ2pPfIdQt1Mj7gVExtW6PdsnhZX/04Or+a+rQJREc3viRE2KhvbOO3I1yAfxHQa1Px5z3gIgtdv2uh02D8qZQUFiDLHef4FuhZ/+gG/acSZL6r/yRsqii76/VTKKvrKZAqF+Ovig+HOmQ85DBZlgRXDDRI6CWtsw49zm9/vMX4nSpiYanuq0iFvRP0gTjkCdbywGZFim+OyzZHgopYgJap33SO7Clff54TpztANal53KyI+kv5N28m7bbFCPdiswIhNXQ6f709w9R1agXWwv294d5XZ0qIM8Vbh7LZvLRyCL7bP0NFYzyzqP+ksx7L5Y+LV1hJNe5z1W5EiQ0Yd/7lsWFn4jDN/SggVJu6qLxkOyFsYqB6oEpuFAu/CLJyf39lCLBvJrOdFWJcfVBS2NpycN08fKRw+BMseqFNjq05XRnnjePEAduNLmuDFzg2saPk5UtPPw/gc0LlLpoT4PME8M3fl/80jCzm+KFTMrbuMJrLyWWlugq0Lf1W64r0De9LgOmlbS+/f0FJR/W6XTCtRkqFRAdceEtourqeFRf8D0At6Kqk/VxbMcXczzI/UwTsj6dxdMMiQ1asGOo8BMqiQ73a+J7DJ3vXmxxy55J5Mlmx1Ja8E0qc/4LQtJp+RH20H0sHSM7ubP6KqfvTEN38wgC3WnOv8TpwwGJIOK7fMs/fAZmloC7qde7otfZnikuUECZmI6752fe7ydvX98jmf5ESmR64coLd45lQ9ZyBFvSdoq3ItPFiPENvpFqCidjQjVSNjjs4SD5GRvmo=",
-        "secretAccessKey": "ftZLqkr+iQTZsGV/l3HZPCQVCQZUwgVwgYaaIiPY",
-        "accessKeyId": "ASIAQAHCJ2QPPKHZNJFH",
+        "sessionToken": "REDACTED",
+        "secretAccessKey": "REDACTED",
+        "accessKeyId": "AKIAIOSFODNN7EXAMPLE",
         "expiration": "2023-12-10T11:10:32+00:00"
     }
 }
@@ -393,7 +393,7 @@ aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,Attribut
       "EventId": "e05b6d2e-4be6-45dd-8ad5-ba1e076002a5",
       "EventName": "AssumeRoleForPodIdentity",
       "ReadOnly": "true",
-      "AccessKeyId": "ASIAQAHCJ2QPOFDF6NOW",
+      "AccessKeyId": "AKIAIOSFODNN7EXAMPLE",
       "EventTime": "2023-12-13T01:14:20+00:00",
       "EventSource": "eks-auth.amazonaws.com",
       "Username": "i-064d652934ecf0bfc",
@@ -403,7 +403,7 @@ aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,Attribut
           "ResourceName": "eksworkshop-eksctl"
         }
       ],
-      "CloudTrailEvent": "{\"eventVersion\":\"1.09\",\"userIdentity\":{\"type\":\"AssumedRole\",\"principalId\":\"AROAQAHCJ2QPM6KW4RJQK:i-064d652934ecf0bfc\",\"arn\":\"arn:aws:sts::ACCOUNT_ID:assumed-role/platform-eks-node-group-20231128085853957000000011/i-064d652934ecf0bfc\",\"accountId\":\"ACCOUNT_ID\",\"accessKeyId\":\"ASIAQAHCJ2QPOFDF6NOW\",\"sessionContext\":{\"sessionIssuer\":{\"type\":\"Role\",\"principalId\":\"AROAQAHCJ2QPM6KW4RJQK\",\"arn\":\"arn:aws:iam::ACCOUNT_ID:role/platform-eks-node-group-20231128085853957000000011\",\"accountId\":\"ACCOUNT_ID\",\"userName\":\"platform-eks-node-group-20231128085853957000000011\"},\"attributes\":{\"creationDate\":\"2023-12-13T01:04:37Z\",\"mfaAuthenticated\":\"false\"},\"ec2RoleDelivery\":\"2.0\"}},\"eventTime\":\"2023-12-13T01:14:20Z\",\"eventSource\":\"eks-auth.amazonaws.com\",\"eventName\":\"AssumeRoleForPodIdentity\",\"awsRegion\":\"us-west-2\",\"sourceIPAddress\":\"44.219.101.145\",\"userAgent\":\"aws-sdk-go-v2/1.21.2 os/linux lang/go#1.19.13 md/GOOS#linux md/GOARCH#amd64 api/eksauth#1.0.0-zeta.e49712bf27d5\",\"requestParameters\":{\"clusterName\":\"eksworkshop-eksctl\",\"token\":\"HIDDEN_DUE_TO_SECURITY_REASONS\"},\"responseElements\":null,\"requestID\":\"7f8d9b80-3603-40eb-827b-e0afafc49507\",\"eventID\":\"e05b6d2e-4be6-45dd-8ad5-ba1e076002a5\",\"readOnly\":true,\"eventType\":\"AwsApiCall\",\"managementEvent\":true,\"recipientAccountId\":\"ACCOUNT_ID\",\"eventCategory\":\"Management\",\"tlsDetails\":{\"tlsVersion\":\"TLSv1.3\",\"cipherSuite\":\"TLS_AES_128_GCM_SHA256\",\"clientProvidedHostHeader\":\"eks-auth.us-west-2.api.aws\"}}"
+      "CloudTrailEvent": "{\"eventVersion\":\"1.09\",\"userIdentity\":{\"type\":\"AssumedRole\",\"principalId\":\"AROAEXAMPLEID:i-064d652934ecf0bfc\",\"arn\":\"arn:aws:sts::ACCOUNT_ID:assumed-role/platform-eks-node-group-20231128085853957000000011/i-064d652934ecf0bfc\",\"accountId\":\"ACCOUNT_ID\",\"accessKeyId\":\"AKIAIOSFODNN7EXAMPLE\",\"sessionContext\":{\"sessionIssuer\":{\"type\":\"Role\",\"principalId\":\"AROAEXAMPLEID\",\"arn\":\"arn:aws:iam::ACCOUNT_ID:role/platform-eks-node-group-20231128085853957000000011\",\"accountId\":\"ACCOUNT_ID\",\"userName\":\"platform-eks-node-group-20231128085853957000000011\"},\"attributes\":{\"creationDate\":\"2023-12-13T01:04:37Z\",\"mfaAuthenticated\":\"false\"},\"ec2RoleDelivery\":\"2.0\"}},\"eventTime\":\"2023-12-13T01:14:20Z\",\"eventSource\":\"eks-auth.amazonaws.com\",\"eventName\":\"AssumeRoleForPodIdentity\",\"awsRegion\":\"us-west-2\",\"sourceIPAddress\":\"44.219.101.145\",\"userAgent\":\"aws-sdk-go-v2/1.21.2 os/linux lang/go#1.19.13 md/GOOS#linux md/GOARCH#amd64 api/eksauth#1.0.0-zeta.e49712bf27d5\",\"requestParameters\":{\"clusterName\":\"eksworkshop-eksctl\",\"token\":\"HIDDEN_DUE_TO_SECURITY_REASONS\"},\"responseElements\":null,\"requestID\":\"7f8d9b80-3603-40eb-827b-e0afafc49507\",\"eventID\":\"e05b6d2e-4be6-45dd-8ad5-ba1e076002a5\",\"readOnly\":true,\"eventType\":\"AwsApiCall\",\"managementEvent\":true,\"recipientAccountId\":\"ACCOUNT_ID\",\"eventCategory\":\"Management\",\"tlsDetails\":{\"tlsVersion\":\"TLSv1.3\",\"cipherSuite\":\"TLS_AES_128_GCM_SHA256\",\"clientProvidedHostHeader\":\"eks-auth.us-west-2.api.aws\"}}"
     }
   ],
   "NextToken": "eyJOZXh0VG9rZW4iOiBudWxsLCAiYm90b190cnVuY2F0ZV9hbW91bnQiOiAxfQ=="
@@ -441,7 +441,7 @@ You can also lookup for the CloudTrail event for the call to AWS STS Service to 
       "Resources": [
         {
           "ResourceType": "AWS::IAM::AccessKey",
-          "ResourceName": "ASIAQAHCJ2QPJEYFB36U"
+          "ResourceName": "AKIAIOSFODNN7EXAMPLE"
         },
         {
           "ResourceType": "AWS::STS::AssumedRole",
@@ -449,7 +449,7 @@ You can also lookup for the CloudTrail event for the call to AWS STS Service to 
         },
         {
           "ResourceType": "AWS::STS::AssumedRole",
-          "ResourceName": "AROAQAHCJ2QPKFESI56SW:eks-eks-ref-sc-app1-b81f0fef-97e9-47da-97a2-948c5bbcd1b3"
+          "ResourceName": "AROAEXAMPLEID:eks-eks-ref-sc-app1-b81f0fef-97e9-47da-97a2-948c5bbcd1b3"
         },
         {
           "ResourceType": "AWS::STS::AssumedRole",
@@ -460,7 +460,7 @@ You can also lookup for the CloudTrail event for the call to AWS STS Service to 
           "ResourceName": "arn:aws:iam::ACCOUNT_ID:role/eks-pod-s3-read-access-role"
         }
       ],
-      "CloudTrailEvent": "{\"eventVersion\":\"1.08\",\"userIdentity\":{\"type\":\"AWSService\",\"invokedBy\":\"pods.eks.amazonaws.com\"},\"eventTime\":\"2023-12-13T01:14:20Z\",\"eventSource\":\"sts.amazonaws.com\",\"eventName\":\"AssumeRole\",\"awsRegion\":\"us-west-2\",\"sourceIPAddress\":\"pods.eks.amazonaws.com\",\"userAgent\":\"pods.eks.amazonaws.com\",\"requestParameters\":{\"roleArn\":\"arn:aws:iam::ACCOUNT_ID:role/eks-pod-s3-read-access-role\",\"roleSessionName\":\"eks-eks-ref-sc-app1-b81f0fef-97e9-47da-97a2-948c5bbcd1b3\",\"durationSeconds\":21600,\"tags\":[{\"key\":\"eks-cluster-arn\",\"value\":\"arn:aws:eks:us-west-2:ACCOUNT_ID:cluster/eksworkshop-eksctl\"},{\"key\":\"eks-cluster-name\",\"value\":\"eksworkshop-eksctl\"},{\"key\":\"kubernetes-namespace\",\"value\":\"ns-a\"},{\"key\":\"kubernetes-service-account\",\"value\":\"sa1\"},{\"key\":\"kubernetes-pod-name\",\"value\":\"app1\"},{\"key\":\"kubernetes-pod-uid\",\"value\":\"91eee131-74f3-49d4-8f7c-bcde305c120b\"}],\"transitiveTagKeys\":[\"eks-cluster-arn\",\"eks-cluster-name\",\"kubernetes-namespace\",\"kubernetes-service-account\",\"kubernetes-pod-name\",\"kubernetes-pod-uid\"]},\"responseElements\":{\"credentials\":{\"accessKeyId\":\"ASIAQAHCJ2QPJEYFB36U\",\"sessionToken\":\"IQoJb3JpZ2luX2VjEML//////////wEaCXVzLWVhc3QtMSJHMEUCIFKwhV7flTaqBATa/jOaAfAeGVYeh0P0BJGnVdqvrlL5AiEA6JqJAMbZipbskB7ZIqaaynp65z1Z2L/nTmPhwaN9QxAqsgQIOhAEGgwwMDA0NzQ2MDA0NzgiDGBj+pVygJ1dJRIz1yqPBI6G4EBU6SEHH6Sf7rfaNSuaptbRfNVRmaIA69IpFdwrHcMCUxI9x7jmHAVB8CIYegct6fNAFQEXTqVCCOI+Lbyk6tCTZbFcN2Eqv60sb04eU2/Be7MB1yKAJREMvdJV04lvUHSb+ocQwGyXlnGbgF4J3j/OSB7DqetXAV7JY6yIJrzb09Ky15fkXDxAYK/T1NufGmXNNjQO5h6WMkDR7ZRb/qubJ8oL42ArWMxRrTiXE0+2XjDEBuzgQmpxIRRnBqpaBcFsBCTZcIdIkzIHArUpGzPQqj5knEoB2KFfQntRXszHfcTWZYnEfpwkiMT8H1qu7iJth3Q4Gck6ihDPtICzR7VUMY45THvAdkw+qaa4PHMy7J3cAcQ/gWlIhJXQcQBVYz0qjxyIRZfWc/MYh1lSRHTE+nTQDnvBzPne2rRRcsP5EpJk9N2NrtBxQgNYmKbm3bwAfngx9gvhTzA7oTWwjYr04f/96wO+o104p6L4j7oufzgOfQ6AGaHc3bb0okDylH8Wgj+uPDG1PZQcXsEVIhX7c4mnVPEzT8kxPxHXjw1SCKYPcJU1uYvb+0ooa72VqjmwseqjoBYz+xXg6e23ULJJUhTsF/PUKHyU9PIfREZc/CwyBb9C4N8NmalvKfg+/do5bxER8v62OyOZifq2Wc8YcwEuOKzcOXQduYjNaSiIJPHP7xh53nMQ4xuzMOyK5KsGOo8BSdEJ3ldfs5znvyOa8AOs3WALXers7RxTdyN+GLHFfRP49uNmGszyyxXNiiMcTeOIUgrNVV9G0Blp0Yfm6ss8ivLMbnt0h4dl3zIXJEBBWbNPUBQOyquEkxgyq5WGa3sB/uhpLufaWb2KP6PvEHuS5iJ0dHkr4NxrmP98r+QvOb8lfqFK+wIOLPV28H+yMI0=\",\"expiration\":\"Dec 13, 2023, 7:14:20 AM\"},\"assumedRoleUser\":{\"assumedRoleId\":\"AROAQAHCJ2QPKFESI56SW:eks-eks-ref-sc-app1-b81f0fef-97e9-47da-97a2-948c5bbcd1b3\",\"arn\":\"arn:aws:sts::ACCOUNT_ID:assumed-role/eks-pod-s3-read-access-role/eks-eks-ref-sc-app1-b81f0fef-97e9-47da-97a2-948c5bbcd1b3\"},\"packedPolicySize\":55},\"requestID\":\"b24654c7-be30-474d-903e-caf147dd7286\",\"eventID\":\"55621424-173a-3b4e-a321-661c4206278c\",\"readOnly\":true,\"resources\":[{\"accountId\":\"ACCOUNT_ID\",\"type\":\"AWS::IAM::Role\",\"ARN\":\"arn:aws:iam::ACCOUNT_ID:role/eks-pod-s3-read-access-role\"}],\"eventType\":\"AwsApiCall\",\"managementEvent\":true,\"recipientAccountId\":\"ACCOUNT_ID\",\"sharedEventID\":\"3bf1ef4e-27b9-4653-b368-cdab2cc98411\",\"eventCategory\":\"Management\"}"
+      "CloudTrailEvent": "{\"eventVersion\":\"1.08\",\"userIdentity\":{\"type\":\"AWSService\",\"invokedBy\":\"pods.eks.amazonaws.com\"},\"eventTime\":\"2023-12-13T01:14:20Z\",\"eventSource\":\"sts.amazonaws.com\",\"eventName\":\"AssumeRole\",\"awsRegion\":\"us-west-2\",\"sourceIPAddress\":\"pods.eks.amazonaws.com\",\"userAgent\":\"pods.eks.amazonaws.com\",\"requestParameters\":{\"roleArn\":\"arn:aws:iam::ACCOUNT_ID:role/eks-pod-s3-read-access-role\",\"roleSessionName\":\"eks-eks-ref-sc-app1-b81f0fef-97e9-47da-97a2-948c5bbcd1b3\",\"durationSeconds\":21600,\"tags\":[{\"key\":\"eks-cluster-arn\",\"value\":\"arn:aws:eks:us-west-2:ACCOUNT_ID:cluster/eksworkshop-eksctl\"},{\"key\":\"eks-cluster-name\",\"value\":\"eksworkshop-eksctl\"},{\"key\":\"kubernetes-namespace\",\"value\":\"ns-a\"},{\"key\":\"kubernetes-service-account\",\"value\":\"sa1\"},{\"key\":\"kubernetes-pod-name\",\"value\":\"app1\"},{\"key\":\"kubernetes-pod-uid\",\"value\":\"91eee131-74f3-49d4-8f7c-bcde305c120b\"}],\"transitiveTagKeys\":[\"eks-cluster-arn\",\"eks-cluster-name\",\"kubernetes-namespace\",\"kubernetes-service-account\",\"kubernetes-pod-name\",\"kubernetes-pod-uid\"]},\"responseElements\":{\"credentials\":{\"accessKeyId\":\"AKIAIOSFODNN7EXAMPLE\",\"sessionToken\":\"REDACTED\",\"expiration\":\"Dec 13, 2023, 7:14:20 AM\"},\"assumedRoleUser\":{\"assumedRoleId\":\"AROAEXAMPLEID:eks-eks-ref-sc-app1-b81f0fef-97e9-47da-97a2-948c5bbcd1b3\",\"arn\":\"arn:aws:sts::ACCOUNT_ID:assumed-role/eks-pod-s3-read-access-role/eks-eks-ref-sc-app1-b81f0fef-97e9-47da-97a2-948c5bbcd1b3\"},\"packedPolicySize\":55},\"requestID\":\"b24654c7-be30-474d-903e-caf147dd7286\",\"eventID\":\"55621424-173a-3b4e-a321-661c4206278c\",\"readOnly\":true,\"resources\":[{\"accountId\":\"ACCOUNT_ID\",\"type\":\"AWS::IAM::Role\",\"ARN\":\"arn:aws:iam::ACCOUNT_ID:role/eks-pod-s3-read-access-role\"}],\"eventType\":\"AwsApiCall\",\"managementEvent\":true,\"recipientAccountId\":\"ACCOUNT_ID\",\"sharedEventID\":\"3bf1ef4e-27b9-4653-b368-cdab2cc98411\",\"eventCategory\":\"Management\"}"
     }
   ]
 }

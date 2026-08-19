@@ -213,7 +213,7 @@ aws sts get-caller-identity
 ::::expand{header="Check Output"}
 ```json
 {
-    "UserId": "AROA26YVAA7X6WCNE47I3:i-0099e96934253a907",
+    "UserId": "AROAEXAMPLEID:i-0099e96934253a907",
     "Account": "ACCOUNT_ID",
     "Arn": "arn:aws:sts::ACCOUNT_ID:assumed-role/eks-security-workshop/i-0099e96934253a907"
 }
