@@ -58,7 +58,7 @@ aws iam attach-role-policy \
   "Role": {
     "Path": "/",
     "RoleName": "aws-sigv4-client",
-    "RoleId": "AROAVR5MHJVY7PQ6Q7AMI",
+    "RoleId": "AROAEXAMPLEID",
     "Arn": "arn:aws:iam::382076407153:role/aws-sigv4-client",
     "CreateDate": "2024-02-09T11:00:22+00:00",
     "AssumeRolePolicyDocument": {
@@ -178,7 +178,7 @@ kubectl --context $EKS_CLUSTER1_CONTEXT exec -ti -n app1 deployment/app1-v1 -- a
 ::::expand{header="Check Output"}
 :::code{language=yml showCopyAction=false showLineNumbers=false highlightLines='4'}
 {
-"UserId": "AROARNLDHSLO22SR73KBL:eks-eksworksho-app1-v1-5b-de387d83-d53c-4022-bebe-d6e35a034e4b",
+"UserId": "AROAEXAMPLEID:eks-eksworksho-app1-v1-5b-de387d83-d53c-4022-bebe-d6e35a034e4b",
 "Account": "012345678901",
 "Arn": "arn:aws:sts::012345678901:assumed-role/aws-sigv4-client/eks-eksworksho-app1-v1-5b-de387d83-d53c-4022-bebe-d6e35a034e4b"
 }
@@ -196,7 +196,7 @@ kubectl stern --context $EKS_CLUSTER1_CONTEXT -n kube-system daemonset/eks-pod-i
 ::::expand{header="Check Output"}
 
 ```
-eks-pod-identity-agent-fd2zw eks-pod-identity-agent {"client-addr":"10.254.145.206:37308","cluster-name":"eksworkshop-eksctl","fetched_role_arn":"arn:aws:sts::097381749469:assumed-role/aws-sigv4-client/eks-eksworksho-app1-v1-5b-de387d83-d53c-4022-bebe-d6e35a034e4b","fetched_role_id":"AROARNLDHSLO22SR73KBL:eks-eksworksho-app1-v1-5b-de387d83-d53c-4022-bebe-d6e35a034e4b","level":"info","msg":"Successfully fetched credentials from EKS Auth","request_time_ms":179,"time":"2024-02-08T13:32:58Z"}
+eks-pod-identity-agent-fd2zw eks-pod-identity-agent {"client-addr":"10.254.145.206:37308","cluster-name":"eksworkshop-eksctl","fetched_role_arn":"arn:aws:sts::097381749469:assumed-role/aws-sigv4-client/eks-eksworksho-app1-v1-5b-de387d83-d53c-4022-bebe-d6e35a034e4b","fetched_role_id":"AROAEXAMPLEID:eks-eksworksho-app1-v1-5b-de387d83-d53c-4022-bebe-d6e35a034e4b","level":"info","msg":"Successfully fetched credentials from EKS Auth","request_time_ms":179,"time":"2024-02-08T13:32:58Z"}
 ```
 
 ::::
@@ -334,11 +334,11 @@ echo $events | jq '.Events[] | (.CloudTrailEvent | fromjson | select(.requestPar
    "responseElements":{
       "credentials":{
          "accessKeyId":"AKIAIOSFODNN7EXAMPLE",
-         "sessionToken":"IQoJb3JpZ2luX2VjEIL//////////wEaCXVzLXdlc3QtMiJGMEQCIAYZzdfsDy76y4lH1wr9CqxwgH4Tppj5RxNDLQv1zSrnAiAWPmszQSsiKTRty+cbZJ3BsvxPMGLeMol2FmStIek33irbBAi7//////////8BEAAaDDgyMzU3MTk5MTU0NiIMOCcckQPwMq7t8OQVKq8ECLBUKkdC/6Jz8FsAn3eVvOUyfT3MXVOx5kPUWcEu6petffYGdpU87w/MsgJcb6GGO1MP3Zome8AJOqxZDsQhdj+n2X0zqVwaEoa+oDYWY19MrREPLS1FapSZ00KhFfFMHX/PSWFaX25Mgy424WQE3n9UsJ5HTPf6wupjJh5cHv1X+8fI0f8EU4fh7ktLShz3rrEVLCKLa2VpxzjFIbR2QdZ/fKI7GNbXV5FahMwYmw/NApKLIZsDstNrZyidjdaNZiynFMXcXyNpsRVvUZZjm2RVImjCzMBk/O+RbJf/qLwGkKDlSbMgTVoNJaIAl7q6+HWz8Xi9DWe2ZZxW9dNyy0N0vg8GlC4jipHX5D9WnRqBE57auf7nGvNNAvxPAgFb66Z1OImk9bycXka+4pAv+IEfzebdq/XlON1jdbanwxWEdqXlXYDyD2dkAy9/o/pCEND/+nthFguQWT8LeWlWTQvJ3c/gSyLthl+Xy57UQmAOGPM4+4wXaA84q/Tnq3wdxotn1bqsowCMlkSqLmIFE15lFDb/5Ky6i2NvIkPWZLKvYSfd3zaF08tY17YHhcO9KzUaz4apF4hQyS6oNT47Jy4QkqONtGOqg1A3jTWlbYtEPYgaMvj2+26Ce3eIO/wS4Jo+LIAdCN+kBw6kXDDEhuGVVpqcb8QcwndBngM54uZD9QGMlJkh6Dd3BUETuwxxCmWoKvfBlTTkBUozlNj6us20kRsIcKpzXcyiI3R4YTDgi/mwBjqPAYRtANge+V11kmTleyxjWgGuNsojx3aIVH6aWfQJaLCez22sPlTTTW+0NGzcJLikSKCks+wNXGBttmAIWvT1OxI085sCnALPyk2mTTf6BOj6xEGpeJQY4rI+rE55aaRxX5EZwIMJa4vq8NgpDPEffBYGdxmN89Q+l/RrBj3DBkEbTMisFM3FdQQ+V9TMrX/u",
+         "sessionToken":"REDACTED",
          "expiration":"Apr 16, 2024, 3:33:20 PM"
       },
       "assumedRoleUser":{
-         "assumedRoleId":"AROA37QFXJP5AGSZ5OSVM:eks-eksworksho-app1-v1-56-d1861451-6ee5-4069-ae5d-741cbb99692a",
+         "assumedRoleId":"AROAEXAMPLEID:eks-eksworksho-app1-v1-56-d1861451-6ee5-4069-ae5d-741cbb99692a",
          "arn":"arn:aws:sts::012345678901:assumed-role/aws-sigv4-client/eks-eksworksho-app1-v1-56-d1861451-6ee5-4069-ae5d-741cbb99692a"
       },
       "packedPolicySize":61
