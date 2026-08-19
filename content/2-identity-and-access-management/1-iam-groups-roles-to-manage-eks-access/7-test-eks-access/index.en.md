@@ -71,7 +71,7 @@ The output looks like below.
 
 ```
 {
-    "UserId": "AROAUD5VMKW75WJEHFU4X:botocore-session-1581687024",
+    "UserId": "AROAEXAMPLEID:botocore-session-1581687024",
     "Account": "12345678900",
     "Arn": "arn:aws:sts::12345678900:assumed-role/k8sDev/botocore-session-1581687024"
 }
@@ -89,7 +89,7 @@ The output looks like below.
 
 ```
 {
-    "UserId": "AROAUD5VMKW77KXQAL7ZX:botocore-session-1582022121",
+    "UserId": "AROAEXAMPLEID:botocore-session-1582022121",
     "Account": "12345678900",
     "Arn": "arn:aws:sts::12345678900:assumed-role/k8sAdmin/botocore-session-1582022121"
 }

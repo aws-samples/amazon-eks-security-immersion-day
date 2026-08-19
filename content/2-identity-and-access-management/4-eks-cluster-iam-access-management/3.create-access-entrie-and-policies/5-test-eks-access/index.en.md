@@ -126,7 +126,7 @@ The output looks like below.
 
 ```json
 {
-  "UserId": "AROA26YVAA7XXGCMO6D5W:botocore-session-1706617342",
+  "UserId": "AROAEXAMPLEID:botocore-session-1706617342",
   "Account": "ACCOUNT_ID",
   "Arn": "arn:aws:sts::ACCOUNT_ID:assumed-role/k8sClusterAdmin/botocore-session-1706617342"
 }
@@ -144,7 +144,7 @@ The output looks like below.
 
 ```json
 {
-  "UserId": "AROA26YVAA7X4JDJXGLQX:botocore-session-1706617378",
+  "UserId": "AROAEXAMPLEID:botocore-session-1706617378",
   "Account": "ACCOUNT_ID",
   "Arn": "arn:aws:sts::ACCOUNT_ID:assumed-role/k8sTeamADev/botocore-session-1706617378"
 }
